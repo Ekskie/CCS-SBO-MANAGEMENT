@@ -1,0 +1,218 @@
+@font-face {
+  font-family: "Ignis-et-Glacies-Sharp-Bold";
+  src: url(/static/font/Ignis-et-Glacies-Sharp-Bold.ttf.woff) format("woff"),
+    url(/static/font/Ignis-et-Glacies-Sharp-Bold.ttf.svg#Ignis-et-Glacies-Sharp-Bold)
+      format("svg"),
+    url(/static/font/Ignis-et-Glacies-Sharp-Bold.ttf.eot),
+    url(/static/font/Ignis-et-Glacies-Sharp-Bold.ttf.eot?#iefix)
+      format("embedded-opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+    --primary-color: #1e76dd;
+    --secondary-color: #03dac6;
+    --background-dark: #121212;
+    --surface-color: #1e1e1e;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --accent-color: #bb86fc;
+    --error-color: #cf6679;
+    --success-color: #03dac6;
+    --border-radius: 12px;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    --transition: all 0.3s ease;
+}
+
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  /* Prevent scrolling */
+}
+
+/* LEFT PANEL */
+.left-panel {
+  flex: 0 0 40%;
+  background: linear-gradient(
+      to bottom right,
+      rgba(157, 249, 122, 0.9),
+      rgba(94, 197, 255, 0.9)
+    ),
+    url("/static/image/background.jpg") center / cover;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 30px;
+}
+
+.left-panel img {
+  width: 160px;
+  margin-bottom: 20px;
+}
+
+.left-panel p {
+  font-family: "Ignis-et-Glacies-Sharp-Bold", sans-serif;
+  font-weight: 700;
+  font-size: 20pt;
+  line-height: 1.3;
+  color: #fff;
+}
+
+/* RIGHT PANEL */
+.right-panel {
+  flex: 1;
+  background-color: #212121;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  text-align: center;
+  position: relative;
+}
+
+.right-panel img {
+  width: 100%;
+  background: linear-gradient(90deg, #04478c, #0455a9, #002143);
+  padding-left: 260pt;
+}
+
+.right-panel h2 {
+  font-family: "Orbitron", sans-serif;
+  font-size: 24pt;
+  margin-bottom: 25px;
+  letter-spacing: 2px;
+}
+
+/* LOGIN FORM */
+form {
+  width: 100%;
+  max-width: 420px;
+  margin-top: 10px;
+}
+
+form input {
+  width: 100%;
+  background-color: #2e2e2e;
+  border: none;
+  border-radius: 5px;
+  padding: 14px;
+  margin-top: 10px;
+  color: white;
+  font-size: 14px;
+}
+
+form input::placeholder {
+  color: #bdbdbd;
+}
+
+.forgot {
+  text-align: left;
+  font-size: 0.85rem;
+  margin-top: 6px;
+}
+
+.forgot a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.forgot a:hover {
+  text-decoration: underline;
+}
+
+.btn-login {
+  background-color: #007bff;
+  border: none;
+  color: white;
+  padding: 12px;
+  border-radius: 5px;
+  width: 100%;
+  margin-top: 20px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  transition: 0.3s;
+}
+
+.btn-login:hover {
+  background-color: #0056b3;
+}
+
+.register-text {
+  margin-top: 15px;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.register-text a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.register-text a:hover {
+  text-decoration: underline;
+}
+
+footer {
+  /* position: absolute; */
+  /* Changed to allow it to be at the bottom of content */
+  margin-top: 30px;
+  /* Add margin above footer */
+  padding-bottom: 20px;
+  /* Add padding at the bottom */
+  font-size: 10pt;
+  color: #3d3e3b;
+  font-family: "Ruda", sans-serif;
+  font-weight: 900;
+}
+
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+    height: auto;
+    /* Allow body to grow */
+    overflow: visible;
+    /* Allow scrolling on mobile */
+  }
+
+  .left-panel {
+    flex: none;
+    width: 100%;
+    height: auto;
+    /* Auto height */
+    padding: 40px 20px;
+    /* Adjust padding */
+  }
+
+  .right-panel {
+    flex: none;
+    width: 100%;
+    height: auto;
+    /* Auto height */
+    padding: 20px;
+    overflow-y: visible;
+    /* No internal scroll */
+  }
+
+  .right-panel img {
+    width: 100%;
+    /* Full width banner */
+    max-width: 400px;
+    /* Adjust max width */
+  }
+
+  footer {
+    position: static;
+    /* Remove absolute positioning */
+    margin-top: 20px;
+    padding-bottom: 20px;
+  }
+}

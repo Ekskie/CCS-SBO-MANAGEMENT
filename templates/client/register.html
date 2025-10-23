@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration | LSPU</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Ruda:wght@700;900&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+</head>
+
+<body>
+    <div class="left-panel">
+        <img src="{{ url_for('static', filename='image/lspu.png') }}" alt="LSPU Logo">
+        <p>STUDENT ORGANIZATION<br>MANAGEMENT SYSTEM</p>
+    </div>
+
+    <div class="right-panel">
+
+        <img src="{{ url_for('static', filename='image/LSPU-FRONTLINE.PNG') }}" alt="Banner">
+        <h2>REGISTER</h2>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert alert-danger" style="margin-top: 20px;">
+            {{ messages[0] }}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <form method="POST" enctype="multipart/form-data" class="register-form">
+            <div class="row g-2">
+                <div class="col-md-4"><input type="text" name="first_name" placeholder="First Name" required></div>
+                <div class="col-md-4"><input type="text" name="middle_name" placeholder="Middle Name"></div>
+                <div class="col-md-4"><input type="text" name="last_name" placeholder="Last Name" required></div>
+            </div>
+
+            <input type="text" name="student_id" placeholder="Student ID" required>
+            <input type="email" name="email" placeholder="Email Address(student@lspu.edu.ph)" required>
+
+            <!-- === MODIFICATION: ADDED PASSWORD FIELDS === -->
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <input type="password" name="password" placeholder="Password" required>
+                </div>
+                <div class="col-md-6">
+                    <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+                </div>
+            </div>
+            <!-- === END MODIFICATION === -->
+
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <select name="program" id="program" required>
+                        <option value="">Program</option>
+                        <option value="BSIT">BSIT</option>
+                        <option value="BSIS">BSIS</option>
+                        <option value="BSCS">BSCS</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <select name="semester" required>
+                        <option value="">Semester</option>
+                        <option value="1st">1st</option>
+                        <option value="2nd">2nd</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <select name="year_level" id="year_level" required onchange="toggleMajor()">
+                        <option value="">Year Level</option>
+                        <option value="1st Year">1st Year</option>
+                        <option value="2nd Year">2nd Year</option>
+                        <option value="3rd Year">3rd Year</option>
+                        <option value="4th Year">4th Year</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <select name="section" required>
+                        <option value="">Section</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                    </select>
+                </div>
+            </div>
+                <select name="major" id="major" style="display:none;">
+                    <option value="">Major</option>
+                    <option value="AMG">AMG</option>
+                    <option value="NETAD">NETAD</option>
+                    <option value="WMAD">WMAD</option>
+                    <option value="SMP">SMP</option>
+                </select>
+
+            <div class="upload-section">
+                <label class="form-label">Upload 1x1 Picture:</label>
+                <input type="file" name="picture" accept="image/*" required>
+
+                <label class="form-label mt-2">Upload Signature:</label>
+                <input type="file" name="signature" accept="image/*" required>
+            </div>
+
+            <button typeD="submit">REGISTER</button>
+
+            <p class="login-text">Already have an Account? <a href="{{ url_for('login') }}">Login</a></p>
+        </form>
+
+        <!-- Success Modal -->
+        <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="successModalLabel">Registration Successful</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Your account has been created successfully! You can now log in.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>© 2025 Laguna State Polytechnic University – BSIT 4C AMG B</footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleMajor() {
+            const major = document.getElementById('major');
+            const year = document.getElementById('year_level').value;
+
+            if (year === '3rd Year' || year === '4th Year') {
+                major.style.display = 'block';
+            } else {
+                major.style.display = 'none';
+                major.value = '';
+            }
+        }
+
+        // Show success modal if success parameter is present
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('success') === '1') {
+                const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                successModal.show();
+            }
+        });
+    </script>
+</body>
+
+</html>
+

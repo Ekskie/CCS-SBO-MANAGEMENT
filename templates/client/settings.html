@@ -1,0 +1,25 @@
+<section class="settings-section">
+    <h2>Settings</h2>
+
+    <div class="settings-card">
+        <h3>Change Password</h3>
+        <form method="POST" action="/change_password">
+            <label>Current Password</label>
+            <input type="password" name="current_password" required>
+
+            <label>New Password</label>
+            <input type="password" name="new_password" required>
+
+            <label>Confirm New Password</label>
+            <input type="password" name="confirm_password" required>
+
+            <button type="submit" class="save-btn">Save Changes</button>
+        </form>
+    </div>
+
+    <div class="settings-actions">
+        <button class="delete-btn">Delete Account</button>
+    </div>
+
+    <button class="back-btn" onclick="location.reload()">← Back to Profile</button>
+</section>
