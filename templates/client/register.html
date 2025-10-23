@@ -23,7 +23,7 @@
 
         <img src="{{ url_for('static', filename='image/LSPU-FRONTLINE.PNG') }}" alt="Banner">
         <h2>REGISTER</h2>
-    {% with messages = get_flashed_messages() %}
+        {% with messages = get_flashed_messages() %}
         {% if messages %}
         <div class="alert alert-danger" style="margin-top: 20px;">
             {{ messages[0] }}
@@ -39,7 +39,8 @@
             </div>
 
             <input type="text" name="student_id" placeholder="Student ID" required>
-            <input type="email" name="email" placeholder="Email Address(student@lspu.edu.ph)" required>
+            <input type="email" name="email" placeholder="student@lspu.edu.ph" required pattern=".+@lspu\.edu\.ph"
+                title="Please provide a valid LSPU email address (e.g., student@lspu.edu.ph)">
 
             <!-- === MODIFICATION: ADDED PASSWORD FIELDS === -->
             <div class="row g-2">
@@ -90,13 +91,13 @@
                     </select>
                 </div>
             </div>
-                <select name="major" id="major" style="display:none;">
-                    <option value="">Major</option>
-                    <option value="AMG">AMG</option>
-                    <option value="NETAD">NETAD</option>
-                    <option value="WMAD">WMAD</option>
-                    <option value="SMP">SMP</option>
-                </select>
+            <select name="major" id="major" style="display:none;">
+                <option value="">Major</option>
+                <option value="AMG">AMG</option>
+                <option value="NETAD">NETAD</option>
+                <option value="WMAD">WMAD</option>
+                <option value="SMP">SMP</option>
+            </select>
 
             <div class="upload-section">
                 <label class="form-label">Upload 1x1 Picture:</label>
@@ -147,7 +148,7 @@
         }
 
         // Show success modal if success parameter is present
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('success') === '1') {
                 const successModal = new bootstrap.Modal(document.getElementById('successModal'));
@@ -158,4 +159,3 @@
 </body>
 
 </html>
-
