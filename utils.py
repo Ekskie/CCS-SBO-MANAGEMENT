@@ -1,7 +1,60 @@
+import os
 import io
-from PIL import Image
+from flask import session, redirect, url_for, flash
 from functools import wraps
-from flask import flash, redirect, url_for, session
+from PIL import Image
+from config import Config # Import Config to get MAX_FILE_SIZE
+
+# --- Decorators for Role-Based Access ---
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash("Please log in to access this page.", "error")
+            return redirect(url_for('auth.login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash("Please log in to access this page.", "error")
+            return redirect(url_for('auth.login'))
+        if session.get('account_type') != 'admin':
+            flash("You do not have permission to access this page.", "error")
+            return redirect(url_for('core.profile')) # Redirect to core profile
+        return f(*args, **kwargs)
+    return decorated_function
+
+def president_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash("Please log in to access this page.", "error")
+            return redirect(url_for('auth.login'))
+        account_type = session.get('account_type')
+        if account_type not in ('admin', 'president'):
+            flash("You do not have permission to access this page.", "error")
+            return redirect(url_for('core.profile')) # Redirect to core profile
+        return f(*args, **kwargs)
+    return decorated_function
+
+# --- Helper to check user roles (for templates) ---
+# THIS IS THE FIX:
+# This is now a plain function, no decorator.
+def inject_user_roles():
+    is_admin = False
+    is_president = False
+    if 'account_type' in session:
+        if session['account_type'] == 'admin':
+            is_admin = True
+            is_president = True # Admins can do everything presidents can
+        elif session['account_type'] == 'president':
+            is_president = True
+    return dict(is_admin=is_admin, is_president=is_president)
+
 
 # --- Helper Function to Check PNG Transparency ---
 def check_transparency(file_stream):
@@ -40,40 +93,3 @@ def check_transparency(file_stream):
         # Fail-safe: if image is invalid, reject it.
         return False
 
-# --- Decorators for Role-Based Access ---
-
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            flash("Please log in to access this page.", "error")
-            # Note: url_for now uses the Blueprint name 'auth.login'
-            return redirect(url_for('auth.login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            flash("Please log in to access this page.", "error")
-            return redirect(url_for('auth.login'))
-        if session.get('account_type') != 'admin':
-            flash("You do not have permission to access this page.", "error")
-            # Note: url_for now uses the Blueprint name 'core.profile'
-            return redirect(url_for('core.profile'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-def president_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            flash("Please log in to access this page.", "error")
-            return redirect(url_for('auth.login'))
-        account_type = session.get('account_type')
-        if account_type not in ('admin', 'president'):
-            flash("You do not have permission to access this page.", "error")
-            return redirect(url_for('core.profile'))
-        return f(*args, **kwargs)
-    return decorated_function
