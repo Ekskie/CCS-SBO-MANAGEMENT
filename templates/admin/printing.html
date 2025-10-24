@@ -9,11 +9,67 @@
         <h3 class="text-xl font-semibold text-gray-800">Available Print Groups</h3>
         <p class="text-gray-600 mt-1">Select a group to generate a printable list of members.</p>
     </div>
+
+    <!-- Filter Form -->
+    <form method="GET" action="{{ url_for('admin_printing') }}" class="p-4 bg-gray-50 border-b">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <!-- Program -->
+            <div>
+                <label for="program" class="block text-sm font-medium text-gray-700">Program</label>
+                <select name="program" id="program" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                    <option value="">All</option>
+                    {% for p in all_programs %}
+                        <option value="{{ p }}" {% if p == current_program %}selected{% endif %}>{{ p }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- Year Level -->
+            <div>
+                <label for="year_level" class="block text-sm font-medium text-gray-700">Year</label>
+                <select name="year_level" id="year_level" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                    <option value="">All</option>
+                    {% for y in all_years %}
+                        <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- Section -->
+            <div>
+                <label for="section" class="block text-sm font-medium text-gray-700">Section</label>
+                <select name="section" id="section" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                    <option value="">All</option>
+                    {% for s in all_sections %}
+                        <option value="{{ s }}" {% if s == current_section %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- Semester -->
+            <div>
+                <label for="semester" class="block text-sm font-medium text-gray-700">Semester</label>
+                <select name="semester" id="semester" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                    <option value="">All</option>
+                    {% for s in all_semesters %}
+                        <option value="{{ s }}" {% if s == current_semester %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- Buttons -->
+            <div class="flex items-end space-x-2">
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Filter
+                </button>
+                <a href="{{ url_for('admin_printing') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Clear
+                </a>
+            </div>
+        </div>
+    </form>
     
     <div class="p-4">
         {% if groups %}
             <ul class="space-y-2">
                 {% for group in groups %}
+                    {# group = (program, year_level, section, major, semester) #}
                     <li class="p-4 border rounded-lg flex justify-between items-center hover:bg-gray-50">
                         <div>
                             <span class="font-medium text-indigo-700">{{ group[0] }}</span>
@@ -21,8 +77,9 @@
                             {% if group[3] != 'None' %}
                                 <span class="text-gray-500">({{ group[3] }})</span>
                             {% endif %}
+                            <span class="text-sm text-gray-600 block">Semester: {{ group[4] }}</span>
                         </div>
-                        <a href="{{ url_for('admin_print_preview', program=group[0], year_level=group[1], section=group[2], major=group[3]) }}" 
+                        <a href="{{ url_for('admin_print_preview', program=group[0], year_level=group[1], section=group[2], major=group[3], semester=group[4]) }}" 
                            target="_blank" 
                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                            <i class="fas fa-print mr-2"></i>
@@ -32,7 +89,7 @@
                 {% endfor %}
             </ul>
         {% else %}
-            <p class="text-gray-500">No student groups found. Once students are registered, they will appear here.</p>
+            <p class="text-gray-500">No student groups found for the selected filters. Try broadening your search.</p>
         {% endif %}
     </div>
 </div>

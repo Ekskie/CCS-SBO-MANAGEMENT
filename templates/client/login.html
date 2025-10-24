@@ -11,6 +11,9 @@
         rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
     
+    <!-- 1. ADD SUPABASE JS CLIENT -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 </head>
 
 <body>
@@ -23,36 +26,62 @@
     <!-- RIGHT SIDE -->
     <div class="right-panel">
         <img src="{{ url_for('static', filename='image/LSPU-FRONTLINE.PNG') }}" alt="Banner">
-        <h2>LOGIN</h2>
+        
+        <!-- This container will hold both forms -->
+        <div id="form-container" style="width: 100%; max-width: 420px;">
+        
+            <!-- 2. DEFAULT LOGIN FORM (Visible by default) -->
+            <div id="login-form-wrapper">
+                <h2>LOGIN</h2>
+                <form method="POST" action="{{ url_for('login') }}" id="login-form">
+                    <input type="text" name="student_id" placeholder="Student ID" required>
+                    <input type="password" name="password" placeholder="Enter Your Password" required>
 
-        <form method="POST" action="{{ url_for('login') }}">
-            <input type="text" name="student_id" placeholder="Student ID" required>
-            <input type="password" name="password" placeholder="Enter Your Password" required>
+                    <div class="forgot">
+                        <a href="{{ url_for('forgot_password') }}">Forgot your password?</a>
+                    </div>
 
-            <div class="forgot">
-                <a href="#">Forgot your password?</a>
+                    <button type="submit" class="btn-login">LOGIN</button>
+
+                    <p class="register-text">
+                        Don’t have an account?
+                        <a href="{{ url_for('register') }}">Register</a>
+                    </p>
+                </form>
             </div>
 
-            <button type="submit" class="btn-login">LOGIN</button>
+            <!-- 3. NEW PASSWORD RESET FORM (Hidden by default) -->
+            <div id="reset-password-form-wrapper" style="display: none;">
+                <h2>CREATE NEW PASSWORD</h2>
+                <form id="reset-password-form">
+                    <p style="color: #ccc; font-size: 0.9rem; margin-bottom: 15px;">
+                        Enter your new password below.
+                    </p>
+                    <input type="password" id="new-password" placeholder="New Password" required>
+                    <input type="password" id="confirm-password" placeholder="Confirm New Password" required>
 
-            <p class="register-text">
-                Don’t have an account?
-                <a href="{{ url_for('register') }}">Register</a>
-            </p>
-        </form>
-
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="alert alert-danger" style="margin-top: 20px; width: 100%; max-width: 420px;">
-                {{ messages[0] }}
+                    <button type="submit" class="btn-login">SAVE NEW PASSWORD</button>
+                </form>
             </div>
-        {% endif %}
-        {% endwith %}
+
+        </div> <!-- End of form-container -->
+
+        <!-- Flash message container -->
+        <div id="flash-message-container" style="margin-top: 20px; width: 100%; max-width: 420px;">
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert alert-danger">
+                    {{ messages[0] }}
+                </div>
+            {% endif %}
+            {% endwith %}
+            <!-- JS errors will be injected here -->
+        </div>
 
         <footer>© 2025 Laguna State Polytechnic University – BSIT 4C AMG B</footer>
     </div>
     
-    <!-- Success Modal -->
+    <!-- Registration Success Modal -->
     <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -70,24 +99,130 @@
       </div>
     </div>
     
+    <!-- Password Reset Success Modal -->
+    <div class="modal fade" id="resetSuccessModal" tabindex="-1" aria-labelledby="resetSuccessModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="resetSuccessModalLabel">Password Reset Successful!</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            Your password has been changed. You can now log in with your new password.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 4. NEW JAVASCRIPT LOGIC -->
     <script>
+        // --- Initialize Supabase Client ---
+        // We need these keys to call Supabase auth functions from the client
+        const SUPABASE_URL = "https://lnbjifvircxceupkcpnl.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuYmppZnZpcmN4Y2V1cGtjcG5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDQwMTQsImV4cCI6MjA3NTY4MDAxNH0._43eZLux5YGYyeSB3ztctYszDAK05rkhNxJGV0Is_5w";
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- Helper to show errors ---
+        function showClientError(message) {
+            const flashContainer = document.getElementById('flash-message-container');
+            // Clear existing Flask flashes
+            flashContainer.innerHTML = ''; 
+            // Add new error
+            const errorAlert = document.createElement('div');
+            errorAlert.className = 'alert alert-danger';
+            errorAlert.textContent = message;
+            flashContainer.appendChild(errorAlert);
+        }
+
+        // --- Modals ---
+        const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+        const resetSuccessModal = new bootstrap.Modal(document.getElementById('resetSuccessModal'));
+
+        // --- DOM Elements ---
+        const loginForm = document.getElementById('login-form-wrapper');
+        const resetForm = document.getElementById('reset-password-form-wrapper');
+        const resetPasswordForm = document.getElementById('reset-password-form');
+        const errorAlert = document.querySelector('.alert-danger');
+
+        // --- Main Logic on Page Load ---
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
+            const hash = window.location.hash;
+
+            // --- Case 1: Handle Registration Success ---
             if (urlParams.get('registered') === 'success') {
-                // Hide any error flashes if success modal is shown
-                const errorAlert = document.querySelector('.alert-danger');
                 if (errorAlert) {
                     errorAlert.style.display = 'none';
                 }
-                
-                const successModal = new bootstrap.Modal(document.getElementById('successModal'));
                 successModal.show();
-                
-                // Optional: Remove the query param from URL without reloading
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
+            
+            // --- Case 2: Handle Password Reset Flow ---
+            // Check if the URL hash contains the recovery token
+            if (hash.includes('type=recovery') && hash.includes('access_token=')) {
+                // Show the reset password form and hide the login form
+                loginForm.style.display = 'none';
+                resetForm.style.display = 'block';
+                if (errorAlert) {
+                    errorAlert.style.display = 'none';
+                }
+            }
         });
+
+        // --- Event Listener for the New Password Form ---
+        resetPasswordForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (newPassword !== confirmPassword) {
+                showClientError('Passwords do not match.');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                showClientError('Password must be at least 6 characters long.');
+                return;
+            }
+
+            // The Supabase client automatically gets the token from the URL hash
+            // when it's initialized on this page.
+            try {
+                // Use onAuthStateChange to get the session from the URL
+                supabaseClient.auth.onAuthStateChange(async (event, session) => {
+                    // This event fires when the page loads with a token in the URL
+                    if (event === 'PASSWORD_RECOVERY' && session) {
+                        const { data, error } = await supabaseClient.auth.updateUser({
+                            password: newPassword
+                        });
+
+                        if (error) {
+                            showClientError(`Error updating password: ${error.message}`);
+                        } else {
+                            // Success!
+                            // Hide the reset form and show the success modal
+                            resetForm.style.display = 'none';
+                            loginForm.style.display = 'block'; // Show login form again
+                            resetSuccessModal.show();
+                            
+                            // Clear the URL hash
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                        }
+                    }
+                });
+            } catch (error) {
+                 showClientError(`An error occurred: ${error.message}`);
+            }
+        });
+
     </script>
 </body>
 </html>

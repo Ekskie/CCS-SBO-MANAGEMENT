@@ -11,6 +11,8 @@ body {
     font-family: 'Times New Roman', Times, serif;
     background-color: #f4f4f4;
     display: flex;
+    gap: 10px;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 20px;
@@ -372,5 +374,8 @@ footer {
     h2, h3, p, label, span {
         color: #000 !important;
     }
+    .Student-signature {
+                mix-blend-mode: darken !important;
+            }
 
 }

@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LSPU - List of Organization Members</title>
+    <!-- We must link to a static CSS file for printing to work -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/printing.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,14 +14,21 @@
 
 <body>
 
-    <button id="printButton"
-        style="position: fixed; top: 20px; right: 20px; padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-family: 'Times New Roman', Times, serif;">Print
-        Document</button>
+    <button id="printButton" style="position: fixed; top: 20px; right: 20px; padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-family: 'Times New Roman', Times, serif;">Print Document</button>
 
-    <div class="container">
+    <!-- 
+    Jinja logic to handle pagination.
+    - Page 1: Sample Format + 8 members
+    - Page 2+: No Sample Format + 10 members
+    -->
+
+    {% set members_per_page = 8 %}
+    {% set members_per_subsequent_page = 10 %}
+
+    <!-- --- PAGE 1 --- -->
+    <div class="container page-break">
         <header>
-            <img src="/static/image/lspu.png" alt="LSPU Logo">
-
+            <img src="{{ url_for('static', filename='image/lspu.png') }}" alt="LSPU Logo">
             <div class="header-text">
                 <p>Republic of the Philippines</p>
                 <p><span>Laguna State Polytechnic University</span></p>
@@ -32,7 +40,8 @@
             <h2>OFFICE OF STUDENT AFFAIRS AND SERVICES</h2>
             <p style="font-size: 10pt;"></p>
             <h3>LIST OF MEMBERS OF THE ORGANIZATION</h3>
-            <p><b>1st Sem. / AY 2025-2026</b></p>
+            <!-- AUTOMATED FIELDS -->
+            <p><b>{{ semester_display }} / {{ academic_year }}</b></p>
         </div>
 
         <div class="org-name-section">
@@ -40,6 +49,7 @@
                     STUDIES – STUDENT BODY ORGANIZATION</u></label>
         </div>
 
+        <!-- This sample format only appears on the first page -->
         <div class="sample-format">
             <p class="spHeader">SAMPLE FORMAT:</p>
             <div class="format-card">
@@ -52,20 +62,22 @@
             </div>
         </div>
 
-        <main class="member-grid">
-            {% for member in members %}
+        <main class="member-grid first-page">
+            <!-- Loop for first 8 members -->
+            {% for member in members[:members_per_page] %}
             <div class="member-card">
                 <div class="picture-placeholder">
-                    <img src="{{ member.picture_url }}" alt="Student Photo">
+                    <!-- Add a fallback to a default static image -->
+                    <img src="{{ member.picture_url or url_for('static', filename='image/default_avatar.png') }}" alt="Student Photo">
                 </div>
                 <div>
                     <img class="Student-signature"
-                        src="{{ member.signature_url }}"
-                        alt=""
+                        src="{{ member.signature_url or url_for('static', filename='image/default_signature.png') }}"
+                        alt="Signature"
                         style="width: 100px; position: absolute; transform: translate(40px, -55px); mix-blend-mode:darken; aspect-ratio: 1/1;">
-                    <input type="text" class="member-name" value="{{ member.full_name }}">
-                    <input type="text" class="member-info" value="{{ member.student_id }}">
-                    <input type="text" class="member-info" value="{{ member.course }}">
+                    <input type="text" class="member-name" value="{{ member.full_name | upper }}" readonly>
+                    <input type="text" class="member-info" value="{{ member.student_id }}" readonly>
+                    <input type="text" class="member-info" value="{{ member.course }}" readonly>
                 </div>
             </div>
             {% endfor %}
@@ -76,12 +88,14 @@
                 <div class="adviser-col">
                     <p class="signature-name">MERVIN JOMMEL T. DE JESUS</p>
                     <p class="signature-title">Organization Adviser</p>
-                    <p class="signature-date">Date: <span class="fill-in-date">September 25, 2025</span></p>
+                    <!-- AUTOMATED DATE -->
+                    <p class="signature-date">Date: <span class="fill-in-date">{{ generation_date }}</span></p>
                 </div>
                 <div class="adviser-col">
                     <p class="signature-name">LOUIE JEROME L. ROLDAN</p>
                     <p class="signature-title">Organization Adviser</p>
-                    <p class="signature-date">Date: <span class="fill-in-date">September 25, 2025</span></p>
+                    <!-- AUTOMATED DATE -->
+                    <p class="signature-date">Date: <span class="fill-in-date">{{ generation_date }}</span></p>
                 </div>
             </div>
 
@@ -114,6 +128,106 @@
         </footer>
     </div>
 
+    <!-- --- SUBSEQUENT PAGES --- -->
+    <!-- Check if there are more members to print -->
+    {% if members|length > members_per_page %}
+        <!-- Loop through the *rest* of the members, 10 at a time -->
+        {% for page in members[members_per_page:] | batch(members_per_subsequent_page) %}
+        <div class="container page-break">
+            <!-- Header is the same -->
+            <header>
+                 <img src="{{ url_for('static', filename='image/lspu.png') }}" alt="LSPU Logo">
+                <div class="header-text">
+                    <p>Republic of the Philippines</p>
+                    <p><span>Laguna State Polytechnic University</span></p>
+                    <p>Province of Laguna</p>
+                </div>
+            </header>
+
+            <!-- Title is the same -->
+            <div class="title-section">
+                <h2>OFFICE OF STUDENT AFFAIRS AND SERVICES</h2>
+                <p style="font-size: 10pt;"></p>
+                <h3>LIST OF MEMBERS OF THE ORGANIZATION</h3>
+                <p><b>{{ semester_display }} / {{ academic_year }}</b></p>
+            </div>
+
+            <!-- Org name is the same -->
+            <div class="org-name-section">
+                <label><b style="font-size: 12pt;">Name of Organization</b> <u style="font-size: 10pt;">COLLEGE OF
+                        COMPUTER
+                        STUDIES – STUDENT BODY ORGANIZATION</u></label>
+            </div>
+
+            <!-- NO SAMPLE FORMAT on this page -->
+
+            <!-- This grid can fit 10 members -->
+            <main class="member-grid subsequent-page">
+                {% for member in page %}
+                <div class="member-card">
+                    <div class="picture-placeholder">
+                         <img src="{{ member.picture_url or url_for('static', filename='image/default_avatar.png') }}" alt="Student Photo">
+                    </div>
+                    <div>
+                        <img class="Student-signature"
+                            src="{{ member.signature_url or url_for('static', filename='image/default_signature.png') }}"
+                            alt="Signature"
+                            style="width: 100px; position: absolute; transform: translate(40px, -55px); mix-blend-mode:darken; aspect-ratio: 1/1;">
+                        <input type="text" class="member-name" value="{{ member.full_name | upper }}" readonly>
+                        <input type="text" class="member-info" value="{{ member.student_id }}" readonly>
+                        <input type="text" class="member-info" value="{{ member.course }}" readonly>
+                    </div>
+                </div>
+                {% endfor %}
+            </main>
+
+            <!-- Footer is the same -->
+            <footer>
+                <div class="advisers">
+                    <div class="adviser-col">
+                        <p class="signature-name">MERVIN JOMMEL T. DE JESUS</p>
+                        <p class="signature-title">Organization Adviser</p>
+                        <p class="signature-date">Date: <span class="fill-in-date">{{ generation_date }}</span></p>
+                    </div>
+                    <div class="adviser-col">
+                        <p class="signature-name">LOUIE JEROME L. ROLDAN</p>
+                        <p class="signature-title">Organization Adviser</p>
+                        <p class="signature-date">Date: <span class="fill-in-date">{{ generation_date }}</span></p>
+                    </div>
+                </div>
+
+                <div class="approvals">
+                    <div class="approval-block">
+                        <p></p>
+                        <p class="approval-label dean">Noted:</p>
+                        <p class="signature-name no-border dean">FRANCIS F. BALAHADIA, DIT</p>
+                        <p class="signature-title dean">Dean/Assoc. Dean of College</p>
+                    </div>
+                    <div class="approval-block">
+                        <p></p>
+                        <p class="approval-label">Recommending Approval:</p>
+                        <p class="signature-name no-border">NIÑO EMMANUEL ALDI L. ASTOVEZA</p>
+                        <p class="signature-title">Head, Student Organization and Activities Unit</p>
+                    </div>
+
+                    <div class="approval-block">
+                        <p></p>
+                        <p class="approval-label">Approved / Disapproved:</p>
+                        <p class="signature-name no-border">JEANFEL J. CASIÑO</p>
+                        <p class="signature-title">Director/Chairperson, Office of Student Affairs and Services</p>
+                    </div>
+                </div>
+                <div class="doc-info">
+                    <p>LSPU-OSAS-SF-005 </p>
+                    <p>Rev. 1</p>
+                    <p>09 November 2020</p>
+                </div>
+            </footer>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+
     <script>
         document.getElementById('printButton').addEventListener('click', function () {
             window.print();
@@ -121,76 +235,58 @@
 
         // Hide the print button when printing
         const style = document.createElement('style');
-        style.textContent = '@media print { #printButton { display: none; } }';
+        style.textContent = `
+            @media print { 
+                #printButton { display: none; } 
+                .page-break { page-break-after: always; }
+            }
+        `;
         document.head.appendChild(style);
 
-        // This is the key change: use 'load' to wait for CSS
+
+        // --- Text Fit Logic ---
+        // This function auto-shrinks font size to fit the name
+        function fitTextToInput(input) {
+            const maxFontSize = 11; // base font size (pt)
+            const minFontSize = 6;  // smallest allowed font
+            let fontSize = maxFontSize;
+            
+            // Create a hidden span to measure text width
+            const testSpan = document.createElement('span');
+            testSpan.style.visibility = 'hidden';
+            testSpan.style.whiteSpace = 'nowrap';
+            testSpan.style.position = 'absolute';
+            testSpan.style.fontFamily = window.getComputedStyle(input).fontFamily;
+            testSpan.style.textTransform = window.getComputedStyle(input).textTransform;
+            testSpan.style.fontWeight = window.getComputedStyle(input).fontWeight;
+            document.body.appendChild(testSpan);
+
+            testSpan.textContent = input.value;
+            testSpan.style.fontSize = fontSize + 'pt';
+
+            // Reduce font size until text fits
+            while (testSpan.offsetWidth > input.clientWidth && fontSize > minFontSize) {
+                fontSize -= 0.5;
+                testSpan.style.fontSize = fontSize + 'pt';
+            }
+
+            input.style.fontSize = fontSize + 'pt';
+            document.body.removeChild(testSpan);
+        }
+
+        // Run the fit-text function when the page loads
         window.addEventListener("load", function () {
             const inputs = document.querySelectorAll('.member-name');
-
             inputs.forEach(input => {
                 fitTextToInput(input);
-                input.addEventListener('input', () => fitTextToInput(input));
             });
-
-            function fitTextToInput(input) {
-                const maxFontSize = 11; // base font size (pt)
-                const minFontSize = 6;  // smallest allowed font
-                const testSpan = document.createElement('span');
-
-                // Configure the measurement span
-                testSpan.style.visibility = 'hidden';
-                testSpan.style.whiteSpace = 'nowrap';
-                testSpan.style.position = 'absolute';
-                testSpan.style.fontFamily = window.getComputedStyle(input).fontFamily;
-                testSpan.style.textTransform = window.getComputedStyle(input).textTransform;
-                testSpan.style.fontWeight = window.getComputedStyle(input).fontWeight;
-                document.body.appendChild(testSpan);
-
-                let fontSize = maxFontSize;
-                testSpan.style.fontSize = fontSize + 'pt';
-                testSpan.textContent = input.value;
-
-                // Use clientWidth for more accurate inner-width measurement
-                while (testSpan.offsetWidth > input.clientWidth && fontSize > minFontSize) {
-                    fontSize -= 0.5;
-                    testSpan.style.fontSize = fontSize + 'pt';
-                }
-
-                input.style.fontSize = fontSize + 'pt';
-                document.body.removeChild(testSpan);
-            }
         });
 
-        // Re-fit text before printing to account for print styles
+        // Re-run the fit-text function right before printing
         window.addEventListener('beforeprint', function () {
             const inputs = document.querySelectorAll('.member-name');
             inputs.forEach(input => {
-                const maxFontSize = 11; // base font size (pt)
-                const minFontSize = 6;  // smallest allowed font
-                const testSpan = document.createElement('span');
-
-                // Configure the measurement span
-                testSpan.style.visibility = 'hidden';
-                testSpan.style.whiteSpace = 'nowrap';
-                testSpan.style.position = 'absolute';
-                testSpan.style.fontFamily = window.getComputedStyle(input).fontFamily;
-                testSpan.style.textTransform = window.getComputedStyle(input).textTransform;
-                testSpan.style.fontWeight = window.getComputedStyle(input).fontWeight;
-                document.body.appendChild(testSpan);
-
-                let fontSize = maxFontSize;
-                testSpan.style.fontSize = fontSize + 'pt';
-                testSpan.textContent = input.value;
-
-                // Use clientWidth for more accurate inner-width measurement
-                while (testSpan.offsetWidth > input.clientWidth && fontSize > minFontSize) {
-                    fontSize -= 0.5;
-                    testSpan.style.fontSize = fontSize + 'pt';
-                }
-
-                input.style.fontSize = fontSize + 'pt';
-                document.body.removeChild(testSpan);
+                fitTextToInput(input);
             });
         });
 
@@ -198,3 +294,4 @@
 </body>
 
 </html>
+

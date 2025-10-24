@@ -7,6 +7,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import secrets
 import string
 from functools import wraps
+from datetime import datetime
+import io              # Import for in-memory stream
+from PIL import Image  # Import Pillow
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -19,7 +22,47 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # --- Admin Configuration ---
 # !!! IMPORTANT: Add your registered admin email here !!!
-ADMIN_EMAILS = {"jakemartin.roca@lspu.edu.ph", "dennrick.agustin@lspu.edu.ph"}
+ADMIN_EMAILS = {"admin@example.com", "dennrick.agustin@lspu.edu.ph"}
+
+# --- File Size Limit ---
+MAX_FILE_SIZE = 5 * 1024 * 1024 # 5 MB
+
+# --- Helper Function to Check PNG Transparency ---
+def check_transparency(file_stream):
+    """
+    Checks if a PNG image stream has at least one non-opaque pixel.
+    """
+    try:
+        # Open the image from the in-memory stream
+        img = Image.open(file_stream)
+        
+        # We are only interested in RGBA (Red, Green, Blue, Alpha)
+        # If it's not, convert it to check its alpha
+        if img.mode != 'RGBA':
+            img = img.convert('RGBA')
+            
+        # Get the alpha channel
+        alpha = img.getchannel('A')
+        
+        # Get all unique values in the alpha channel.
+        # This is much faster than checking every pixel.
+        unique_alphas = set(alpha.getdata())
+        
+        # Check for transparency:
+        # 1. If there's more than one alpha value, it must have transparency.
+        # 2. If there's only one value, it must be less than 255.
+        if len(unique_alphas) > 1:
+            return True # e.g., {255, 0}
+        if len(unique_alphas) == 1 and 255 not in unique_alphas:
+            return True # e.g., {0}
+            
+        # If we're here, it means the only value is 255 (fully opaque)
+        return False
+        
+    except Exception as e:
+        print(f"Error checking transparency: {e}")
+        # Fail-safe: if image is invalid, reject it.
+        return False
 
 # --- Admin Decorator ---
 def admin_required(f):
@@ -132,10 +175,37 @@ def register():
         if not picture_file or not picture_file.filename:
             flash("1x1 Picture is required.")
             return render_template("client/register.html")
-            
+        # Read picture bytes early for validation
+        picture_bytes = picture_file.read()
+        
+        # --- New File Size Validation ---
+        if len(picture_bytes) > MAX_FILE_SIZE:
+            flash(f"Picture file size must be less than {MAX_FILE_SIZE // 1024 // 1024}MB.")
+            return render_template("client/register.html")
+
         if not signature_file or not signature_file.filename:
             flash("Signature is required.")
             return render_template("client/register.html")
+        # Read signature bytes early for validation
+        signature_bytes = signature_file.read()
+
+        # --- New File Size Validation ---
+        if len(signature_bytes) > MAX_FILE_SIZE:
+            flash(f"Signature file size must be less than {MAX_FILE_SIZE // 1024 // 1024}MB.")
+            return render_template("client/register.html")
+
+        # --- New Signature Validation Logic ---
+        # 1. Check if it's a real PNG
+        if not signature_bytes.startswith(b'\x89PNG\r\n\x1a\n'):
+            flash("Signature must be a valid PNG file.")
+            return render_template("client/register.html")
+
+        # 2. Check for transparency
+        signature_stream = io.BytesIO(signature_bytes)
+        if not check_transparency(signature_stream):
+            flash("Signature PNG must have a transparent background.")
+            return render_template("client/register.html")
+        # --- End of New Validation Logic ---
             
         # --- Major Validation ---
         if year_level in ("3rd Year", "4th Year"):
@@ -169,7 +239,7 @@ def register():
                 try:
                     pic_ext = os.path.splitext(picture_file.filename)[1]
                     pic_file_name = f"{student_id}_picture{pic_ext}"
-                    picture_bytes = picture_file.read()
+                    # We already read the bytes, so just pass them
                     supabase.storage.from_("pictures").upload(
                         pic_file_name, 
                         picture_bytes, 
@@ -179,7 +249,7 @@ def register():
 
                     sig_ext = os.path.splitext(signature_file.filename)[1]
                     sig_file_name = f"{student_id}_signature{sig_ext}"
-                    signature_bytes = signature_file.read()
+                    # We already read the bytes, so just pass them
                     supabase.storage.from_("signatures").upload(
                         sig_file_name, 
                         signature_bytes, 
@@ -241,6 +311,45 @@ def auth_callback():
     # This is the page the user lands on after clicking the verification link
     # It redirects them to the login page with a success flag
     return redirect(url_for('login', registered='success'))
+
+# --- NEW: Forgot Password Routes ---
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        if not email:
+            flash("Please enter your email address.")
+            return render_template('client/forgot_password.html')
+            
+        try:
+            # Check if email exists in profiles (user-friendly feedback)
+            profile_res = supabase.table("profiles").select("email").eq("email", email).execute()
+            if not profile_res.data:
+                flash("No account is registered with that email address.")
+                return render_template('client/forgot_password.html')
+
+            # --- THIS IS THE FIX ---
+            # The 'redirect_to' argument is NOT used in the Python client.
+            # This must be configured in your Supabase project's
+            # Authentication > URL Configuration settings.
+            supabase.auth.reset_password_for_email(email=email)
+            # --- END OF FIX ---
+            
+            # Don't flash a message here, just send them to the confirmation page
+            return redirect(url_for('check_email'))
+            
+        except Exception as e:
+            flash(f"An error occurred: {str(e)}")
+            return render_template('client/forgot_password.html')
+            
+    # GET request
+    return render_template('client/forgot_password.html')
+
+@app.route('/check_email')
+def check_email():
+    # This is just a simple page to tell the user to check their email
+    return render_template('client/check_email.html')
 
 
 # --- Profile and Other Routes ---
@@ -315,9 +424,14 @@ def update_profile():
         signature_file = request.files.get('signature')
 
         if picture_file and picture_file.filename:
+            # Check size on update
+            picture_bytes = picture_file.read()
+            if len(picture_bytes) > MAX_FILE_SIZE:
+                flash(f"Picture file size must be less than {MAX_FILE_SIZE // 1024 // 1024}MB.")
+                return redirect(url_for('profile'))
+                
             file_ext = os.path.splitext(picture_file.filename)[1]
             file_name = f"{student_id}_picture{file_ext}"
-            picture_bytes = picture_file.read()
             supabase.storage.from_("pictures").upload(
                 file_name, 
                 picture_bytes, 
@@ -327,9 +441,23 @@ def update_profile():
             update_data["picture_url"] = public_url_response
 
         if signature_file and signature_file.filename:
+            # Check size on update
+            signature_bytes = signature_file.read()
+            if len(signature_bytes) > MAX_FILE_SIZE:
+                flash(f"Signature file size must be less than {MAX_FILE_SIZE // 1024 // 1024}MB.")
+                return redirect(url_for('profile'))
+
+            # Check for PNG and transparency on update
+            if not signature_bytes.startswith(b'\x89PNG\r\n\x1a\n'):
+                flash("Signature must be a valid PNG file.")
+                return redirect(url_for('profile'))
+            signature_stream = io.BytesIO(signature_bytes)
+            if not check_transparency(signature_stream):
+                flash("Signature PNG must have a transparent background.")
+                return redirect(url_for('profile'))
+                
             file_ext = os.path.splitext(signature_file.filename)[1]
             file_name = f"{student_id}_signature{file_ext}"
-            signature_bytes = signature_file.read()
             supabase.storage.from_("signatures").upload(
                 file_name, 
                 signature_bytes, 
@@ -468,18 +596,41 @@ def admin_edit_student(student_id):
             signature_file = request.files.get('signature')
 
             if picture_file and picture_file.filename:
+                # Check size on update
+                picture_bytes = picture_file.read()
+                if len(picture_bytes) > MAX_FILE_SIZE:
+                    flash(f"Picture file size must be less than {MAX_FILE_SIZE // 1024 // 1024}MB.")
+                    student_data = supabase.table("profiles").select("*").eq("id", student_id).single().execute().data
+                    return render_template('admin/edit_student.html', student=student_data)
+                    
                 file_ext = os.path.splitext(picture_file.filename)[1]
                 file_name = f"{student_num}_picture{file_ext}"
-                picture_bytes = picture_file.read()
                 supabase.storage.from_("pictures").upload(
                     file_name, picture_bytes, {"content-type": picture_file.mimetype, "upsert": "true"}
                 )
                 update_data["picture_url"] = supabase.storage.from_("pictures").get_public_url(file_name)
 
             if signature_file and signature_file.filename:
+                # Check size on update
+                signature_bytes = signature_file.read()
+                if len(signature_bytes) > MAX_FILE_SIZE:
+                    flash(f"Signature file size must be less than {MAX_FILE_SIZE // 1024 // 1024}MB.")
+                    student_data = supabase.table("profiles").select("*").eq("id", student_id).single().execute().data
+                    return render_template('admin/edit_student.html', student=student_data)
+
+                # Check for PNG and transparency on update
+                if not signature_bytes.startswith(b'\x89PNG\r\n\x1a\n'):
+                    flash("Signature must be a valid PNG file.")
+                    student_data = supabase.table("profiles").select("*").eq("id", student_id).single().execute().data
+                    return render_template('admin/edit_student.html', student=student_data)
+                signature_stream = io.BytesIO(signature_bytes)
+                if not check_transparency(signature_stream):
+                    flash("Signature PNG must have a transparent background.")
+                    student_data = supabase.table("profiles").select("*").eq("id", student_id).single().execute().data
+                    return render_template('admin/edit_student.html', student=student_data)
+                    
                 file_ext = os.path.splitext(signature_file.filename)[1]
                 file_name = f"{student_num}_signature{file_ext}"
-                signature_bytes = signature_file.read()
                 supabase.storage.from_("signatures").upload(
                     file_name, signature_bytes, {"content-type": signature_file.mimetype, "upsert": "true"}
                 )
@@ -553,27 +704,68 @@ def admin_calendar():
 @admin_required
 def admin_printing():
     try:
-        response = supabase.table("profiles").select("program, year_level, section, major").execute()
-        profiles = response.data
-        unique_groups = set()
+        # Get current filters from URL
+        current_program = request.args.get('program', '')
+        current_year = request.args.get('year_level', '')
+        current_section = request.args.get('section', '')
+        current_semester = request.args.get('semester', '')
+
+        # Base query for filtering
+        query = supabase.table("profiles").select("program, year_level, section, major, semester")
+
+        # Apply filters
+        if current_program:
+            query = query.eq('program', current_program)
+        if current_year:
+            query = query.eq('year_level', current_year)
+        if current_section:
+            query = query.eq('section', current_section)
+        if current_semester:
+            query = query.eq('semester', current_semester)
+            
+        profiles = query.execute().data
         
+        # Get all unique options for dropdowns (unfiltered)
+        all_profiles_res = supabase.table("profiles").select("program, year_level, section, semester").execute()
+        all_profiles_data = all_profiles_res.data
+        
+        all_programs = sorted(list(set(p['program'] for p in all_profiles_data if p.get('program'))))
+        all_years = sorted(list(set(p['year_level'] for p in all_profiles_data if p.get('year_level'))), key=lambda x: x[0]) # Sort by '1st', '2nd'
+        all_sections = sorted(list(set(p['section'] for p in all_profiles_data if p.get('section'))))
+        all_semesters = sorted(list(set(p['semester'] for p in all_profiles_data if p.get('semester'))))
+
+        # Build unique groups from the *filtered* profiles
+        unique_groups = set()
         for profile in profiles:
             if not all([profile.get('program'), profile.get('year_level'), profile.get('section')]):
-                continue # Skip profiles with incomplete data
+                continue 
             
-            # Use 'None' as a placeholder for NULL/empty majors
             major_val = profile.get('major') or 'None' 
+            semester_val = profile.get('semester') or 'N/A' # Get semester for the link
             
             key = (
                 profile.get('program'), 
                 profile.get('year_level'), 
                 profile.get('section'),
-                major_val
+                major_val,
+                semester_val # Include semester in the key
             )
             unique_groups.add(key)
         
         sorted_groups = sorted(list(unique_groups))
-        return render_template('admin/printing.html', groups=sorted_groups)
+        
+        return render_template(
+            'admin/printing.html', 
+            groups=sorted_groups,
+            all_programs=all_programs,
+            all_years=all_years,
+            all_sections=all_sections,
+            all_semesters=all_semesters,
+            current_program=current_program,
+            current_year=current_year,
+            current_section=current_section,
+            current_semester=current_semester
+        )
     except Exception as e:
         flash(f"Error fetching groups: {str(e)}", "error")
         return redirect(url_for('admin_dashboard'))
@@ -584,11 +776,12 @@ def admin_print_preview():
     program = request.args.get('program')
     year_level = request.args.get('year_level')
     section = request.args.get('section')
-    major = request.args.get('major') # This will be 'None' for 1st/2nd years
+    major = request.args.get('major') 
+    semester = request.args.get('semester') # Get the semester
 
     # THIS IS THE CORRECTED CHECK
-    if not all([program, year_level, section, major]):
-        flash("Error: Missing group information.", "error")
+    if not all([program, year_level, section, major, semester]):
+        flash("Error: Missing group information, including semester.", "error")
         return redirect(url_for('admin_printing'))
 
     try:
@@ -596,14 +789,15 @@ def admin_print_preview():
         query = query.eq("program", program)
         query = query.eq("year_level", year_level)
         query = query.eq("section", section)
+        query = query.eq("semester", semester) # Filter by semester
         
         if major == 'None':
             query = query.is_("major", "null") # Check for NULL in database
         else:
             query = query.eq("major", major)
 
-        response = query.order("last_name", desc=False).execute() # Order by last name
-        
+        # Remove the .order() from here
+        response = query.execute()
         group_profiles = response.data
 
         if not group_profiles:
@@ -627,9 +821,35 @@ def admin_print_preview():
                 'signature_url': p.get('signature_url')
             }
             members.append(member)
+            
+        # --- NEW SORTING LOGIC ---
+        # Sort the list of dictionaries by the 'full_name' key
+        # This guarantees correct alphabetical order (e.g., "Last, First")
+        sorted_members = sorted(members, key=lambda m: m.get('full_name', ''))
 
-        # Pass all members to the template, template will handle pagination
-        return render_template('print_template.html', members=members)
+        # --- Automation Logic ---
+        # 1. Format Semester
+        semester_display = f"{semester} Sem." # e.g., "1st Sem."
+        
+        # 2. Calculate Academic Year (e.g., AY 2025-2026)
+        # We assume the academic year starts in August (month 8)
+        today = datetime.now()
+        current_year = today.year
+        if today.month >= 8: # August to December
+            academic_year = f"AY {current_year}-{current_year + 1}"
+        else: # January to July
+            academic_year = f"AY {current_year - 1}-{current_year}"
+            
+        # 3. Get Formatted Current Date
+        generation_date = today.strftime("%B %d, %Y") # e.g., "October 24, 2025"
+
+        return render_template(
+            'print_template.html', 
+            members=sorted_members, # Pass the new sorted list
+            semester_display=semester_display,
+            academic_year=academic_year,
+            generation_date=generation_date
+        )
     
     except Exception as e:
         flash(f"Error generating print preview: {str(e)}", "error")
