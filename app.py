@@ -1,30 +1,36 @@
 import os
+import uuid
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from supabase import create_client, Client
+from collections import defaultdict
+from werkzeug.security import generate_password_hash, check_password_hash
+import secrets
+import string
 from functools import wraps
 from datetime import datetime
-from PIL import Image  # Import Pillow
-import re
 import io
-from dotenv import load_dotenv  # <-- IMPORTED load_dotenv
+from PIL import Image
+from dotenv import load_dotenv  # Import load_dotenv
+import re # Import re for regex operations
 
-load_dotenv()  # <-- ADDED: This loads variables from your .env file
+load_dotenv()  # This loads variables from your .env file
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 # --- Supabase Configuration ---
-SUPABASE_URL = os.getenv("SUPABASE_URL")      # <-- CHANGED
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")    # <-- CHANGED
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY") # Service key for admin actions
 
-# --- NEW: Check if variables are loaded ---
-if not SUPABASE_URL or not SUPABASE_KEY:
-    raise ValueError("Error: SUPABASE_URL and SUPABASE_KEY must be set in your .env file.")
+if not SUPABASE_URL or not SUPABASE_KEY or not SUPABASE_SERVICE_KEY:
+    raise ValueError("Error: SUPABASE_URL, SUPABASE_KEY, and SUPABASE_SERVICE_KEY must be set in your .env file.")
 
+# Client for general use
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+# Admin client for protected actions like deleting users
+supabase_admin: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
-# --- Admin Configuration ---
-# ADMIN_EMAILS set is removed. Role is now managed in the database via 'account_type' column.
 
 # --- File Size Limit ---
 MAX_FILE_SIZE = 5 * 1024 * 1024 # 5 MB
@@ -66,22 +72,37 @@ def check_transparency(file_stream):
         # Fail-safe: if image is invalid, reject it.
         return False
 
-# --- NEW Role-Based Decorators ---
+# --- Decorators for Role-Based Access ---
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash("Please log in to access this page.", "error")
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash("Please log in to access this page.", "error")
+            return redirect(url_for('login'))
         if session.get('account_type') != 'admin':
             flash("You do not have permission to access this page.", "error")
-            return redirect(url_for('profile'))
+            return redirect(url_sfor('profile'))
         return f(*args, **kwargs)
     return decorated_function
 
 def president_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash("Please log in to access this page.", "error")
+            return redirect(url_for('login'))
         account_type = session.get('account_type')
-        if account_type != 'president' and account_type != 'admin':
+        if account_type not in ('admin', 'president'):
             flash("You do not have permission to access this page.", "error")
             return redirect(url_for('profile'))
         return f(*args, **kwargs)
@@ -90,8 +111,14 @@ def president_required(f):
 # --- Helper to check user roles (for templates) ---
 @app.context_processor
 def inject_user_roles():
-    is_admin = session.get('account_type') == 'admin'
-    is_president = session.get('account_type') == 'president'
+    is_admin = False
+    is_president = False
+    if 'account_type' in session:
+        if session['account_type'] == 'admin':
+            is_admin = True
+            is_president = True # Admins can do everything presidents can
+        elif session['account_type'] == 'president':
+            is_president = True
     return dict(is_admin=is_admin, is_president=is_president)
 
 
@@ -114,17 +141,15 @@ def login():
             return render_template('client/login.html')
 
         try:
-            # Fetch all necessary profile data on login
-            profile_response = supabase.table("profiles").select(
-                "email, id, account_type, program, year_level, section"
-            ).eq("student_id", student_id).single().execute()
+            # Fetch the user's profile to get email AND role info
+            profile_response = supabase.table("profiles").select("*").eq("student_id", student_id).single().execute()
 
             if not profile_response.data:
                 flash("Invalid Student ID or password.")
                 return render_template('client/login.html')
 
-            profile_data = profile_response.data
-            email = profile_data['email']
+            profile = profile_response.data
+            email = profile['email']
 
             auth_response = supabase.auth.sign_in_with_password({
                 'email': email,
@@ -136,19 +161,22 @@ def login():
                     flash('Please verify your email address before logging in.')
                     return render_template('client/login.html')
                     
-                # --- Store role and class info in session ---
+                # Store user info in session
                 session['user_id'] = auth_response.user.id
                 session['email'] = email
                 session['student_id'] = student_id
-                session['account_type'] = profile_data.get('account_type', 'student')
-                session['program'] = profile_data.get('program')
-                session['year_level'] = profile_data.get('year_level')
-                session['section'] = profile_data.get('section')
                 
-                # --- Role-based redirect ---
-                if session['account_type'] == 'admin':
+                # NEW: Store role and class info
+                session['account_type'] = profile.get('account_type')
+                session['program'] = profile.get('program')
+                session['year_level'] = profile.get('year_level')
+                session['section'] = profile.get('section')
+                session['major'] = profile.get('major')
+                
+                if profile.get('account_type') == 'admin':
                     return redirect(url_for('admin_dashboard'))
-                elif session['account_type'] == 'president':
+                elif profile.get('account_type') == 'president':
+                     # Presidents go to their dashboard first
                     return redirect(url_for('president_dashboard'))
                 else:
                     return redirect(url_for('profile'))
@@ -156,6 +184,7 @@ def login():
                 flash('Invalid Student ID or password.')
                 
         except Exception as e:
+            print(f"Login error: {e}") # For debugging
             flash(f"Invalid Student ID or password.")
 
     return render_template('client/login.html')
@@ -171,12 +200,7 @@ def register():
         if not email:
             flash("Email is required.")
             return render_template("client/register.html")
-                
-        # Check if email ends with @lspu.edu.ph using regex
-        if not re.match(r".+@lspu\.edu\.ph$", email):
-            flash("Please use a valid @lspu.edu.ph email address.", "error")
-            return render_template("client/register.html")
-                                   
+            
         if not password or not confirm_password:
             flash("Password and confirmation are required.")
             return render_template("client/register.html")
@@ -289,7 +313,7 @@ def register():
                     
                 except Exception as upload_error:
                     # If upload fails, we must delete the auth user to let them try again
-                    supabase.auth.admin.delete_user(user_id)
+                    supabase_admin.auth.admin.delete_user(user_id)
                     flash(f"File upload failed: {str(upload_error)}. Please try registering again.")
                     return render_template("client/register.html")
 
@@ -308,17 +332,18 @@ def register():
                     "major": major,
                     "picture_url": picture_url,
                     "signature_url": signature_url,
-                    # --- Add new default values ---
+                    # NEW: Set defaults for new accounts
                     "account_type": "student",
                     "picture_status": "pending",
-                    "signature_status": "pending"
+                    "signature_status": "pending",
+                    "disapproval_reason": None
                 }
                 
                 insert_response = supabase.table("profiles").insert(profile_data).execute()
 
                 if not (insert_response.data and len(insert_response.data) > 0):
                     # If profile insert fails, delete auth user and files
-                    supabase.auth.admin.delete_user(user_id)
+                    supabase_admin.auth.admin.delete_user(user_id)
                     supabase.storage.from_("pictures").remove([pic_file_name])
                     supabase.storage.from_("signatures").remove([sig_file_name])
                     flash(f"Auth user created, but profile creation failed. Please try again.")
@@ -389,22 +414,15 @@ def check_email():
 # --- Profile and Other Routes ---
 
 @app.route('/profile')
+@login_required
 def profile():
-    if 'user_id' not in session:
-        flash('Please log in to view your profile.')
-        return redirect(url_for('login'))
-
     try:
         user_id = session['user_id']
         response = supabase.table("profiles").select("*").eq("id", user_id).execute()
         
         if response.data:
             user_profile = response.data[0]
-            # --- Pass role info to profile template ---
-            # (You will need to update profile.html to show this)
-            return render_template('client/profile.html', 
-                                   profile=user_profile, 
-                                   account_type=session.get('account_type'))
+            return render_template('client/profile.html', profile=user_profile)
         else:
             flash('Profile not found. Please contact admin.')
             # Log them out if their profile is gone
@@ -415,11 +433,8 @@ def profile():
         return redirect(url_for('login'))
 
 @app.route('/update_profile', methods=['POST'])
+@login_required
 def update_profile():
-    if 'user_id' not in session:
-        flash('Please log in to update your profile.')
-        return redirect(url_for('login'))
-
     user_id = session['user_id']
     response = supabase.table("profiles").select("*").eq("id", user_id).execute()
     if not response.data:
@@ -454,7 +469,11 @@ def update_profile():
         "section": request.form.get('section', user['section']),
         "major": major,
         "picture_url": user.get('picture_url'),
-        "signature_url": user.get('signature_url')
+        "signature_url": user.get('signature_url'),
+        # Get existing approval statuses
+        "picture_status": user.get('picture_status'),
+        "signature_status": user.get('signature_status'),
+        "disapproval_reason": user.get('disapproval_reason')
     }
 
     try:
@@ -477,9 +496,11 @@ def update_profile():
             )
             public_url_response = supabase.storage.from_("pictures").get_public_url(file_name)
             update_data["picture_url"] = public_url_response
-            # --- Reset status on new upload ---
+            
+            # --- FIXED: Reset status on new upload ---
             update_data["picture_status"] = "pending"
-            update_data["disapproval_reason"] = None # Clear reason
+            # Clear disapproval reason when new file is uploaded
+            update_data["disapproval_reason"] = None # Or logic to only remove picture-related reasons
 
         if signature_file and signature_file.filename:
             # Check size on update
@@ -506,12 +527,14 @@ def update_profile():
             )
             public_url_response = supabase.storage.from_("signatures").get_public_url(file_name)
             update_data["signature_url"] = public_url_response
-            # --- Reset status on new upload ---
+            
+            # --- FIXED: Reset status on new upload ---
             update_data["signature_status"] = "pending"
-            update_data["disapproval_reason"] = None # Clear reason
+            # Clear disapproval reason when new file is uploaded
+            update_data["disapproval_reason"] = None # Or logic to only remove signature-related reasons
 
         supabase.table("profiles").update(update_data).eq("id", user_id).execute()
-        flash('Profile updated successfully.')
+        flash('Profile updated successfully. Approval status has been reset for new uploads.')
 
     except Exception as e:
         flash(f"Error updating profile: {str(e)}")
@@ -519,21 +542,15 @@ def update_profile():
     return redirect(url_for('profile'))
 
 @app.route('/settings')
+@login_required
 def settings():
-    if 'user_id' not in session:
-        flash('Please log in.')
-        return redirect(url_for('login'))
-    
     # This just renders the HTML fragment, which is loaded by profile.html's JS
     return render_template('client/settings.html')
 
 @app.route('/change_password', methods=['POST'])
+@login_required
 def change_password():
     """Handles the change password form submission from the settings page."""
-    if 'user_id' not in session:
-        flash("You must be logged in to change your password.", "error")
-        return redirect(url_for('login'))
-
     current_password = request.form.get('current_password')
     new_password = request.form.get('new_password')
     confirm_password = request.form.get('confirm_password')
@@ -572,8 +589,6 @@ def change_password():
             flash(f"An error occurred: {str(e)}", "error")
 
     # Redirect back to the profile page. 
-    # The user's JS will need to re-fetch the settings content.
-    # A full reload of /profile is simplest.
     return redirect(url_for('profile'))
 
 
@@ -610,18 +625,24 @@ def admin_students():
         search_name = request.args.get('search_name', '')
         filter_program = request.args.get('filter_program', '')
         filter_section = request.args.get('filter_section', '')
+        filter_year_level = request.args.get('filter_year_level', '') # <-- ADDED
+        filter_major = request.args.get('filter_major', '')           # <-- ADDED
 
         # Base query
         query = supabase.table("profiles").select("*")
 
         # Apply filters
         if search_name:
-            # This searches for the name in both first_name and last_name
-            query = query.or_(f"first_name.ilike.%{search_name}%,last_name.ilike.%{search_name}%")
+            # This searches for the name in first_name, last_name, and middle_name
+            query = query.or_(f"first_name.ilike.%{search_name}%,last_name.ilike.%{search_name}%,middle_name.ilike.%{search_name}%")
         if filter_program:
             query = query.eq('program', filter_program)
         if filter_section:
             query = query.eq('section', filter_section)
+        if filter_year_level:                                         # <-- ADDED
+            query = query.eq('year_level', filter_year_level)         # <-- ADDED
+        if filter_major:                                              # <-- ADDED
+            query = query.eq('major', filter_major)                   # <-- ADDED
 
         # Execute query
         response = query.order("last_name", desc=False).execute()
@@ -630,22 +651,30 @@ def admin_students():
         # Get filter options for dropdowns
         programs_res = supabase.table("profiles").select("program").execute()
         sections_res = supabase.table("profiles").select("section").execute()
+        years_res = supabase.table("profiles").select("year_level").execute() # <-- ADDED
+        majors_res = supabase.table("profiles").select("major").execute()     # <-- ADDED
         
         programs = sorted(list(set(p['program'] for p in programs_res.data if p.get('program'))))
         sections = sorted(list(set(s['section'] for s in sections_res.data if s.get('section'))))
+        all_years = sorted(list(set(y['year_level'] for y in years_res.data if y.get('year_level'))), key=lambda x: (x or "Z")[0]) # <-- ADDED
+        all_majors = sorted(list(set(m['major'] for m in majors_res.data if m.get('major'))))     # <-- ADDED
 
         return render_template(
             'admin/students.html', 
             students=students,
             programs=programs,
             sections=sections,
+            all_years=all_years,     # <-- ADDED
+            all_majors=all_majors,   # <-- ADDED
             search_name=search_name,
             filter_program=filter_program,
-            filter_section=filter_section
+            filter_section=filter_section,
+            filter_year_level=filter_year_level, # <-- ADDED
+            filter_major=filter_major            # <-- ADDED
         )
     except Exception as e:
         flash(f"Error fetching students: {str(e)}", "error")
-        return render_template('admin/students.html', students=[], programs=[], sections=[])
+        return render_template('admin/students.html', students=[], programs=[], sections=[], all_years=[], all_majors=[])
 
 @app.route('/admin/edit_student/<student_id>', methods=['GET', 'POST'])
 @admin_required
@@ -654,12 +683,13 @@ def admin_edit_student(student_id):
         # Logic to UPDATE the student
         try:
             # Fetch the existing student profile to get student_id (for file naming)
-            user_res = supabase.table("profiles").select("student_id").eq("id", student_id).single().execute()
+            user_res = supabase.table("profiles").select("student_id, disapproval_reason").eq("id", student_id).single().execute()
             if not user_res.data:
                 flash("Student profile not found.", "error")
                 return redirect(url_for('admin_students'))
             
             student_num = user_res.data['student_id'] # The Student's ID number
+            current_disapproval_reason = user_res.data.get('disapproval_reason')
 
             year_level = request.form.get('year_level')
             major = request.form.get('major')
@@ -668,7 +698,6 @@ def admin_edit_student(student_id):
             if year_level in ("3rd Year", "4th Year"):
                 if not major:
                     flash("Major is required for 3rd and 4th year students.")
-                    # We need to pass the student data back to the template on error
                     student_data = supabase.table("profiles").select("*").eq("id", student_id).single().execute().data
                     return render_template('admin/edit_student.html', student=student_data)
             else:
@@ -683,8 +712,8 @@ def admin_edit_student(student_id):
                 "year_level": year_level,
                 "section": request.form.get('section'),
                 "major": major,
-                # --- Add account_type to admin update ---
-                "account_type": request.form.get('account_type') 
+                "account_type": request.form.get('account_type'), # Admin can change role
+                "disapproval_reason": current_disapproval_reason # Start with existing reason
             }
 
             # Handle file uploads (similar to update_profile)
@@ -705,8 +734,10 @@ def admin_edit_student(student_id):
                     file_name, picture_bytes, {"content-type": picture_file.mimetype, "upsert": "true"}
                 )
                 update_data["picture_url"] = supabase.storage.from_("pictures").get_public_url(file_name)
-                # --- Admin uploads are auto-approved ---
-                update_data["picture_status"] = "approved"
+                
+                # --- FIXED: Reset status on new upload ---
+                update_data["picture_status"] = "pending"
+                update_data["disapproval_reason"] = None # Clear reason on admin upload
 
             if signature_file and signature_file.filename:
                 # Check size on update
@@ -733,8 +764,10 @@ def admin_edit_student(student_id):
                     file_name, signature_bytes, {"content-type": signature_file.mimetype, "upsert": "true"}
                 )
                 update_data["signature_url"] = supabase.storage.from_("signatures").get_public_url(file_name)
-                # --- Admin uploads are auto-approved ---
-                update_data["signature_status"] = "approved"
+                
+                # --- FIXED: Reset status on new upload ---
+                update_data["signature_status"] = "pending"
+                update_data["disapproval_reason"] = None # Clear reason on admin upload
 
             supabase.table("profiles").update(update_data).eq("id", student_id).execute()
             flash('Student profile updated successfully.')
@@ -773,20 +806,24 @@ def admin_delete_student(student_id):
         # 2. Delete files from Storage
         try:
             if profile.get('picture_url'):
-                pic_file_name = profile['picture_url'].split('/')[-1].split('?')[0] # Get filename from URL
-                supabase.storage.from_("pictures").remove([pic_file_name])
+                # Extract file name from URL
+                pic_file_name = profile['picture_url'].split('/')[-1].split('?')[0]
+                if pic_file_name:
+                    supabase.storage.from_("pictures").remove([pic_file_name])
             if profile.get('signature_url'):
-                sig_file_name = profile['signature_url'].split('/')[-1].split('?')[0] # Get filename from URL
-                supabase.storage.from_("signatures").remove([sig_file_name])
+                # Extract file name from URL
+                sig_file_name = profile['signature_url'].split('/')[-1].split('?')[0]
+                if sig_file_name:
+                    supabase.storage.from_("signatures").remove([sig_file_name])
         except Exception as e:
-            flash(f"Profile deleted, but failed to delete storage files: {str(e)}", "error")
+            flash(f"Profile deleted, but failed to delete storage files: {str(e)}", "warning")
 
         # 3. Delete from 'profiles' table (public schema)
+        # This is done first so that if auth deletion fails, we don't have an orphaned profile
         supabase.table("profiles").delete().eq("id", auth_user_id).execute()
         
-        # 4. Delete from 'auth.users' (requires SERVICE_ROLE_KEY or admin privileges)
-        # This uses the auth_user_id (which is the UUID)
-        supabase.auth.admin.delete_user(auth_user_id)
+        # 4. Delete from 'auth.users' (requires SERVICE_ROLE_KEY)
+        supabase_admin.auth.admin.delete_user(auth_user_id)
         
         flash("Student deleted successfully (Auth, Profile, and Files).")
     except Exception as e:
@@ -794,11 +831,81 @@ def admin_delete_student(student_id):
         
     return redirect(url_for('admin_students'))
 
-@app.route('/admin/calendar')
+@app.route('/admin/archive')
 @admin_required
-def admin_calendar():
-    # Placeholder for calendar functionality
-    return render_template('admin/calendar.html')
+def admin_archive():
+    try:
+        # Get filters from URL
+        filter_ay = request.args.get('filter_ay', '')
+        filter_semester = request.args.get('filter_semester', '')
+        filter_program = request.args.get('filter_program', '')
+        filter_major = request.args.get('filter_major', '')
+
+        # Base query
+        query = supabase.table("archived_groups").select("*")
+
+        # Apply filters
+        if filter_ay:
+            query = query.eq('academic_year', filter_ay)
+        if filter_semester:
+            query = query.eq('semester', filter_semester)
+        if filter_program:
+            # Assumes program is the start of the group_name, e.g., "BSIT%"
+            query = query.ilike('group_name', f'{filter_program}%')
+        if filter_major:
+            # Assumes major is contained anywhere in the name, e.g., "%NETAD%"
+            query = query.ilike('group_name', f'%{filter_major}%')
+        
+        # Execute query
+        archives_res = query.order("created_at", desc=True).execute()
+        archives = archives_res.data
+        
+        # Format the created_at timestamp for display
+        for archive in archives:
+            try:
+                # Parse the full ISO timestamp
+                utc_time = datetime.fromisoformat(archive['created_at'].replace('Z', '+00:00'))
+                # Format it
+                archive['created_at'] = utc_time.strftime('%Y-%m-%d %I:%M %p')
+            except Exception:
+                archive['created_at'] = str(archive.get('created_at', '')) # Fallback
+
+        # Get all unique options for dropdowns
+        all_options_res = supabase.table("archived_groups").select("academic_year, semester, group_name").execute()
+        all_data = all_options_res.data
+        
+        all_academic_years = sorted(list(set(d['academic_year'] for d in all_data if d.get('academic_year'))))
+        all_semesters = sorted(list(set(d['semester'] for d in all_data if d.get('semester'))))
+        
+        all_programs = set()
+        all_majors = set()
+        for d in all_data:
+            if d.get('group_name'):
+                parts = d['group_name'].split(' - ')
+                if len(parts) > 0:
+                    all_programs.add(parts[0])
+                if len(parts) > 2: # Has a major
+                    all_majors.add(parts[2])
+                    
+        all_programs = sorted(list(all_programs))
+        all_majors = sorted(list(all_majors))
+
+        return render_template(
+            'admin/archive.html', 
+            archives=archives,
+            all_academic_years=all_academic_years,
+            all_semesters=all_semesters,
+            all_programs=all_programs,
+            all_majors=all_majors,
+            current_ay=filter_ay,
+            current_semester=filter_semester,
+            current_program=filter_program,
+            current_major=filter_major
+        )
+    except Exception as e:
+        flash(f"Error loading archive: {str(e)}", "error")
+        return render_template('admin/archive.html', archives=[], all_academic_years=[], all_semesters=[], all_programs=[], all_majors=[], current_ay='', current_semester='', current_program='', current_major='')
+
 
 @app.route('/admin/printing')
 @admin_required
@@ -830,18 +937,18 @@ def admin_printing():
         all_profiles_data = all_profiles_res.data
         
         all_programs = sorted(list(set(p['program'] for p in all_profiles_data if p.get('program'))))
-        all_years = sorted(list(set(p['year_level'] for p in all_profiles_data if p.get('year_level'))), key=lambda x: x[0]) # Sort by '1st', '2nd'
+        all_years = sorted(list(set(p['year_level'] for p in all_profiles_data if p.get('year_level'))), key=lambda x: (x or "Z")[0]) # Sort by '1st', '2nd'
         all_sections = sorted(list(set(p['section'] for p in all_profiles_data if p.get('section'))))
         all_semesters = sorted(list(set(p['semester'] for p in all_profiles_data if p.get('semester'))))
 
         # Build unique groups from the *filtered* profiles
         unique_groups = set()
         for profile in profiles:
-            if not all([profile.get('program'), profile.get('year_level'), profile.get('section')]):
+            if not all([profile.get('program'), profile.get('year_level'), profile.get('section'), profile.get('semester')]):
                 continue 
             
             major_val = profile.get('major') or 'None' 
-            semester_val = profile.get('semester') or 'N/A' # Get semester for the link
+            semester_val = profile.get('semester')
             
             key = (
                 profile.get('program'), 
@@ -924,7 +1031,6 @@ def admin_print_preview():
             
         # --- NEW SORTING LOGIC ---
         # Sort the list of dictionaries by the 'full_name' key
-        # This guarantees correct alphabetical order (e.g., "Last, First")
         sorted_members = sorted(members, key=lambda m: m.get('full_name', ''))
 
         # --- Automation Logic ---
@@ -932,7 +1038,6 @@ def admin_print_preview():
         semester_display = f"{semester} Sem." # e.g., "1st Sem."
         
         # 2. Calculate Academic Year (e.g., AY 2025-2026)
-        # We assume the academic year starts in August (month 8)
         today = datetime.now()
         current_year = today.year
         if today.month >= 8: # August to December
@@ -955,114 +1060,254 @@ def admin_print_preview():
         flash(f"Error generating print preview: {str(e)}", "error")
         return redirect(url_for('admin_printing'))
 
-# --- NEW President Section ---
-
-@app.route('/president')
-@app.route('/president/dashboard')
-@president_required
-def president_dashboard():
-    """
-    Shows the president a list of their classmates for approval.
-    """
+@app.route('/admin/archive_group', methods=['POST'])
+@admin_required # <-- FIXED: Added security decorator
+def admin_archive_group():
     try:
-        # Get the president's class info from session
-        program = session.get('program')
-        year_level = session.get('year_level')
-        section = session.get('section')
-        user_id = session.get('user_id')
+        # Get data from the form
+        program = request.form.get('program')
+        year_level = request.form.get('year_level')
+        section = request.form.get('section')
+        major = request.form.get('major')
+        semester = request.form.get('semester')
+        academic_year_form = request.form.get('academic_year') # This is the user-supplied AY
 
-        if not all([program, year_level, section]):
-            flash("Your profile is missing class information. Please contact an admin.", "error")
-            return redirect(url_for('profile'))
+        if not academic_year_form:
+            flash("Academic Year is required to create an archive.", "error")
+            return redirect(url_for('admin_printing'))
 
-        # Fetch all students in the same class, *except* the president themselves
+        # Fetch the live data for this group
         query = supabase.table("profiles").select("*")
         query = query.eq("program", program)
         query = query.eq("year_level", year_level)
         query = query.eq("section", section)
-        query = query.neq("id", user_id) # Don't show the president
+        query = query.eq("semester", semester)
+        
+        if major == 'None':
+            query = query.is_("major", "null")
+        else:
+            query = query.eq("major", major)
+        
+        group_profiles = query.execute().data
+
+        if not group_profiles:
+            flash("Cannot archive an empty group.", "error")
+            return redirect(url_for('admin_printing'))
+
+        # --- Build the JSONB data blob ---
+        members = []
+        for p in group_profiles:
+            full_name = f"{p.get('last_name', '')}, {p.get('first_name', '')} {p.get('middle_name', '')}".strip()
+            course_parts = [p.get('program', ''), f"{p.get('year_level', '')}{p.get('section', '')}"]
+            if p.get('major'):
+                course_parts.append(p.get('major'))
+            course = " - ".join(filter(None, course_parts)).strip()
+            
+            member = {
+                'full_name': full_name,
+                'student_id': p.get('student_id'),
+                'course': course,
+                'picture_url': p.get('picture_url'),
+                'signature_url': p.get('signature_url')
+            }
+            members.append(member)
+        
+        sorted_members = sorted(members, key=lambda m: m.get('full_name', ''))
+        # --- End of JSONB data blob ---
+
+        today = datetime.now()
+        generation_date = today.strftime("%B %d, %Y")
+        semester_display = f"{semester} Sem."
+        
+        # Build the group name for the archive
+        group_name_parts = [program, f"{year_level}{section}"]
+        if major != 'None':
+            group_name_parts.append(major)
+        group_name = " - ".join(group_name_parts)
+
+        # Data to insert into the new table
+        insert_data = {
+            "academic_year": academic_year_form, # Use the user-provided AY
+            "semester": semester,
+            "group_name": group_name,
+            "student_data": sorted_members, # Store the JSON list
+            "generation_date": generation_date
+        }
+        
+        supabase.table("archived_groups").insert(insert_data).execute()
+        
+        flash(f"Successfully archived group '{group_name}' for {academic_year_form}.", "success")
+
+    except Exception as e:
+        flash(f"Error creating archive: {str(e)}", "error")
+        
+    return redirect(url_for('admin_printing'))
+
+
+@app.route('/admin/archive_preview/<archive_id>')
+@admin_required # <-- FIXED: Added security decorator
+def admin_archive_preview(archive_id):
+    try:
+        # Fetch the specific archive record
+        archive_res = supabase.table("archived_groups").select("*").eq("id", archive_id).single().execute()
+        
+        if not archive_res.data:
+            flash("Archive not found.", "error")
+            return redirect(url_for('admin_archive'))
+            
+        archive = archive_res.data
+        
+        # Extract the data
+        sorted_members = archive.get('student_data', [])
+        semester_display = f"{archive.get('semester')} Sem."
+        academic_year = archive.get('academic_year')
+        generation_date = archive.get('generation_date')
+
+        return render_template(
+            'print_template.html', 
+            members=sorted_members,
+            semester_display=semester_display,
+            academic_year=academic_year,
+            generation_date=generation_date
+        )
+    except Exception as e:
+        flash(f"Error loading archive preview: {str(e)}", "error")
+        return redirect(url_for('admin_archive'))
+
+@app.route('/admin/delete_archive/<archive_id>', methods=['POST'])
+@admin_required # <-- FIXED: Added security decorator
+def admin_delete_archive(archive_id):
+    try:
+        supabase.table("archived_groups").delete().eq("id", archive_id).execute()
+        flash("Archive deleted successfully.", "success")
+    except Exception as e:
+        flash(f"Error deleting archive: {str(e)}", "error")
+    return redirect(url_for('admin_archive'))
+
+
+# --- President Section ---
+
+@app.route('/president')
+@app.route('/president/dashboard')
+@president_required # <-- FIXED: Added security decorator
+def president_dashboard():
+    try:
+        # Get president's class info from session
+        program = session.get('program')
+        year_level = session.get('year_level')
+        section = session.get('section')
+        major = session.get('major') # This might be None
+
+        # Build query to find classmates
+        query = supabase.table("profiles").select("*")
+        query = query.eq("program", program)
+        query = query.eq("year_level", year_level)
+        query = query.eq("section", section)
+        
+        if major:
+            query = query.eq("major", major)
+        else:
+            query = query.is_("major", "null")
+            
+        # Exclude the president themselves from the list
+        query = query.neq("id", session['user_id'])
         
         response = query.order("last_name", desc=False).execute()
         classmates = response.data
 
-        # You will need to create 'president/dashboard.html'
-        return render_template('president/dashboard.html', 
-                               classmates=classmates, 
-                               program=program, 
-                               year_level=year_level, 
-                               section=section)
+        # Data for the header
+        class_name_parts = [program, f"{year_level}{section}"]
+        if major:
+            class_name_parts.append(major)
+        class_name = " - ".join(class_name_parts)
 
+        return render_template(
+            'president/dashboard.html', 
+            classmates=classmates,
+            class_name=class_name
+        )
     except Exception as e:
-        flash(f"Error loading president dashboard: {str(e)}", "error")
-        return redirect(url_for('profile'))
+        flash(f"Error fetching classmates: {str(e)}", "error")
+        return render_template('president/dashboard.html', classmates=[], class_name="Error")
+
 
 @app.route('/president/review/<student_id>', methods=['GET', 'POST'])
-@president_required
+@president_required # <-- FIXED: Added security decorator
 def president_review_student(student_id):
-    """
-    Allows a president to review, approve, or disapprove a specific student.
-    """
-    # First, check that the student is in the president's class for security
+    # Ensure president is not reviewing themselves
+    if student_id == session['user_id']:
+        flash("You cannot review your own profile.", "error")
+        return redirect(url_for('president_dashboard'))
+
+    # Fetch the student's profile
     try:
         student_res = supabase.table("profiles").select("*").eq("id", student_id).single().execute()
-        student = student_res.data
-        if not student:
+        if not student_res.data:
             flash("Student not found.", "error")
             return redirect(url_for('president_dashboard'))
-
-        # Check if student is in the president's class
-        if (student.get('program') != session.get('program') or
-            student.get('year_level') != session.get('year_level') or
-            student.get('section') != session.get('section')):
+        
+        student = student_res.data
+        
+        # --- Security Check: Is this student in the president's class? ---
+        if not (student.get('program') == session.get('program') and
+                student.get('year_level') == session.get('year_level') and
+                student.get('section') == session.get('section') and
+                student.get('major') == session.get('major')):
             flash("You do not have permission to review this student.", "error")
             return redirect(url_for('president_dashboard'))
+            
     except Exception as e:
         flash(f"Error fetching student: {str(e)}", "error")
         return redirect(url_for('president_dashboard'))
-
-    # Handle the form submission
-    if request.method == 'POST':
-        action = request.form.get('action')
-        reason = request.form.get('disapproval_reason', '').strip()
-
-        update_data = {}
-
-        if action == 'approve_picture':
-            update_data = {"picture_status": "approved", "disapproval_reason": None}
-        elif action == 'approve_signature':
-            update_data = {"signature_status": "approved", "disapproval_reason": None}
-        elif action == 'disapprove_picture':
-            if not reason:
-                flash("A reason is required to disapprove the picture.", "error")
-                return render_template('president/review_student.html', student=student)
-            update_data = {"picture_status": "disapproved", "disapproval_reason": f"Picture: {reason}"}
-        elif action == 'disapprove_signature':
-            if not reason:
-                flash("A reason is required to disapprove the signature.", "error")
-                return render_template('president/review_student.html', student=student)
-            # Append to existing reason if it exists
-            existing_reason = student.get('disapproval_reason') or ""
-            if "Picture:" in existing_reason: # Append if picture reason already exists
-                 update_data = {"signature_status": "disapproved", "disapproval_reason": f"{existing_reason} | Signature: {reason}"}
-            else:
-                 update_data = {"signature_status": "disapproved", "disapproval_reason": f"Signature: {reason}"}
         
-        if update_data:
-            try:
-                supabase.table("profiles").update(update_data).eq("id", student_id).execute()
-                flash(f"Student {student.get('first_name')} {student.get('last_name')}'s profile has been updated.")
-                return redirect(url_for('president_review_student', student_id=student_id))
-            except Exception as e:
-                flash(f"Error updating student: {str(e)}", "error")
-        else:
-            flash("No valid action specified.", "warning")
 
-    # GET request: Show the review page
-    # You will need to create 'president/review_student.html'
+    if request.method == 'POST':
+        try:
+            action = request.form.get('action')
+            disapproval_reason = request.form.get('disapproval_reason', '').strip()
+            
+            update_data = {}
+            
+            if action == 'approve_pic':
+                update_data['picture_status'] = 'approved'
+            elif action == 'approve_sig':
+                update_data['signature_status'] = 'approved'
+            
+            elif action in ('disapprove_pic', 'disapprove_sig'):
+                if not disapproval_reason:
+                    flash("A reason is required for disapproval.", "error")
+                    return render_template('president/review_student.html', student=student)
+                
+                # Combine new reason with existing (if any)
+                existing_reason = student.get('disapproval_reason') or ""
+                # Simple way to avoid duplicate reasons
+                if disapproval_reason not in existing_reason:
+                    new_reason = f"{existing_reason} [Reason: {disapproval_reason}]".strip()
+                else:
+                    new_reason = existing_reason
+                
+                update_data['disapproval_reason'] = new_reason
+
+                if action == 'disapprove_pic':
+                    update_data['picture_status'] = 'disapproved'
+                elif action == 'disapprove_sig':
+                    update_data['signature_status'] = 'disapproved'
+            
+            else:
+                flash("Invalid action.", "error")
+                return render_template('president/review_student.html', student=student)
+            
+            # Apply the update
+            supabase.table("profiles").update(update_data).eq("id", student_id).execute()
+            flash("Student profile updated.", "success")
+            return redirect(url_for('president_dashboard'))
+
+        except Exception as e:
+            flash(f"Error updating student status: {str(e)}", "error")
+
+    # GET request
     return render_template('president/review_student.html', student=student)
 
-
-# --- Run Application (Not used by Vercel) ---
 
 if __name__ == '__main__':
     app.run(debug=True)
