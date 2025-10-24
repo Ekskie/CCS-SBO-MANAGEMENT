@@ -33,19 +33,19 @@
             <!-- 2. DEFAULT LOGIN FORM (Visible by default) -->
             <div id="login-form-wrapper">
                 <h2>LOGIN</h2>
-                <form method="POST" action="{{ url_for('login') }}" id="login-form">
+                <form method="POST" action="{{ url_for('auth.login') }}" id="login-form">
                     <input type="text" name="student_id" placeholder="Student ID" required>
                     <input type="password" name="password" placeholder="Enter Your Password" required>
 
                     <div class="forgot">
-                        <a href="{{ url_for('forgot_password') }}">Forgot your password?</a>
+                        <a href="{{ url_for('auth.forgot_password') }}">Forgot your password?</a>
                     </div>
 
                     <button type="submit" class="btn-login">LOGIN</button>
 
                     <p class="register-text">
                         Don’t have an account?
-                        <a href="{{ url_for('register') }}">Register</a>
+                        <a href="{{ url_for('auth.register') }}">Register</a>
                     </p>
                 </form>
             </div>

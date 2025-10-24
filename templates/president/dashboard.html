@@ -50,7 +50,7 @@
                             </span>
                         </td>
                         <td>
-                            <a href="{{ url_for('president_review_student', student_id=student.id) }}">
+                            <a href="{{ url_for('president.president_review_student', student_id=student.id) }}">
                                 Review
                                 {% if student.picture_status == 'pending' or student.signature_status == 'pending' %}
                                 <span class="pending-dot"></span>

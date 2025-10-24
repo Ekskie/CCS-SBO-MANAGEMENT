@@ -11,7 +11,7 @@
     </div>
 
     <!-- Filter Form (From your new design) -->
-    <form method="GET" action="{{ url_for('admin_printing') }}" class="p-4 bg-gray-50 border-b">
+    <form method="GET" action="{{ url_for('admin.admin_printing') }}" class="p-4 bg-gray-50 border-b">
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
             <!-- Program -->
             <div>
@@ -58,7 +58,7 @@
                 <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     Filter
                 </button>
-                <a href="{{ url_for('admin_printing') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <a href="{{ url_for('admin.admin_printing') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     Clear
                 </a>
             </div>
@@ -89,7 +89,7 @@
                             <div class="text-sm text-gray-500">{{ semester }} Semester</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <a href="{{ url_for('admin_print_preview', program=program, year_level=year_level, section=section, major=major, semester=semester) }}" 
+                            <a href="{{ url_for('admin.admin_print_preview', program=program, year_level=year_level, section=section, major=major, semester=semester) }}" 
                                target="_blank" class="text-indigo-600 hover:text-indigo-900">
                                <i class="fas fa-print mr-1"></i>
                                View Live Print
@@ -97,7 +97,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <!-- Archive Form -->
-                            <form method="POST" action="{{ url_for('admin_archive_group') }}" class="flex items-center gap-2">
+                            <form method="POST" action="{{ url_for('admin.admin_archive_group') }}" class="flex items-center gap-2">
                                 <input type="hidden" name="program" value="{{ program }}">
                                 <input type="hidden" name="year_level" value="{{ year_level }}">
                                 <input type="hidden" name="section" value="{{ section }}">
