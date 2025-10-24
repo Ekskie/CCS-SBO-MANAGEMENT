@@ -13,13 +13,13 @@
     <aside class="sidebar">
         <h2>Menu</h2>
         <ul>
-            <li><a href="{{ url_for('profile') }}" {% if request.endpoint == 'profile' %}class="active"{% endif %}>Profile</a></li>
-            <li><a href="{{ url_for('settings') }}" {% if request.endpoint == 'settings' %}class="active"{% endif %}>Settings</a></li>
+            <li><a href="{{ url_for('core.profile') }}" {% if request.endpoint == 'profile' %}class="active"{% endif %}>Profile</a></li>
+            <li><a href="{{ url_for('core.settings') }}" {% if request.endpoint == 'settings' %}class="active"{% endif %}>Settings</a></li>
             
             {% if is_president or is_admin %}
-            <li><a href="{{ url_for('president_dashboard') }}">President Dashboard</a></li>
+            <li><a href="{{ url_for('president.president_dashboard') }}">President Dashboard</a></li>
             {% endif %}
-            <li><a href="{{ url_for('logout') }}">Sign Out</a></li>
+            <li><a href="{{ url_for('auth.logout') }}">Sign Out</a></li>
         </ul>
     </aside>
 

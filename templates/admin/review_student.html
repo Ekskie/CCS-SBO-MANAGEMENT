@@ -1,0 +1,139 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin - Review {{ student.first_name }} {{ student.last_name }}{% endblock %}
+
+{% block content %}
+<section class="profile-section review-section" style="max-width: 900px; margin: 20px auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <!-- Use admin.admin_students for the back link -->
+    <a href="{{ url_for('admin.admin_students') }}" class="back-btn" style="color: #4f46e5; text-decoration: none; font-weight: 500;">&larr; Back to Student List</a>
+    
+    <h2 style="text-align: left; margin-top: 15px; font-size: 1.75rem; font-weight: 600;">{{ student.first_name }} {{ student.last_name }}</h2>
+    <p style="margin-top: -10px; margin-bottom: 20px; font-size: 1rem; color: #555;">{{ student.student_id }}</p>
+
+    <!-- Use admin.admin_review_student for the form action -->
+    <form action="{{ url_for('admin.admin_review_student', student_id=student.id) }}" method="POST">
+
+        <div class="review-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            <!-- Picture Review -->
+            <div class="review-box" style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
+                <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 10px;">1x1 Picture Review</h3>
+                <span class="status-badge 
+                    {% if student.picture_status == 'approved' %} status-approved
+                    {% elif student.picture_status == 'pending' %} status-pending
+                    {% else %} status-disapproved {% endif %}" style="margin-bottom: 15px; display: inline-block; padding: 4px 12px; border-radius: 99px; font-size: 0.875rem; font-weight: 500;">
+                    {{ student.picture_status | capitalize }}
+                </span>
+                
+                <div class="photo-box clickable-img" style="width: 150px; height: 150px; border: 2px dashed #cbd5e1; border-radius: 8px; overflow: hidden; margin-bottom: 15px; cursor: pointer;">
+                    <img src="{{ student.picture_url or 'https://placehold.co/150x150/e2e8f0/718096?text=No+Image' }}" alt="Profile picture" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                
+                <div class="button-group" style="display: flex; gap: 10px;">
+                    <button type="submit" name="action" value="approve_picture" class="save-btn" style="background-color: #10b981; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                        Approve
+                    </button>
+                    <button type="submit" name="action" value="disapprove_picture" class="delete-btn" style="background-color: #ef4444; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                        Disapprove
+                    </button>
+                </div>
+            </div>
+
+            <!-- Signature Review -->
+            <div class="review-box" style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
+                <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 10px;">Signature Review</h3>
+                <span class="status-badge 
+                    {% if student.signature_status == 'approved' %} status-approved
+                    {% elif student.signature_status == 'pending' %} status-pending
+                    {% else %} status-disapproved {% endif %}" style="margin-bottom: 15px; display: inline-block; padding: 4px 12px; border-radius: 99px; font-size: 0.875rem; font-weight: 500;">
+                    {{ student.signature_status | capitalize }}
+                </span>
+                
+                <div class="signature-box clickable-img" style="width: 100%; max-width: 300px; height: 150px; border: 2px dashed #cbd5e1; border-radius: 8px; overflow: hidden; margin-bottom: 15px; background: #f8fafc; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                    <img src="{{ student.signature_url or 'https://placehold.co/300x150/e2e8f0/718096?text=No+Signature' }}" alt="Signature" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                </div>
+
+                <div class="button-group" style="display: flex; gap: 10px;">
+                    <button type="submit" name="action" value="approve_signature" class="save-btn" style="background-color: #10b981; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                        Approve
+                    </button>
+                    <button type="submit" name="action" value="disapprove_signature" class="delete-btn" style="background-color: #ef4444; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                        Disapprove
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disapproval Reason -->
+        <div class="disapproval-form" style="margin-top: 20px;">
+            <label for="disapproval_reason" style="display: block; font-weight: 500; margin-bottom: 5px;">Disapproval Reason (Required if disapproving)</label>
+            <textarea name="disapproval_reason" id="disapproval_reason" rows="3" placeholder="e.g., 'Picture is not 1x1' or 'Signature has a white background'" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px;"></textarea>
+            <p class="note" style="font-size: 0.875rem; color: #555; margin-top: 5px;">This reason will be shown to the student. Admin's reason will overwrite any existing reason.</p>
+        </div>
+
+    </form>
+</section>
+
+<!-- Basic Image Modal (CSS-only) -->
+<style>
+    .clickable-img { cursor: pointer; }
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.8);
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-content {
+        margin: auto;
+        display: block;
+        max-width: 90vw;
+        max-height: 90vh;
+    }
+    .modal-close {
+        position: absolute;
+        top: 15px;
+        right: 35px;
+        color: #f1f1f1;
+        font-size: 40px;
+        font-weight: bold;
+        transition: 0.3s;
+        cursor: pointer;
+    }
+</style>
+
+<div id="imageModal" class="modal">
+    <span class="modal-close" id="modalClose">&times;</span>
+    <img class="modal-content" id="modalImage">
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var modal = document.getElementById('imageModal');
+        var modalImg = document.getElementById('modalImage');
+        var closeBtn = document.getElementById('modalClose');
+
+        document.querySelectorAll('.clickable-img img').forEach(function(img) {
+            img.onclick = function() {
+                modal.style.display = 'flex';
+                modalImg.src = this.src;
+            }
+        });
+
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        }
+        
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+    });
+</script>
+{% endblock %}

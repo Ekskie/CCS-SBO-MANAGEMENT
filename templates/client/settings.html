@@ -9,7 +9,7 @@
 
     <div class="settings-card">
         <h3>Change Password</h3>
-        <form method="POST" action="{{ url_for('change_password') }}">
+        <form method="POST" action="{{ url_for('core.change_password') }}">
             <div style="margin-bottom: 15px;">
                 <label for="current_password">Current Password</label>
                 <input type="password" name="current_password" id="current_password" required>
@@ -44,7 +44,7 @@
     if (backBtn) {
         backBtn.addEventListener('click', () => {
             // Navigate back to the profile page
-            location.href = "{{ url_for('profile') }}";
+            location.href = "{{ url_for('core.profile') }}";
         });
     }
 </script>
