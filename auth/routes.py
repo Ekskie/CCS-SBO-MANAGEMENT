@@ -39,24 +39,16 @@ def login():
                     flash('Please verify your email address before logging in.')
                     return render_template('client/login.html')
                     
-                session = auth_response.session # Get session from response
+                session['user_id'] = auth_response.user.id
+                session['email'] = email
+                session['student_id'] = student_id
+                session['account_type'] = profile.get('account_type')
+                session['program'] = profile.get('program')
+                session['year_level'] = profile.get('year_level')
+                session['section'] = profile.get('section')
+                session['major'] = profile.get('major')
                 
-                # Store user info in Flask session
-                flash_session = {} # Use a standard dict for Flask's session
-                flash_session['user_id'] = auth_response.user.id
-                flash_session['email'] = email
-                flash_session['student_id'] = student_id
-                
-                flash_session['account_type'] = profile.get('account_type')
-                flash_session['program'] = profile.get('program')
-                flash_session['year_level'] = profile.get('year_level')
-                flash_session['section'] = profile.get('section')
-                flash_session['major'] = profile.get('major')
-                
-                # Use Flask's session object to set values
-                for key, value in flash_session.items():
-                    flask_session[key] = value
-
+                # Use Blueprint route names in url_for
                 if profile.get('account_type') == 'admin':
                     return redirect(url_for('admin.admin_dashboard'))
                 elif profile.get('account_type') == 'president':
@@ -67,11 +59,10 @@ def login():
                 flash('Invalid Student ID or password.')
                 
         except Exception as e:
-            print(f"Login error: {e}") # For debugging
+            print(f"Login error: {e}") 
             flash(f"Invalid Student ID or password.")
 
     return render_template('client/login.html')
-
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
