@@ -81,7 +81,7 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 h-10 w-10">
-                                    <img class="h-10 w-10 rounded-full object-cover" src="{{ student.picture_url or url_for('static', filename='image/default_avatar.png') }}" alt="Avatar">
+                                    <img class="h-10 w-10 rounded-full object-cover" src="{{ student.picture_url or 'https://placehold.co/40x40/e2e8f0/718096?text=N/A' }}" alt="Avatar">
                                 </div>
                                 <div class="ml-4">
                                     <div class="text-sm font-medium text-gray-900">{{ student.last_name }}, {{ student.first_name }}</div>
@@ -125,6 +125,9 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <a href="{{ url_for('admin.admin_edit_student', student_id=student.id) }}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
+                            <!-- --- NEW: Review Link --- -->
+                            <a href="{{ url_for('admin.admin_review_student', student_id=student.id) }}" class="text-green-600 hover:text-green-900 ml-4">Review</a>
+                            <!-- --- END OF NEW LINK --- -->
                             <button type="button" onclick="openDeleteModal('{{ student.id }}', '{{ student.first_name }} {{ student.last_name }}')" class="text-red-600 hover:text-red-900 ml-4">Delete</button>
                         </td>
                     </tr>
@@ -154,7 +157,10 @@
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
                     <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <i class="fas fa-exclamation-triangle text-red-600"></i> <!-- Note: This requires Font Awesome to be loaded in your base.html -->
+                        <!-- Assuming Font Awesome is loaded in admin/base.html -->
+                        <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
                     </div>
                     <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                         <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Delete Student</h3>
@@ -193,4 +199,3 @@
     }
 </script>
 {% endblock %}
-

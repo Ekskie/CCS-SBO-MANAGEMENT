@@ -2,10 +2,11 @@ import os
 import io
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from extensions import supabase, supabase_admin
-from utils import check_transparency
 from config import MAX_FILE_SIZE
+from utils import check_transparency
 
 # Define the Blueprint
+# All routes in this file will be prefixed with /auth
 auth_bp = Blueprint('auth', __name__, template_folder='../templates')
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -38,16 +39,24 @@ def login():
                     flash('Please verify your email address before logging in.')
                     return render_template('client/login.html')
                     
-                session['user_id'] = auth_response.user.id
-                session['email'] = email
-                session['student_id'] = student_id
-                session['account_type'] = profile.get('account_type')
-                session['program'] = profile.get('program')
-                session['year_level'] = profile.get('year_level')
-                session['section'] = profile.get('section')
-                session['major'] = profile.get('major')
+                session = auth_response.session # Get session from response
                 
-                # Use Blueprint route names in url_for
+                # Store user info in Flask session
+                flash_session = {} # Use a standard dict for Flask's session
+                flash_session['user_id'] = auth_response.user.id
+                flash_session['email'] = email
+                flash_session['student_id'] = student_id
+                
+                flash_session['account_type'] = profile.get('account_type')
+                flash_session['program'] = profile.get('program')
+                flash_session['year_level'] = profile.get('year_level')
+                flash_session['section'] = profile.get('section')
+                flash_session['major'] = profile.get('major')
+                
+                # Use Flask's session object to set values
+                for key, value in flash_session.items():
+                    flask_session[key] = value
+
                 if profile.get('account_type') == 'admin':
                     return redirect(url_for('admin.admin_dashboard'))
                 elif profile.get('account_type') == 'president':
@@ -58,7 +67,7 @@ def login():
                 flash('Invalid Student ID or password.')
                 
         except Exception as e:
-            print(f"Login error: {e}") 
+            print(f"Login error: {e}") # For debugging
             flash(f"Invalid Student ID or password.")
 
     return render_template('client/login.html')
@@ -91,7 +100,7 @@ def register():
         semester = request.form.get("semester")
         year_level = request.form.get("year_level")
         section = request.form.get("section")
-        major = request.form.get("major")
+        major = request.form.get("major") # This will be "" if not applicable
         
         picture_file = request.files.get('picture')
         signature_file = request.files.get('signature')
@@ -127,12 +136,21 @@ def register():
             flash("Signature PNG must have a transparent background.")
             return render_template("client/register.html")
             
+        # --- UPDATED MAJOR VALIDATION ---
+        programs_with_majors = ["BSIT", "BSCS"]
         if year_level in ("3rd Year", "4th Year"):
-            if not major:
-                flash("Major is required for 3rd and 4th year students.")
-                return render_template("client/register.html")
+            if program in programs_with_majors:
+                # For BSIT/BSCS, a major is required
+                if not major:
+                    flash(f"Major is required for {program} 3rd and 4th year students.")
+                    return render_template("client/register.html")
+            else:
+                # For BSIS (or other new programs), major is not applicable
+                major = None # Explicitly set to None
         else:
-            major = None
+            # 1st or 2nd Year
+            major = None # Set major to None (NULL) for 1st/2nd year
+        # --- END OF UPDATED VALIDATION ---
             
         try:
             existing_student = supabase.table("profiles").select("student_id").eq("student_id", student_id).execute()
@@ -187,7 +205,7 @@ def register():
                     "semester": semester,
                     "year_level": year_level,
                     "section": section,
-                    "major": major,
+                    "major": major, # This is now correctly set to None or a value
                     "picture_url": picture_url,
                     "signature_url": signature_url,
                     "account_type": "student",
@@ -253,10 +271,10 @@ def forgot_password():
 def check_email():
     return render_template('client/check_email.html')
 
-
 @auth_bp.route('/logout')
 def logout():
     session.clear()
     supabase.auth.sign_out()
     flash('You have been logged out.')
     return redirect(url_for('auth.login'))
+

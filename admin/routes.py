@@ -535,3 +535,62 @@ def admin_delete_archive(archive_id):
     except Exception as e:
         flash(f"Error deleting archive: {str(e)}", "error")
     return redirect(url_for('admin.admin_archive'))
+
+# --- NEW: Admin Review Route ---
+@admin_bp.route('/review/<student_id>', methods=['GET', 'POST'])
+@admin_required
+def admin_review_student(student_id):
+    # Admins can review anyone, so we only fetch the student
+    try:
+        student_res = supabase.table("profiles").select("*").eq("id", student_id).single().execute()
+        if not student_res.data:
+            flash("Student not found.", "error")
+            return redirect(url_for('admin.admin_students'))
+        
+        student = student_res.data
+            
+    except Exception as e:
+        flash(f"Error fetching student: {str(e)}", "error")
+        return redirect(url_for('admin.admin_students'))
+        
+    # Handle the form submission
+    if request.method == 'POST':
+        try:
+            action = request.form.get('action')
+            disapproval_reason = request.form.get('disapproval_reason', '').strip()
+            
+            update_data = {}
+            
+            if action == 'approve_picture':
+                update_data['picture_status'] = 'approved'
+            elif action == 'approve_signature':
+                update_data['signature_status'] = 'approved'
+            
+            elif action in ('disapprove_picture', 'disapprove_signature'):
+                if not disapproval_reason:
+                    flash("A reason is required for disapproval.", "error")
+                    return render_template('admin/review_student.html', student=student)
+                
+                # Overwrite reason completely, as admin has final say
+                update_data['disapproval_reason'] = f"[Admin Reason: {disapproval_reason}]".strip()
+
+                if action == 'disapprove_picture':
+                    update_data['picture_status'] = 'disapproved'
+                elif action == 'disapprove_signature':
+                    update_data['signature_status'] = 'disapproved'
+            
+            else:
+                flash("Invalid action.", "error")
+                return render_template('admin/review_student.html', student=student)
+            
+            # Apply the update
+            supabase.table("profiles").update(update_data).eq("id", student_id).execute()
+            flash("Student profile updated by admin.", "success")
+            return redirect(url_for('admin.admin_students'))
+
+        except Exception as e:
+            flash(f"Error updating student status: {str(e)}", "error")
+
+    # GET request: Show the review page
+    return render_template('admin/review_student.html', student=student)
+
