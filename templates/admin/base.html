@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard{% endblock %} | SOMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'navy': '#000080',
+                        'lspu-green': '#228B22',
+                    }
+                },
+            },
+        }
+    </script>
+    <!-- Simple icon font for sidebar -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen bg-gray-100">
+        <!-- Sidebar -->
+        <div class="hidden md:flex flex-col w-64 bg-gray-800 text-white">
+            <div class="flex items-center justify-center h-16 bg-gray-900 shadow-md">
+                <span class="text-white font-bold text-xl">SOMS ADMIN</span>
+            </div>
+            <div class="flex flex-col flex-1 overflow-y-auto">
+                <nav class="flex-1 px-2 py-4 bg-gray-800">
+                    <a href="{{ url_for('admin_dashboard') }}" class="flex items-center px-4 py-2 text-gray-100 hover:bg-gray-700 rounded-md {% if request.path == url_for('admin_dashboard') %}bg-gray-900{% endif %}">
+                        <i class="fas fa-tachometer-alt w-6"></i>
+                        <span class="ml-3">Dashboard</span>
+                    </a>
+                    <a href="{{ url_for('admin_students') }}" class="flex items-center px-4 py-2 mt-2 text-gray-100 hover:bg-gray-700 rounded-md {% if request.path == url_for('admin_students') %}bg-gray-900{% endif %}">
+                        <i class="fas fa-users w-6"></i>
+                        <span class="ml-3">Students</span>
+                    </a>
+                    <a href="{{ url_for('admin_printing') }}" class="flex items-center px-4 py-2 mt-2 text-gray-100 hover:bg-gray-700 rounded-md {% if request.path == url_for('admin_printing') %}bg-gray-900{% endif %}">
+                        <i class="fas fa-print w-6"></i>
+                        <span class="ml-3">Printing Station</span>
+                    </a>
+                    <a href="{{ url_for('admin_calendar') }}" class="flex items-center px-4 py-2 mt-2 text-gray-100 hover:bg-gray-700 rounded-md {% if request.path == url_for('admin_calendar') %}bg-gray-900{% endif %}">
+                        <i class="fas fa-calendar-alt w-6"></i>
+                        <span class="ml-3">Calendar</span>
+                    </a>
+                </nav>
+            </div>
+            <div class="p-4 border-t border-gray-700">
+                 <a href="{{ url_for('profile') }}" class="flex items-center px-4 py-2 text-gray-100 hover:bg-gray-700 rounded-md">
+                    <i class="fas fa-user w-6"></i>
+                    <span class="ml-3">Back to Profile</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="flex flex-col flex-1 overflow-y-auto">
+            <div class="flex items-center justify-between h-16 bg-white border-b border-gray-200 px-4">
+                <h1 class="text-2xl font-semibold text-gray-800">{% block page_title %}Dashboard{% endblock %}</h1>
+                <div class="flex items-center">
+                    <span class="text-gray-600 mr-2">Welcome, {{ session.email }}</span>
+                    <a href="{{ url_for('logout') }}" class="text-sm text-blue-500 hover:underline">Logout</a>
+                </div>
+            </div>
+            <div class="p-4 md:p-8">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="mb-4 px-4 py-3 rounded-md {% if category == 'error' %}bg-red-100 border border-red-400 text-red-700{% else %}bg-blue-100 border border-blue-400 text-blue-700{% endif %}" role="alert">
+                            <span class="block sm:inline">{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                {% endwith %}
+                
+                <!-- Content block -->
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LSPU - List of Organization Members</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/printing.css') }}">
+    <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Times+New+Roman&display=swap" rel="stylesheet">
@@ -53,22 +53,22 @@
         </div>
 
         <main class="member-grid">
-            {% for member in members %}
+            
             <div class="member-card">
                 <div class="picture-placeholder">
-                    <img src="{{ member.picture_url }}" alt="Student Photo">
+                    <img src="https://lnbjifvircxceupkcpnl.supabase.co/storage/v1/object/public/pictures/0223-1947_picture.jpg" alt="Student Photo">
                 </div>
                 <div>
                     <img class="Student-signature"
-                        src="{{ member.signature_url }}"
+                        src="https://lnbjifvircxceupkcpnl.supabase.co/storage/v1/object/public/signatures/0223-1947_signature.jpg"
                         alt=""
                         style="width: 100px; position: absolute; transform: translate(40px, -55px); mix-blend-mode:darken; aspect-ratio: 1/1;">
-                    <input type="text" class="member-name" value="{{ member.full_name }}">
-                    <input type="text" class="member-info" value="{{ member.student_id }}">
-                    <input type="text" class="member-info" value="{{ member.course }}">
+                    <input type="text" class="member-name" value="Landicho, Lance">
+                    <input type="text" class="member-info" value="0223-1947">
+                    <input type="text" class="member-info" value="BSIT - 3rd YearA WMAD">
                 </div>
             </div>
-            {% endfor %}
+            
         </main>
 
         <footer>
@@ -124,12 +124,66 @@
         style.textContent = '@media print { #printButton { display: none; } }';
         document.head.appendChild(style);
 
-        // This is the key change: use 'load' to wait for CSS
-        window.addEventListener("load", function () {
+        // Add student functionality
+        document.getElementById('add-btn').addEventListener('click', function () {
+            const name = document.getElementById('new-name').value.trim();
+            const id = document.getElementById('new-id').value.trim();
+            const section = document.getElementById('new-section').value.trim();
+
+            if (!name || !id || !section) {
+                alert('Please fill in all fields.');
+                return;
+            }
+
+            // Find all member-name inputs
+            const nameInputs = document.querySelectorAll('.member-name');
+            let emptyIndex = -1;
+            for (let i = 0; i < nameInputs.length; i++) {
+                if (nameInputs[i].value.trim() === '') {
+                    emptyIndex = i;
+                    break;
+                }
+            }
+
+            if (emptyIndex !== -1) {
+                // Fill the empty slot
+                nameInputs[emptyIndex].value = name;
+                const card = nameInputs[emptyIndex].closest('.member-card');
+                const infoInputs = card.querySelectorAll('.member-info');
+                infoInputs[0].value = id;
+                infoInputs[1].value = section;
+            } else {
+                // Clone the last container and append
+                const containers = document.querySelectorAll('.container');
+                const lastContainer = containers[containers.length - 1];
+                const newContainer = lastContainer.cloneNode(true);
+                // Clear the member inputs in the new container
+                const newNameInputs = newContainer.querySelectorAll('.member-name');
+                const newInfoInputs = newContainer.querySelectorAll('.member-info');
+                newNameInputs.forEach(input => input.value = '');
+                newInfoInputs.forEach(input => input.value = '');
+                // Fill the first card
+                newNameInputs[0].value = name;
+                const firstCard = newNameInputs[0].closest('.member-card');
+                const firstInfoInputs = firstCard.querySelectorAll('.member-info');
+                firstInfoInputs[0].value = id;
+                firstInfoInputs[1].value = section;
+                // Append after the last container
+                lastContainer.parentNode.insertBefore(newContainer, lastContainer.nextSibling);
+            }
+
+            // Clear the form
+            document.getElementById('new-name').value = '';
+            document.getElementById('new-id').value = '';
+            document.getElementById('new-section').value = '';
+        });
+        document.addEventListener("DOMContentLoaded", function () {
             const inputs = document.querySelectorAll('.member-name');
 
             inputs.forEach(input => {
                 fitTextToInput(input);
+
+                // Recheck size if text changes dynamically
                 input.addEventListener('input', () => fitTextToInput(input));
             });
 
@@ -137,22 +191,17 @@
                 const maxFontSize = 11; // base font size (pt)
                 const minFontSize = 6;  // smallest allowed font
                 const testSpan = document.createElement('span');
-
-                // Configure the measurement span
                 testSpan.style.visibility = 'hidden';
                 testSpan.style.whiteSpace = 'nowrap';
                 testSpan.style.position = 'absolute';
                 testSpan.style.fontFamily = window.getComputedStyle(input).fontFamily;
-                testSpan.style.textTransform = window.getComputedStyle(input).textTransform;
-                testSpan.style.fontWeight = window.getComputedStyle(input).fontWeight;
                 document.body.appendChild(testSpan);
 
                 let fontSize = maxFontSize;
                 testSpan.style.fontSize = fontSize + 'pt';
                 testSpan.textContent = input.value;
 
-                // Use clientWidth for more accurate inner-width measurement
-                while (testSpan.offsetWidth > input.clientWidth && fontSize > minFontSize) {
+                while (testSpan.offsetWidth > input.offsetWidth - 5 && fontSize > minFontSize) {
                     fontSize -= 0.5;
                     testSpan.style.fontSize = fontSize + 'pt';
                 }
@@ -161,39 +210,6 @@
                 document.body.removeChild(testSpan);
             }
         });
-
-        // Re-fit text before printing to account for print styles
-        window.addEventListener('beforeprint', function () {
-            const inputs = document.querySelectorAll('.member-name');
-            inputs.forEach(input => {
-                const maxFontSize = 11; // base font size (pt)
-                const minFontSize = 6;  // smallest allowed font
-                const testSpan = document.createElement('span');
-
-                // Configure the measurement span
-                testSpan.style.visibility = 'hidden';
-                testSpan.style.whiteSpace = 'nowrap';
-                testSpan.style.position = 'absolute';
-                testSpan.style.fontFamily = window.getComputedStyle(input).fontFamily;
-                testSpan.style.textTransform = window.getComputedStyle(input).textTransform;
-                testSpan.style.fontWeight = window.getComputedStyle(input).fontWeight;
-                document.body.appendChild(testSpan);
-
-                let fontSize = maxFontSize;
-                testSpan.style.fontSize = fontSize + 'pt';
-                testSpan.textContent = input.value;
-
-                // Use clientWidth for more accurate inner-width measurement
-                while (testSpan.offsetWidth > input.clientWidth && fontSize > minFontSize) {
-                    fontSize -= 0.5;
-                    testSpan.style.fontSize = fontSize + 'pt';
-                }
-
-                input.style.fontSize = fontSize + 'pt';
-                document.body.removeChild(testSpan);
-            });
-        });
-
     </script>
 </body>
 

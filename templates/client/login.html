@@ -9,9 +9,197 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Orbitron:wght@700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
-
     
+    <!-- Using inline styles as the CSS file wasn't provided, this matches your provided HTML -->
+    <style>
+        @font-face {
+            font-family: "Ignis-et-Glacies-Sharp-Bold";
+            /* This path will likely fail unless you have a /static/font directory */
+            src: url(/static/font/Ignis-et-Glacies-Sharp-Bold.ttf.woff) format("woff");
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            height: 100vh;
+            display: flex;
+            background-color: #1c1c1c; /* Fallback */
+        }
+
+        /* LEFT PANEL */
+        .left-panel {
+            flex: 0 0 40%;
+            background: linear-gradient(to bottom right, rgba(157, 249, 122, 0.9), rgba(94, 197, 255, 0.9)),
+                url("/static/image/background.jpg") center / cover;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .left-panel img {
+            width: 160px;
+            margin-bottom: 20px;
+        }
+
+        .left-panel p {
+            font-family: "Ignis-et-Glacies-Sharp-Bold", sans-serif;
+            font-weight: 700;
+            font-size: 20pt;
+            line-height: 1.3;
+            color: #fff;
+        }
+
+        /* RIGHT PANEL */
+        .right-panel {
+            flex: 1;
+            background-color: #1c1c1c;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .right-panel img {
+            width: 100%;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #04478c, #0455a9, #002143);
+            align-self: flex-start;
+            padding-left: 260pt; /* This is very large, might cause layout issues */
+        }
+
+        .right-panel h2 {
+            font-family: "Orbitron", sans-serif;
+            font-size: 24pt;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+        }
+
+        /* LOGIN FORM */
+        form {
+            width: 100%;
+            max-width: 420px;
+            margin-top: 10px;
+        }
+
+        form input {
+            width: 100%;
+            background-color: #2e2e2e;
+            border: none;
+            border-radius: 5px;
+            padding: 14px;
+            margin-top: 10px;
+            color: white;
+            font-size: 14px;
+        }
+
+        form input::placeholder {
+            color: #bdbdbd;
+        }
+
+        .forgot {
+            text-align: left;
+            font-size: 0.85rem;
+            margin-top: 6px;
+        }
+
+        .forgot a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .forgot a:hover {
+            text-decoration: underline;
+        }
+
+        .btn-login {
+            background-color: #007bff;
+            border: none;
+            color: white;
+            padding: 12px;
+            border-radius: 5px;
+            width: 100%;
+            margin-top: 20px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: 0.3s;
+        }
+
+        .btn-login:hover {
+            background-color: #0056b3;
+        }
+
+        .register-text {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .register-text a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .register-text a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            /* position: absolute; */ /* Changed to relative */
+            margin-top: 30px;
+            bottom: 10px;
+            font-size: 10pt;
+            color: #3d3e3b;
+            font-family: "Ruda", sans-serif;
+            font-weight: 900;
+        }
+        
+        /* Modal Style */
+        .modal-content {
+             background-color: #2e2e2e;
+             color: white;
+        }
+        .modal-header {
+            border-bottom: 1px solid #444;
+        }
+        .modal-footer {
+            border-top: 1px solid #444;
+        }
+        .btn-close {
+            background-color: #fff;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .left-panel,
+            .right-panel {
+                flex: none;
+                width: 100%;
+                min-height: 50vh;
+            }
+
+            .right-panel img {
+                width: 100%;
+                padding-left: 0;
+                align-self: center;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -43,51 +231,53 @@
         </form>
 
         {% with messages = get_flashed_messages() %}
-        {% if messages and not request.args.get('registered') %} <!-- Hide login flash on registration success -->
-        <div class="alert alert-danger" style="margin-top: 20px; width: 100%; max-width: 420px;">
-            {{ messages[0] }}
-        </div>
+        {% if messages %}
+            <div class="alert alert-danger" style="margin-top: 20px; width: 100%; max-width: 420px;">
+                {{ messages[0] }}
+            </div>
         {% endif %}
         {% endwith %}
 
         <footer>© 2025 Laguna State Polytechnic University – BSIT 4C AMG B</footer>
     </div>
-
-    <!-- NEW: Registration Success Modal -->
+    
+    <!-- Success Modal -->
     <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="background-color: #1e1e1e; color: var(--text-primary); border-radius: 12px;">
-                <div class="modal-header" style="border-bottom: 1px solid #333;">
-                    <h5 class="modal-title" id="successModalLabel" style="color: var(--success-color);">Congrats!</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" style="text-align: center; font-size: 1.1rem; padding: 2rem;">
-                    You are registered!
-                    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 5px;">Please sign in to continue.</p>
-                </div>
-                <div class="modal-footer" style="border-top: 1px solid #333; justify-content: center;">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" style="background-color: var(--primary-color); border: none;">OK</button>
-                </div>
-            </div>
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="successModalLabel">Registration Successful!</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            Congrats! Your account is verified. You can now log in.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+          </div>
         </div>
+      </div>
     </div>
     
-    <!-- Include Bootstrap JS for modal functionality -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- NEW: Script to show modal -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if the 'registered' URL parameter is present
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('registered') === 'success') {
-                // Get the modal element and show it
+                // Hide any error flashes if success modal is shown
+                const errorAlert = document.querySelector('.alert-danger');
+                if (errorAlert) {
+                    errorAlert.style.display = 'none';
+                }
+                
                 const successModal = new bootstrap.Modal(document.getElementById('successModal'));
                 successModal.show();
+                
+                // Optional: Remove the query param from URL without reloading
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
         });
     </script>
 </body>
-
 </html>
 

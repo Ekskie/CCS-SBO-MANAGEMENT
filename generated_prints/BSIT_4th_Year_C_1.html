@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LSPU - List of Organization Members</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/printing.css') }}">
+    <link rel="stylesheet" href="/static/css/printing.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Times+New+Roman&display=swap" rel="stylesheet">
@@ -53,22 +53,22 @@
         </div>
 
         <main class="member-grid">
-            {% for member in members %}
+            
             <div class="member-card">
                 <div class="picture-placeholder">
-                    <img src="{{ member.picture_url }}" alt="Student Photo">
+                    <img src="https://lnbjifvircxceupkcpnl.supabase.co/storage/v1/object/public/pictures/0222-0913_picture.jpg" alt="Student Photo">
                 </div>
                 <div>
                     <img class="Student-signature"
-                        src="{{ member.signature_url }}"
+                        src="https://lnbjifvircxceupkcpnl.supabase.co/storage/v1/object/public/signatures/0222-0913_signature.jpg"
                         alt=""
                         style="width: 100px; position: absolute; transform: translate(40px, -55px); mix-blend-mode:darken; aspect-ratio: 1/1;">
-                    <input type="text" class="member-name" value="{{ member.full_name }}">
-                    <input type="text" class="member-info" value="{{ member.student_id }}">
-                    <input type="text" class="member-info" value="{{ member.course }}">
+                    <input type="text" class="member-name" value="Agustin, Dennrick Postrado">
+                    <input type="text" class="member-info" value="0222-0913">
+                    <input type="text" class="member-info" value="BSIT - 4th YearC AMG">
                 </div>
             </div>
-            {% endfor %}
+            
         </main>
 
         <footer>
@@ -163,7 +163,7 @@
         });
 
         // Re-fit text before printing to account for print styles
-        window.addEventListener('beforeprint', function () {
+        window.addEventListener('beforeprint', function() {
             const inputs = document.querySelectorAll('.member-name');
             inputs.forEach(input => {
                 const maxFontSize = 11; // base font size (pt)
@@ -193,7 +193,7 @@
                 document.body.removeChild(testSpan);
             });
         });
-
+        
     </script>
 </body>
 

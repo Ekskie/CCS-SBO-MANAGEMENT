@@ -1,0 +1,40 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Printing Station{% endblock %}
+{% block page_title %}Printing Station{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="p-4 border-b">
+        <h3 class="text-xl font-semibold text-gray-800">Available Print Groups</h3>
+        <p class="text-gray-600 mt-1">Select a group to generate a printable list of members.</p>
+    </div>
+    
+    <div class="p-4">
+        {% if groups %}
+            <ul class="space-y-2">
+                {% for group in groups %}
+                    <li class="p-4 border rounded-lg flex justify-between items-center hover:bg-gray-50">
+                        <div>
+                            <span class="font-medium text-indigo-700">{{ group[0] }}</span>
+                            <span class="text-gray-800">- {{ group[1] }} {{ group[2] }}</span>
+                            {% if group[3] != 'None' %}
+                                <span class="text-gray-500">({{ group[3] }})</span>
+                            {% endif %}
+                        </div>
+                        <a href="{{ url_for('admin_print_preview', program=group[0], year_level=group[1], section=group[2], major=group[3]) }}" 
+                           target="_blank" 
+                           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                           <i class="fas fa-print mr-2"></i>
+                            Generate
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-gray-500">No student groups found. Once students are registered, they will appear here.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
