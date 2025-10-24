@@ -1,7 +1,8 @@
 from flask import Flask
-from config import Config  # Import the Config class, not SECRET_KEY
+from config import Config
 from extensions import supabase, supabase_admin
 from utils import inject_user_roles
+import os # <-- Need this for the app.run port
 
 # Import Blueprints
 from auth.routes import auth_bp
@@ -15,20 +16,8 @@ def create_app(config_class=Config):
     """
     app = Flask(__name__)
     
-    # --- THIS IS THE FIX ---
     # Load all configurations from the Config class
     app.config.from_object(config_class)
-    
-    # --- DELETED ---
-    # We no longer need these lines because they are loaded by app.config.from_object()
-    # app.secret_key = Config.SECRET_KEY 
-    # app.config["SUPABASE_URL"] = Config.SUPABASE_URL
-    # app.config["SUPABASE_KEY"] = Config.SUPABASE_KEY
-    # app.config["SUPABASE_SERVICE_KEY"] = Config.SUPABASE_SERVICE_KEY
-    # app.config["MAX_FILE_SIZE"] = Config.MAX_FILE_SIZE
-    
-    # Initialize extensions (though they are already initialized, this is good practice if they needed the app context)
-    # In our case, extensions.py doesn't need the app object, so this is fine.
     
     # Register context processors
     app.context_processor(inject_user_roles)
@@ -46,7 +35,13 @@ def create_app(config_class=Config):
 
     return app
 
+# --- THIS IS THE FIX ---
+# Create the 'app' instance at the global scope
+# Vercel looks for this 'app' variable to run.
+app = create_app()
+# --- END OF FIX ---
+
 if __name__ == '__main__':
-    app = create_app()
-    app.run(debug=True)
+    # The 'app' variable already exists, just run it
+    app.run(debug=True, host='0.0.0.0', port=os.environ.get('PORT', 5000))
 
