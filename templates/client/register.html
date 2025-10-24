@@ -23,18 +23,18 @@
 
         <img src="{{ url_for('static', filename='image/LSPU-FRONTLINE.PNG') }}" alt="Banner">
         <h2>REGISTER</h2>
-    {% with messages = get_flashed_messages() %}
+        {% with messages = get_flashed_messages() %}
         {% if messages %}
         <!-- Updated alert to show all messages, especially for transparency errors -->
         <div class="alert alert-danger" style="margin-top: 20px; width: 100%; max-width: 500px;">
             <ul style="margin-bottom: 0; padding-left: 20px;">
-            {% for message in messages %}
+                {% for message in messages %}
                 <li>{{ message }}</li>
-            {% endfor %}
+                {% endfor %}
             </ul>
         </div>
         {% endif %}
-    {% endwith %}
+        {% endwith %}
 
         <form method="POST" enctype="multipart/form-data" class="register-form" id="registerForm">
             <div class="row g-2">
@@ -44,7 +44,9 @@
             </div>
 
             <input type="text" name="student_id" placeholder="Student ID" required>
-            <input type="email" name="email" placeholder="Email Address(student@lspu.edu.ph)" required>
+            <input type="email" name="email" placeholder="Email Address(student@lspu.edu.ph)" pattern=".+@lspu\.edu\.ph"
+                title="Please use a valid @lspu.edu.ph email address" required>
+
 
             <div class="row g-2">
                 <div class="col-md-6">
@@ -93,13 +95,13 @@
                     </select>
                 </div>
             </div>
-                <select name="major" id="major" style="display:none;">
-                    <option value="">Major</option>
-                    <option value="AMG">AMG</option>
-                    <option value="NETAD">NETAD</option>
-                    <option value="WMAD">WMAD</option>
-                    <option value="SMP">SMP</option>
-                </select>
+            <select name="major" id="major" style="display:none;">
+                <option value="">Major</option>
+                <option value="AMG">AMG</option>
+                <option value="NETAD">NETAD</option>
+                <option value="WMAD">WMAD</option>
+                <option value="SMP">SMP</option>
+            </select>
 
             <div class="upload-section">
                 <label class="form-label" for="picture-upload">Upload 1x1 Picture (Max 5MB):</label>
@@ -107,7 +109,8 @@
                 <!-- Error message placeholder for picture -->
                 <p id="picture-error" style="color: #cf6679; display: none; margin-top: 5px; font-size: 0.9em;"></p>
 
-                <label class="form-label mt-2" for="signature-upload">Upload Signature (Transparent PNG only, Max 5MB):</label>
+                <label class="form-label mt-2" for="signature-upload">Upload Signature (Transparent PNG only, Max
+                    5MB):</label>
                 <!-- Updated input to accept only PNG and added ID -->
                 <input type="file" id="signature-upload" name="signature" accept="image/png" required>
                 <!-- Error message placeholder for signature -->
@@ -162,12 +165,12 @@
             // 3. Check Transparency (for signature)
             if (isSignature) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     const img = new Image();
-                    img.onload = function() {
+                    img.onload = function () {
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
-                        
+
                         canvas.width = img.width;
                         canvas.height = img.height;
                         ctx.drawImage(img, 0, 0);
@@ -199,14 +202,14 @@
                             document.getElementById('signature-upload').value = '';
                         }
                     };
-                    img.onerror = function() {
+                    img.onerror = function () {
                         errorEl.textContent = "Could not load image file.";
                         errorEl.style.display = 'block';
                         document.getElementById('signature-upload').value = '';
                     };
                     img.src = e.target.result;
                 };
-                reader.onerror = function() {
+                reader.onerror = function () {
                     errorEl.textContent = "Could not read file.";
                     errorEl.style.display = 'block';
                     document.getElementById('signature-upload').value = '';
@@ -221,16 +224,16 @@
         }
 
         // --- Event Listener for Picture Upload ---
-        document.getElementById('picture-upload').addEventListener('change', function(event) {
+        document.getElementById('picture-upload').addEventListener('change', function (event) {
             const file = event.target.files[0];
             const errorEl = document.getElementById('picture-error');
             if (!validateFile(file, errorEl, false)) {
                 event.target.value = ''; // Clear input if invalid
             }
         });
-        
+
         // --- Event Listener for Signature Upload ---
-        document.getElementById('signature-upload').addEventListener('change', function(event) {
+        document.getElementById('signature-upload').addEventListener('change', function (event) {
             const file = event.target.files[0];
             const errorEl = document.getElementById('signature-error');
             if (!validateFile(file, errorEl, true)) {
@@ -241,4 +244,3 @@
 </body>
 
 </html>
-

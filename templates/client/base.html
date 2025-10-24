@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Profile{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    {% block head %}{% endblock %}
+</head>
+<body>
+<div class="container">
+    <aside class="sidebar">
+        <h2>Menu</h2>
+        <ul>
+            <li><a href="{{ url_for('profile') }}" {% if request.endpoint == 'profile' %}class="active"{% endif %}>Profile</a></li>
+            <li><a href="{{ url_for('settings') }}" {% if request.endpoint == 'settings' %}class="active"{% endif %}>Settings</a></li>
+            
+            {% if is_president or is_admin %}
+            <li><a href="{{ url_for('president_dashboard') }}">President Dashboard</a></li>
+            {% endif %}
+            <li><a href="{{ url_for('logout') }}">Sign Out</a></li>
+        </ul>
+    </aside>
+
+    <main id="mainContent" class="content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="mb-4">
+                {% for category, message in messages %}
+                <div class="status-notification-section {% if category == 'error' %}disapproval-box{% else %}status-approved{% endif %}" role="alert">
+                    <p>{{ message }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+
+    </main>
+</div>
+
+<div id="imageModal" class="modal-overlay" style="display: none;">
+    <span class="modal-close" id="modalCloseBtn">&times;</span>
+    <img class="modal-image" id="modalImageContent">
+</div>
+
+
+<script>
+    // UPDATED: Base JavaScript - only modal closing logic remains.
+    // All navigation logic is now handled by standard <a> links.
+    document.addEventListener('DOMContentLoaded', (event) => {
+        
+        const modal = document.getElementById('imageModal');
+        const closeModalBtn = document.getElementById('modalCloseBtn');
+
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => {
+                if (modal) modal.style.display = 'none';
+            });
+        }
+
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>
+
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

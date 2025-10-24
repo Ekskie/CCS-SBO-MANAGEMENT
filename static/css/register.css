@@ -193,7 +193,6 @@ footer {
     .right-panel {
         flex: none;
         width: 100%;
-        background-color: red;
     }
 
     .right-panel img {

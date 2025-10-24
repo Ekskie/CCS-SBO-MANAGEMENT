@@ -1,699 +1,235 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Profile</title>
-    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}"> --> <!-- Removed old CSS link -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
-    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"> --> <!-- Removed Bootstrap -->
-    <style>
-        /* Modern CSS Variables */
-        :root {
-            --primary-color: #1e76dd;
-            --secondary-color: #03dac6;
-            --background-dark: #121212;
-            --surface-color: #1e1e1e;
-            --text-primary: #ffffff;
-            --text-secondary: #b0b0b0;
-            --accent-color: #bb86fc;
-            --error-color: #cf6679;
-            --success-color: #03dac6;
-            --border-radius: 12px;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            --transition: all 0.3s ease;
-        }
+{% extends 'client/base.html' %}
 
-        body {
-            background: linear-gradient(135deg, var(--background-dark) 0%, #1a1a1a 100%);
-            color: var(--text-primary);
-            font-family: 'Roboto', sans-serif;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .container {
-            display: flex;
-            width: 100%;
-            height: 100vh;
-        }
-
-        .sidebar {
-            width: 250px;
-            background: linear-gradient(180deg, var(--primary-color) 0%, #3700b3 100%);
-            padding: 30px 20px;
-            box-shadow: var(--shadow);
-            position: relative;
-            z-index: 10; /* Ensure sidebar is on top */
-        }
-
-        .sidebar h2 {
-            color: var(--text-primary);
-            margin-bottom: 20px;
-            font-weight: 300;
-            text-align: center;
-        }
-
-        .sidebar ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .sidebar li {
-            margin-bottom: 10px;
-        }
-
-        .sidebar a {
-            display: flex;
-            align-items: center;
-            color: var(--text-primary);
-            padding: 15px 20px;
-            text-decoration: none;
-            border-radius: var(--border-radius);
-            transition: var(--transition);
-            font-weight: 500;
-        }
-
-        .sidebar a:hover, .sidebar a.active {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateX(5px);
-        }
-
-        .content {
-            flex: 1;
-            padding: 40px;
-            background: var(--background-dark);
-            overflow-y: auto;
-            height: 100vh;
-            box-sizing: border-box; /* Ensure padding doesn't break layout */
-        }
-
-        .profile-section, .edit-profile-section {
-            background: var(--surface-color);
-            border-radius: var(--border-radius);
-            padding: 30px;
-            box-shadow: var(--shadow);
-            margin-bottom: 30px;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .profile-section h2, .edit-profile-section h2 {
-            color: var(--accent-color);
-            margin-bottom: 20px;
-            font-weight: 300;
-            text-align: center;
-        }
-
-        .profile-container {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-
-        .photo-section, .signature-section, .info-section {
-            text-align: center;
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .photo-box, .signature-box {
-            width: 150px;
-            height: 150px;
-            border: 2px solid var(--accent-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 50%;
-            margin: 0 auto 10px;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-        }
-
-        .photo-box:hover, .signature-box:hover {
-            transform: scale(1.05);
-        }
-
-        .photo-box img, .signature-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        /* Added clickable class for modal */
-        .clickable-img {
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        .clickable-img:hover {
-            opacity: 0.8;
-        }
-
-        .info-section p {
-            margin: 10px 0;
-            font-size: 16px;
-            color: var(--text-secondary);
-        }
-        
-        .info-section p strong {
-            color: var(--text-primary);
-        }
-
-        .edit-btn {
-            background: var(--primary-color);
-            color: var(--text-primary);
-            border: none;
-            padding: 12px 24px;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-size: 16px;
-            transition: var(--transition);
-            margin-top: 20px;
-        }
-
-        .edit-btn:hover {
-            background: #3700b3;
-            box-shadow: var(--shadow);
-        }
-
-        /* Edit Form Styles */
-        .edit-form {
-            display: grid;
-            gap: 20px;
-        }
-
-        .row {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .row > div {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        input[type="text"], input[type="password"], input[type="file"], select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--text-secondary);
-            border-radius: var(--border-radius);
-            background: var(--surface-color);
-            color: var(--text-primary);
-            font-size: 16px;
-            transition: var(--transition);
-            box-sizing: border-box; /* Added for consistency */
-        }
-
-        input:focus, select:focus {
-            border-color: var(--accent-color);
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(187, 134, 252, 0.2);
-        }
-
-        .upload-section {
-            margin-top: 20px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-        
-        /* Specific for file input */
-        input[type="file"] {
-            border: 1px dashed var(--text-secondary);
-            padding: 10px;
-        }
-        input[type="file"]::file-selector-button {
-            background: var(--primary-color);
-            color: var(--text-primary);
-            border: none;
-            padding: 8px 12px;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        input[type="file"]::file-selector-button:hover {
-             background: #3700b3;
-        }
+{% block title %}User Profile{% endblock %}
 
 
-        .save-btn, .cancel-btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500; /* Added font weight */
-            transition: var(--transition);
-            margin-right: 10px;
-        }
+{% block content %}
+<section class="profile-section">
+    <h2>Profile</h2>
 
-        .save-btn {
-            background: var(--success-color);
-            color: var(--background-dark);
-        }
+    {% if profile.picture_status != 'approved' or profile.signature_status != 'approved' %}
+    <div class="status-notification-section">
+        <h3>Profile Status</h3>
 
-        .save-btn:hover {
-            background: #00bfa5;
-            box-shadow: var(--shadow);
-        }
+        {% if profile.disapproval_reason %}
+        <div class="disapproval-box">
+            <p><strong>Disapproval Reason(s)</strong></p>
+            <p>{{ profile.disapproval_reason }}</p>
+            <p class="note">Please update your profile information and re-upload the required files below.
+            </p>
+        </div>
+        {% endif %}
 
-        .cancel-btn {
-            background: var(--error-color);
-            color: var(--text-primary);
-        }
-
-        .cancel-btn:hover {
-            background: #b00020;
-            box-shadow: var(--shadow);
-        }
-        
-        /* Make select dropdowns dark */
-        select {
-           appearance: none;
-           -webkit-appearance: none;
-           -moz-appearance: none;
-           background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
-           background-repeat: no-repeat;
-           background-position: right 12px center;
-           background-size: 1.2em;
-        }
-        select option {
-            background: var(--surface-color);
-            color: var(--text-primary);
-        }
-
-        /* Settings Page Styles */
-        .settings-section {
-            background: var(--surface-color);
-            border-radius: var(--border-radius);
-            padding: 30px;
-            box-shadow: var(--shadow);
-            margin-bottom: 30px;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .settings-section h2 {
-            color: var(--accent-color);
-            margin-bottom: 20px;
-            font-weight: 300;
-            text-align: center;
-        }
-
-        .settings-card {
-            background: var(--background-dark); /* Slightly darker card */
-            border-radius: var(--border-radius);
-            padding: 25px;
-            margin-bottom: 20px;
-        }
-
-        .settings-card h3 {
-            color: var(--text-primary);
-            font-weight: 500;
-            margin-bottom: 15px;
-        }
-
-        .settings-card label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-        
-        .settings-card form {
-            display: grid;
-            gap: 15px;
-        }
-
-        /* Action Buttons */
-        .settings-actions {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .logout-btn, .delete-btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-            transition: var(--transition);
-            width: 100%;
-        }
-        
-        .settings-actions a {
-            flex: 1;
-            text-decoration: none;
-        }
-
-        .logout-btn {
-            background: var(--primary-color);
-            color: var(--text-primary);
-        }
-        .logout-btn:hover {
-            background: #3700b3;
-        }
-
-        .delete-btn {
-            background: var(--error-color);
-            color: var(--text-primary);
-        }
-        .delete-btn:hover {
-            background: #b00020;
-        }
-
-        .back-btn {
-            background: none;
-            border: 1px solid var(--text-secondary);
-            color: var(--text-secondary);
-            padding: 10px 20px;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-size: 14px;
-            transition: var(--transition);
-        }
-        .back-btn:hover {
-            background: var(--surface-color);
-            color: var(--text-primary);
-            border-color: var(--text-primary);
-        }
-
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-                height: auto; /* Allow content to grow */
-            }
-            .sidebar {
-                width: 100%;
-                height: auto; /* Auto height */
-                padding: 20px;
-                box-sizing: border-box;
-            }
-            .content {
-                padding: 20px;
-                height: auto; /* Auto height */
-            }
-            .profile-container {
-                flex-direction: column;
-            }
-            .row {
-                flex-direction: column;
-                gap: 0; /* Remove gap for column layout */
-            }
-            .edit-form {
-                 gap: 10px; /* Adjust gap for mobile form */
-            }
-        }
-
-        /* Image Modal Styles */
-        .modal-overlay {
-            display: none; /* Hidden by default */
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            animation: fadeIn 0.3s;
-        }
-
-        .modal-image {
-            max-width: 80%;
-            max-height: 80%;
-            object-fit: contain;
-            border-radius: var(--border-radius);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 20px;
-            right: 35px;
-            color: var(--text-primary);
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        .modal-close:hover {
-            color: var(--text-secondary);
-            transform: scale(1.1);
-        }
-    </style>
-</head>
-<body>
-<div class="container">
-    <aside class="sidebar">
-        <h2>Menu</h2>
-        <ul>
-            <li><a href="#" id="profileBtn" class="active">Profile</a></li>
-            <li><a href="#" id="settingsBtn">Settings</a></li>
-            <li><a href="{{ url_for('logout') }}">Sign Out</a></li>
-        </ul>
-    </aside>
-
-    <main id="mainContent" class="content">
-        <!-- Default profile content -->
-        <section class="profile-section">
-            <h2>Profile</h2>
-            <div class="profile-container">
-                <div class="photo-section">
-                    {% if profile.picture_url %}
-                    <!-- Restored div.photo-box and added .clickable-img to it -->
-                    <div class="photo-box clickable-img">
-                        <img src="{{ profile.picture_url }}" alt="1x1 Picture">
-                    </div>
-                    {% else %}
-                    <div class="photo-box">No Picture Available</div>
-                    {% endif %}
-                </div>
-
-                <div class="info-section">
-                    <p><strong>Full Name:</strong> {{ profile.first_name }} {{ profile.middle_name }} {{ profile.last_name }}</p>
-                    <p><strong>Program:</strong> {{ profile.program }}</p>
-                    <p><strong>Section:</strong> {{ profile.year_level }} {{ profile.section }} {% if profile.major %} {{ profile.major }} {% endif %}</p>
-                    <p><strong>Semester:</strong> {{ profile.semester }} Semester</p>
-                    <button class="edit-btn" id="editBtn">Edit</button>
-                </div>
-
-                <div class="signature-section">
-                    {% if profile.signature_url %}
-                     <!-- Restored div.signature-box and added .clickable-img to it -->
-                     <div class="signature-box clickable-img">
-                        <img src="{{ profile.signature_url }}" alt="Signature">
-                     </div>
-                    {% else %}
-                    <div class="signature-box">No Signature Available</div>
-                    {% endif %}
-                </div>
+        <div class="status-badges">
+            <div>
+                <strong>1x1 Picture:</strong>
+                <span class="status-badge 
+                    {% if profile.picture_status == 'approved' %}status-approved
+                    {% elif profile.picture_status == 'pending' %}status-pending
+                    {% else %}status-disapproved{% endif %}">
+                    {{ profile.picture_status | capitalize }}
+                </span>
             </div>
-        </section>
+            <div>
+                <strong>Signature:</strong>
+                <span class="status-badge
+                    {% if profile.signature_status == 'approved' %}status-approved
+                    {% elif profile.signature_status == 'pending' %}status-pending
+                    {% else %}status-disapproved{% endif %}">
+                    {{ profile.signature_status | capitalize }}
+                </span>
+            </div>
+        </div>
+        {% if profile.picture_status == 'pending' or profile.signature_status == 'pending' %}
+        <p class="note">Your submissions are pending review by your class president.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+    <div class="profile-container">
+        <div class="photo-section">
+            {% if profile.picture_url %}
+            <div class="photo-box clickable-img">
+                <img src="{{ profile.picture_url }}" alt="1x1 Picture">
+            </div>
+            {% else %}
+            <div class="photo-box">No Picture Available</div>
+            {% endif %}
+        </div>
 
-        <!-- Edit Profile Form (Hidden by default) -->
-        <section class="edit-profile-section" id="editSection" style="display: none;">
-            <h2>Edit Profile</h2>
-            <form method="POST" action="{{ url_for('update_profile') }}" enctype="multipart/form-data" class="edit-form">
-                <!-- Updated HTML: Removed Bootstrap classes -->
-                <div class="row">
-                    <div><input type="text" name="first_name" value="{{ profile.first_name }}" placeholder="First Name" required></div>
-                    <div><input type="text" name="middle_name" value="{{ profile.middle_name }}" placeholder="Middle Name"></div>
-                    <div><input type="text" name="last_name" value="{{ profile.last_name }}" placeholder="Last Name" required></div>
-                </div>
+        <div class="info-section">
+            <p><strong>Full Name:</strong> {{ profile.first_name }} {{ profile.middle_name }} {{
+                profile.last_name }}</p>
+            <p><strong>Program:</strong> {{ profile.program }}</p>
+            <p><strong>Section:</strong> {{ profile.year_level }} {{ profile.section }} {% if profile.major
+                %} {{ profile.major }} {% endif %}</p>
+            <p><strong>Semester:</strong> {{ profile.semester }} Semester</p>
+            <button class="edit-btn" id="editBtn">Edit</button>
+        </div>
 
-                <div class="row">
-                    <div>
-                        <select name="program" required>
-                            <option value="">Program</option>
-                            <option value="BSIT" {% if profile.program == 'BSIT' %}selected{% endif %}>BSIT</option>
-                            <option value="BSIS" {% if profile.program == 'BSIS' %}selected{% endif %}>BSIS</option>
-                            <option value="BSCS" {% if profile.program == 'BSCS' %}selected{% endif %}>BSCS</option>
-                        </select>
-                    </div>
-                    <div>
-                        <select name="semester" required>
-                            <option value="">Semester</option>
-                            <option value="1st" {% if profile.semester == '1st' %}selected{% endif %}>1st</option>
-                            <option value="2nd" {% if profile.semester == '2nd' %}selected{% endif %}>2nd</option>
-                        </select>
-                    </div>
-                </div>
+        <div class="signature-section">
+            {% if profile.signature_url %}
+            <div class="signature-box clickable-img">
+                <img src="{{ profile.signature_url }}" alt="Signature">
+            </div>
+            {% else %}
+            <div class="signature-box">No Signature Available</div>
+            {% endif %}
+        </div>
+    </div>
+</section>
 
-                <div class="row">
-                    <div>
-                        <select name="year_level" id="edit_year_level" required onchange="toggleEditMajor()">
-                            <option value="">Year Level</option>
-                            <option value="1st Year" {% if profile.year_level == '1st Year' %}selected{% endif %}>1st Year</option>
-                            <option value="2nd Year" {% if profile.year_level == '2nd Year' %}selected{% endif %}>2nd Year</option>
-                            <option value="3rd Year" {% if profile.year_level == '3rd Year' %}selected{% endif %}>3rd Year</option>
-                            <option value="4th Year" {% if profile.year_level == '4th Year' %}selected{% endif %}>4th Year</option>
-                        </select>
-                    </div>
-                    <div>
-                        <select name="section" required>
-                            <option value="">Section</option>
-                            <option value="A" {% if profile.section == 'A' %}selected{% endif %}>A</option>
-                            <option value="B" {% if profile.section == 'B' %}selected{% endif %}>B</option>
-                            <option value="C" {% if profile.section == 'C' %}selected{% endif %}>C</option>
-                            <option value="D" {% if profile.section == 'D' %}selected{% endif %}>D</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <!-- This select is outside the .row to be full-width -->
-                <select name="major" id="edit_major" style="display: {% if profile.year_level == '3rd Year' %}block{% else %}none{% endif %}">
-                    <option value="">Major</option>
-                    <option value="AMG" {% if profile.major == 'AMG' %}selected{% endif %}>AMG</option>
-                    <option value="NETAD" {% if profile.major == 'NETAD' %}selected{% endif %}>NETAD</option>
-                    <option value="WMAD" {% if profile.major == 'WMAD' %}selected{% endif %}>WMAD</option>
-                    <option value="SMP" {% if profile.major == 'SMP' %}selected{% endif %}>SMP</option>
-                </select>
+<section class="edit-profile-section" id="editSection" style="display: none;">
+    <form method="POST" action="{{ url_for('update_profile') }}" enctype="multipart/form-data">
+        <h2>Edit Profile</h2>
 
-                <div class="upload-section">
-                    <label class="form-label">Update 1x1 Picture:</label>
-                    <input type="file" name="picture" accept="image/*">
+        <div class="form-group-title">Personal Information</div>
+        <div>
+            <label>First Name</label>
+            <input type="text" name="first_name" value="{{ profile.first_name }}" required>
+        </div>
+        <div>
+            <label>Middle Name</label>
+            <input type="text" name="middle_name" value="{{ profile.middle_name or '' }}">
+        </div>
+        <div>
+            <label>Last Name</label>
+            <input type="text" name="last_name" value="{{ profile.last_name }}" required>
+        </div>
 
-                    <label class="form-label mt-2">Update Signature:</label>
-                    <input type="file" name="signature" accept="image/*">
-                </div>
+        <div class="form-group-title">Academic Information</div>
+        <div>
+            <label>Program</label>
+            <select name="program" required>
+                <option value="">Select Program</option>
+                <option value="BSIT" {% if profile.program=='BSIT' %}selected{% endif %}>BSIT</option>
+                <option value="BSIS" {% if profile.program=='BSIS' %}selected{% endif %}>BSIS</option>
+                <option value="BSCS" {% if profile.program=='BSCS' %}selected{% endif %}>BSCS</option>
+            </select>
+        </div>
+        <div>
+            <label>Semester</label>
+            <select name="semester" required>
+                <option value="">Select Semester</option>
+                <option value="1st" {% if profile.semester=='1st' %}selected{% endif %}>1st</option>
+                <option value="2nd" {% if profile.semester=='2nd' %}selected{% endif %}>2nd</option>
+            </select>
+        </div>
+        <div>
+            <label>Year Level</label>
+            <select name="year_level" id="edit_year_level" required onchange="toggleEditMajor()">
+                <option value="">Select Year</option>
+                <option value="1st Year" {% if profile.year_level=='1st Year' %}selected{% endif %}>1st Year
+                </option>
+                <option value="2nd Year" {% if profile.year_level=='2nd Year' %}selected{% endif %}>2nd Year
+                </option>
+                <option value="3rd Year" {% if profile.year_level=='3rd Year' %}selected{% endif %}>3rd Year
+                </option>
+                <option value="4th Year" {% if profile.year_level=='4th Year' %}selected{% endif %}>4th Year
+                </option>
+            </select>
+        </div>
+        <div>
+            <label>Section</label>
+            <select name="section" required>
+                <option value="">Select Section</option>
+                <option value="A" {% if profile.section=='A' %}selected{% endif %}>A</option>
+                <option value="B" {% if profile.section=='B' %}selected{% endif %}>B</option>
+                <option value="C" {% if profile.section=='C' %}selected{% endif %}>C</option>
+                <option value="D" {% if profile.section=='D' %}selected{% endif %}>D</option>
+            </select>
+        </div>
 
-                <div> <!-- Wrapper for buttons -->
-                    <button type="submit" class="save-btn">Save Changes</button>
-                    <button type="button" class="cancel-btn" id="cancelBtn">Cancel</button>
-                </div>
-            </form>
-        </section>
-    </main>
-</div>
+        <div style="grid-column: 1 / -1;">
+            <label>Major (for 3rd/4th Year)</label>
+            <select name="major" id="edit_major"
+                style="display: {% if profile.year_level in ['3rd Year','4th Year'] %}block{% else %}none{% endif %};">
+                <option value="">Select Major</option>
+                <option value="AMG" {% if profile.major=='AMG' %}selected{% endif %}>AMG</option>
+                <option value="NETAD" {% if profile.major=='NETAD' %}selected{% endif %}>NETAD</option>
+                <option value="WMAD" {% if profile.major=='WMAD' %}selected{% endif %}>WMAD</option>
+                <option value="SMP" {% if profile.major=='SMP' %}selected{% endif %}>SMP</option>
+            </select>
+        </div>
 
-<!-- New Image Modal HTML -->
-<div id="imageModal" class="modal-overlay" style="display: none;">
-    <span class="modal-close" id="modalCloseBtn">&times;</span>
-    <img class="modal-image" id="modalImageContent">
-</div>
+        <div class="form-group-title">Upload Documents</div>
+        <div class="upload-section">
+            <label>1x1 Picture</label>
+            <input type="file" name="picture" accept="image/*">
+            <p class="note">Max 5MB. Resets approval to pending.</p>
+
+            <label style="margin-top: 10px; display: block;">Signature (PNG with transparent background)</label>
+            <input type="file" name="signature" accept=".png">
+            <p class="note">Max 5MB. Transparent PNG only.</p>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="save-btn">Save Changes</button>
+            <button type="button" class="cancel-btn" id="cancelBtn">Cancel</button>
+        </div>
+    </form>
+</section>
+{% endblock %}
 
 
+{% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', (event) => {
-    
-    const mainContent = document.getElementById('mainContent');
-    const profileBtn = document.getElementById('profileBtn');
-    const settingsBtn = document.getElementById('settingsBtn');
-    const editBtn = document.getElementById('editBtn');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const profileSection = document.querySelector('.profile-section');
-    const editSection = document.getElementById('editSection');
+    document.addEventListener('DOMContentLoaded', (event) => {
+        // --- Profile-Specific Variables ---
+        const editBtn = document.getElementById('editBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const profileSection = document.querySelector('.profile-section');
+        const editSection = document.getElementById('editSection');
 
-    // New Modal variables
-    const modal = document.getElementById('imageModal');
-    const modalImg = document.getElementById('modalImageContent');
-    const closeModalBtn = document.getElementById('modalCloseBtn');
-    // Get all images that should be clickable
-    const clickableImages = document.querySelectorAll('.clickable-img');
+        // Modal *opening* variables
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImageContent');
+        const clickableImages = document.querySelectorAll('.clickable-img');
 
+        // --- Profile Listeners ---
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                if (profileSection) profileSection.style.display = 'none';
+                if (editSection) editSection.style.display = 'block';
+            });
+        }
 
-    if(settingsBtn) {
-        settingsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            fetch('{{ url_for("settings") }}')
-            .then(response => response.text())
-            .then(html => {
-                mainContent.innerHTML = html;
-                if(profileBtn) profileBtn.classList.remove('active');
-                if(settingsBtn) settingsBtn.classList.add('active');
-            })
-            .catch(err => console.error('Failed to load settings:', err));
-        });
-    }
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                if (profileSection) profileSection.style.display = 'block';
+                if (editSection) editSection.style.display = 'none';
+            });
+        }
 
-    if(profileBtn) {
-        profileBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            location.reload(); // Return to profile view
-        });
-    }
-
-    if(editBtn) {
-        editBtn.addEventListener('click', () => {
-            if(profileSection) profileSection.style.display = 'none';
-            if(editSection) editSection.style.display = 'block';
-        });
-    }
-
-    if(cancelBtn) {
-        cancelBtn.addEventListener('click', () => {
-            if(profileSection) profileSection.style.display = 'block';
-            if(editSection) editSection.style.display = 'none';
-        });
-    }
-
-    // New Modal Listeners
-    clickableImages.forEach(el => { // Changed from 'img' to 'el' (element)
-        el.addEventListener('click', () => {
-            if(modal && modalImg) {
-                const img = el.querySelector('img'); // Find the img tag inside the div
-                if (img) { // Check if we found an image
-                    modal.style.display = 'flex';
-                    modalImg.src = img.src; // Set the modal source
+        // --- Modal Opening Listeners ---
+        clickableImages.forEach(el => {
+            el.addEventListener('click', () => {
+                if (modal && modalImg) {
+                    const img = el.querySelector('img'); // Find the img tag inside the div
+                    if (img) { // Check if we found an image
+                        modal.style.display = 'flex';
+                        modalImg.src = img.src; // Set the modal source
+                    }
                 }
-            }
+            });
         });
+        
+        // Initialize major field visibility on load
+        toggleEditMajor();
     });
 
-    if(closeModalBtn) {
-        closeModalBtn.addEventListener('click', () => {
-            if(modal) modal.style.display = 'none';
-        });
-    }
+    // --- Profile-Specific Functions ---
+    function toggleEditMajor() {
+        const major = document.getElementById('edit_major');
+        const year = document.getElementById('edit_year_level');
 
-    if(modal) {
-        // Close modal when clicking on the overlay (but not the image)
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.style.display = 'none';
+        if (major && year) {
+            if (year.value === '3rd Year' || year.value === '4th Year') {
+                major.style.display = 'block';
+            } else {
+                major.style.display = 'none';
+                major.value = '';
             }
-        });
-    }
-
-    // Initialize major field visibility on load
-    toggleEditMajor();
-});
-
-function toggleEditMajor() {
-    const major = document.getElementById('edit_major');
-    const year = document.getElementById('edit_year_level');
-    
-    if (major && year) {
-        if (year.value === '3rd Year') {
-            major.style.display = 'block';
-        } else {
-            major.style.display = 'none';
-            major.value = '';
         }
     }
-}
 </script>
-</body>
-</html>
-
-
+{% endblock %}

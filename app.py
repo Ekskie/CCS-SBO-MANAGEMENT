@@ -1,28 +1,30 @@
 import os
-import uuid
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from supabase import create_client, Client
-from collections import defaultdict
-from werkzeug.security import generate_password_hash, check_password_hash
-import secrets
-import string
 from functools import wraps
 from datetime import datetime
-import io              # Import for in-memory stream
 from PIL import Image  # Import Pillow
+import re
+import io
+from dotenv import load_dotenv  # <-- IMPORTED load_dotenv
+
+load_dotenv()  # <-- ADDED: This loads variables from your .env file
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 # --- Supabase Configuration ---
-SUPABASE_URL = "https://lnbjifvircxceupkcpnl.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuYmppZnZpcmN4Y2V1cGtjcG5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDQwMTQsImV4cCI6MjA3NTY4MDAxNH0._43eZLux5YGYyeSB3ztctYszDAK05rkhNxJGV0Is_5w"
+SUPABASE_URL = os.getenv("SUPABASE_URL")      # <-- CHANGED
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")    # <-- CHANGED
+
+# --- NEW: Check if variables are loaded ---
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise ValueError("Error: SUPABASE_URL and SUPABASE_KEY must be set in your .env file.")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # --- Admin Configuration ---
-# !!! IMPORTANT: Add your registered admin email here !!!
-ADMIN_EMAILS = {"admin@example.com", "dennrick.agustin@lspu.edu.ph"}
+# ADMIN_EMAILS set is removed. Role is now managed in the database via 'account_type' column.
 
 # --- File Size Limit ---
 MAX_FILE_SIZE = 5 * 1024 * 1024 # 5 MB
@@ -64,23 +66,34 @@ def check_transparency(file_stream):
         # Fail-safe: if image is invalid, reject it.
         return False
 
-# --- Admin Decorator ---
+# --- NEW Role-Based Decorators ---
+
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'email' not in session or session['email'] not in ADMIN_EMAILS:
+        if session.get('account_type') != 'admin':
             flash("You do not have permission to access this page.", "error")
             return redirect(url_for('profile'))
         return f(*args, **kwargs)
     return decorated_function
 
-# --- Helper to check if user is admin (for templates) ---
+def president_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        account_type = session.get('account_type')
+        if account_type != 'president' and account_type != 'admin':
+            flash("You do not have permission to access this page.", "error")
+            return redirect(url_for('profile'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# --- Helper to check user roles (for templates) ---
 @app.context_processor
-def inject_user_is_admin():
-    is_admin = False
-    if 'email' in session and session['email'] in ADMIN_EMAILS:
-        is_admin = True
-    return dict(is_admin=is_admin)
+def inject_user_roles():
+    is_admin = session.get('account_type') == 'admin'
+    is_president = session.get('account_type') == 'president'
+    return dict(is_admin=is_admin, is_president=is_president)
+
 
 # --- Main Routes ---
 
@@ -101,13 +114,17 @@ def login():
             return render_template('client/login.html')
 
         try:
-            profile_response = supabase.table("profiles").select("email").eq("student_id", student_id).execute()
+            # Fetch all necessary profile data on login
+            profile_response = supabase.table("profiles").select(
+                "email, id, account_type, program, year_level, section"
+            ).eq("student_id", student_id).single().execute()
 
             if not profile_response.data:
                 flash("Invalid Student ID or password.")
                 return render_template('client/login.html')
 
-            email = profile_response.data[0]['email']
+            profile_data = profile_response.data
+            email = profile_data['email']
 
             auth_response = supabase.auth.sign_in_with_password({
                 'email': email,
@@ -119,12 +136,20 @@ def login():
                     flash('Please verify your email address before logging in.')
                     return render_template('client/login.html')
                     
+                # --- Store role and class info in session ---
                 session['user_id'] = auth_response.user.id
                 session['email'] = email
                 session['student_id'] = student_id
+                session['account_type'] = profile_data.get('account_type', 'student')
+                session['program'] = profile_data.get('program')
+                session['year_level'] = profile_data.get('year_level')
+                session['section'] = profile_data.get('section')
                 
-                if email in ADMIN_EMAILS:
+                # --- Role-based redirect ---
+                if session['account_type'] == 'admin':
                     return redirect(url_for('admin_dashboard'))
+                elif session['account_type'] == 'president':
+                    return redirect(url_for('president_dashboard'))
                 else:
                     return redirect(url_for('profile'))
             else:
@@ -146,7 +171,12 @@ def register():
         if not email:
             flash("Email is required.")
             return render_template("client/register.html")
-            
+                
+        # Check if email ends with @lspu.edu.ph using regex
+        if not re.match(r".+@lspu\.edu\.ph$", email):
+            flash("Please use a valid @lspu.edu.ph email address.", "error")
+            return render_template("client/register.html")
+                                   
         if not password or not confirm_password:
             flash("Password and confirmation are required.")
             return render_template("client/register.html")
@@ -277,7 +307,11 @@ def register():
                     "section": section,
                     "major": major,
                     "picture_url": picture_url,
-                    "signature_url": signature_url
+                    "signature_url": signature_url,
+                    # --- Add new default values ---
+                    "account_type": "student",
+                    "picture_status": "pending",
+                    "signature_status": "pending"
                 }
                 
                 insert_response = supabase.table("profiles").insert(profile_data).execute()
@@ -366,7 +400,11 @@ def profile():
         
         if response.data:
             user_profile = response.data[0]
-            return render_template('client/profile.html', profile=user_profile)
+            # --- Pass role info to profile template ---
+            # (You will need to update profile.html to show this)
+            return render_template('client/profile.html', 
+                                   profile=user_profile, 
+                                   account_type=session.get('account_type'))
         else:
             flash('Profile not found. Please contact admin.')
             # Log them out if their profile is gone
@@ -439,6 +477,9 @@ def update_profile():
             )
             public_url_response = supabase.storage.from_("pictures").get_public_url(file_name)
             update_data["picture_url"] = public_url_response
+            # --- Reset status on new upload ---
+            update_data["picture_status"] = "pending"
+            update_data["disapproval_reason"] = None # Clear reason
 
         if signature_file and signature_file.filename:
             # Check size on update
@@ -465,6 +506,9 @@ def update_profile():
             )
             public_url_response = supabase.storage.from_("signatures").get_public_url(file_name)
             update_data["signature_url"] = public_url_response
+            # --- Reset status on new upload ---
+            update_data["signature_status"] = "pending"
+            update_data["disapproval_reason"] = None # Clear reason
 
         supabase.table("profiles").update(update_data).eq("id", user_id).execute()
         flash('Profile updated successfully.')
@@ -482,6 +526,56 @@ def settings():
     
     # This just renders the HTML fragment, which is loaded by profile.html's JS
     return render_template('client/settings.html')
+
+@app.route('/change_password', methods=['POST'])
+def change_password():
+    """Handles the change password form submission from the settings page."""
+    if 'user_id' not in session:
+        flash("You must be logged in to change your password.", "error")
+        return redirect(url_for('login'))
+
+    current_password = request.form.get('current_password')
+    new_password = request.form.get('new_password')
+    confirm_password = request.form.get('confirm_password')
+
+    if not all([current_password, new_password, confirm_password]):
+        flash("Please fill out all password fields.", "error")
+        return redirect(url_for('profile')) # Redirects back, JS should open settings
+
+    if new_password != confirm_password:
+        flash("New passwords do not match.", "error")
+        return redirect(url_for('profile'))
+
+    try:
+        # 1. Verify the user's current password by trying to sign in
+        user_email = session.get('email')
+        if not user_email:
+            flash("Session expired. Please log in again.", "error")
+            return redirect(url_for('login'))
+
+        # This will test the current password.
+        # It also refreshes the auth token, which is needed for the update.
+        supabase.auth.sign_in_with_password({
+            "email": user_email,
+            "password": current_password
+        })
+
+        # 2. If sign-in is successful, update the password
+        supabase.auth.update_user(attributes={"password": new_password})
+        
+        flash("Password updated successfully.", "success")
+    
+    except Exception as e:
+        if "Invalid login credentials" in str(e):
+            flash("Incorrect current password.", "error")
+        else:
+            flash(f"An error occurred: {str(e)}", "error")
+
+    # Redirect back to the profile page. 
+    # The user's JS will need to re-fetch the settings content.
+    # A full reload of /profile is simplest.
+    return redirect(url_for('profile'))
+
 
 @app.route('/logout')
 def logout():
@@ -589,6 +683,8 @@ def admin_edit_student(student_id):
                 "year_level": year_level,
                 "section": request.form.get('section'),
                 "major": major,
+                # --- Add account_type to admin update ---
+                "account_type": request.form.get('account_type') 
             }
 
             # Handle file uploads (similar to update_profile)
@@ -609,6 +705,8 @@ def admin_edit_student(student_id):
                     file_name, picture_bytes, {"content-type": picture_file.mimetype, "upsert": "true"}
                 )
                 update_data["picture_url"] = supabase.storage.from_("pictures").get_public_url(file_name)
+                # --- Admin uploads are auto-approved ---
+                update_data["picture_status"] = "approved"
 
             if signature_file and signature_file.filename:
                 # Check size on update
@@ -635,6 +733,8 @@ def admin_edit_student(student_id):
                     file_name, signature_bytes, {"content-type": signature_file.mimetype, "upsert": "true"}
                 )
                 update_data["signature_url"] = supabase.storage.from_("signatures").get_public_url(file_name)
+                # --- Admin uploads are auto-approved ---
+                update_data["signature_status"] = "approved"
 
             supabase.table("profiles").update(update_data).eq("id", student_id).execute()
             flash('Student profile updated successfully.')
@@ -855,8 +955,117 @@ def admin_print_preview():
         flash(f"Error generating print preview: {str(e)}", "error")
         return redirect(url_for('admin_printing'))
 
+# --- NEW President Section ---
+
+@app.route('/president')
+@app.route('/president/dashboard')
+@president_required
+def president_dashboard():
+    """
+    Shows the president a list of their classmates for approval.
+    """
+    try:
+        # Get the president's class info from session
+        program = session.get('program')
+        year_level = session.get('year_level')
+        section = session.get('section')
+        user_id = session.get('user_id')
+
+        if not all([program, year_level, section]):
+            flash("Your profile is missing class information. Please contact an admin.", "error")
+            return redirect(url_for('profile'))
+
+        # Fetch all students in the same class, *except* the president themselves
+        query = supabase.table("profiles").select("*")
+        query = query.eq("program", program)
+        query = query.eq("year_level", year_level)
+        query = query.eq("section", section)
+        query = query.neq("id", user_id) # Don't show the president
+        
+        response = query.order("last_name", desc=False).execute()
+        classmates = response.data
+
+        # You will need to create 'president/dashboard.html'
+        return render_template('president/dashboard.html', 
+                               classmates=classmates, 
+                               program=program, 
+                               year_level=year_level, 
+                               section=section)
+
+    except Exception as e:
+        flash(f"Error loading president dashboard: {str(e)}", "error")
+        return redirect(url_for('profile'))
+
+@app.route('/president/review/<student_id>', methods=['GET', 'POST'])
+@president_required
+def president_review_student(student_id):
+    """
+    Allows a president to review, approve, or disapprove a specific student.
+    """
+    # First, check that the student is in the president's class for security
+    try:
+        student_res = supabase.table("profiles").select("*").eq("id", student_id).single().execute()
+        student = student_res.data
+        if not student:
+            flash("Student not found.", "error")
+            return redirect(url_for('president_dashboard'))
+
+        # Check if student is in the president's class
+        if (student.get('program') != session.get('program') or
+            student.get('year_level') != session.get('year_level') or
+            student.get('section') != session.get('section')):
+            flash("You do not have permission to review this student.", "error")
+            return redirect(url_for('president_dashboard'))
+    except Exception as e:
+        flash(f"Error fetching student: {str(e)}", "error")
+        return redirect(url_for('president_dashboard'))
+
+    # Handle the form submission
+    if request.method == 'POST':
+        action = request.form.get('action')
+        reason = request.form.get('disapproval_reason', '').strip()
+
+        update_data = {}
+
+        if action == 'approve_picture':
+            update_data = {"picture_status": "approved", "disapproval_reason": None}
+        elif action == 'approve_signature':
+            update_data = {"signature_status": "approved", "disapproval_reason": None}
+        elif action == 'disapprove_picture':
+            if not reason:
+                flash("A reason is required to disapprove the picture.", "error")
+                return render_template('president/review_student.html', student=student)
+            update_data = {"picture_status": "disapproved", "disapproval_reason": f"Picture: {reason}"}
+        elif action == 'disapprove_signature':
+            if not reason:
+                flash("A reason is required to disapprove the signature.", "error")
+                return render_template('president/review_student.html', student=student)
+            # Append to existing reason if it exists
+            existing_reason = student.get('disapproval_reason') or ""
+            if "Picture:" in existing_reason: # Append if picture reason already exists
+                 update_data = {"signature_status": "disapproved", "disapproval_reason": f"{existing_reason} | Signature: {reason}"}
+            else:
+                 update_data = {"signature_status": "disapproved", "disapproval_reason": f"Signature: {reason}"}
+        
+        if update_data:
+            try:
+                supabase.table("profiles").update(update_data).eq("id", student_id).execute()
+                flash(f"Student {student.get('first_name')} {student.get('last_name')}'s profile has been updated.")
+                return redirect(url_for('president_review_student', student_id=student_id))
+            except Exception as e:
+                flash(f"Error updating student: {str(e)}", "error")
+        else:
+            flash("No valid action specified.", "warning")
+
+    # GET request: Show the review page
+    # You will need to create 'president/review_student.html'
+    return render_template('president/review_student.html', student=student)
+
+
 # --- Run Application (Not used by Vercel) ---
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
 

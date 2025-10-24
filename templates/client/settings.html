@@ -1,25 +1,51 @@
+{% extends '/client/base.html' %}
+
+{% block title %}Settings{% endblock %}
+
+
+{% block content %}
 <section class="settings-section">
     <h2>Settings</h2>
 
     <div class="settings-card">
         <h3>Change Password</h3>
-        <form method="POST" action="/change_password">
-            <label>Current Password</label>
-            <input type="password" name="current_password" required>
-
-            <label>New Password</label>
-            <input type="password" name="new_password" required>
-
-            <label>Confirm New Password</label>
-            <input type="password" name="confirm_password" required>
-
-            <button type="submit" class="save-btn">Save Changes</button>
+        <form method="POST" action="{{ url_for('change_password') }}">
+            <div style="margin-bottom: 15px;">
+                <label for="current_password">Current Password</label>
+                <input type="password" name="current_password" id="current_password" required>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="new_password">New Password</label>
+                <input type="password" name="new_password" id="new_password" required>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label for="confirm_password">Confirm New Password</label>
+                <input type="password" name="confirm_password" id="confirm_password" required>
+            </div>
+            <button type="submit" class="save-btn" style="margin-top: 0; width: 100%;">Update Password</button>
         </form>
     </div>
 
-    <div class="settings-actions">
-        <button class="delete-btn">Delete Account</button>
+    <div class="settings-card">
+        <h3>Delete Account</h3>
+        <p>This action is irreversible. All your data, profile, and files will be permanently deleted.</p>
+        <button type="button" class="delete-btn">Delete My Account</button>
     </div>
 
-    <button class="back-btn" onclick="location.reload()">← Back to Profile</button>
+    <button type="button" class="back-btn" id="settingsBackBtn">&larr; Back to Profile</button>
 </section>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+    // This script runs when the settings.html page is loaded
+    const backBtn = document.getElementById('settingsBackBtn');
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            // Navigate back to the profile page
+            location.href = "{{ url_for('profile') }}";
+        });
+    }
+</script>
+{% endblock %}

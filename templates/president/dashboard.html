@@ -1,0 +1,74 @@
+{% extends "president/base.html" %}
+
+{% block title %}President - Class Dashboard{% endblock %}
+
+{% block content %}
+<section class="profile-section">
+    <h2>Class Dashboard</h2>
+    <p style="text-align: center; margin-top: -20px; margin-bottom: 20px;">
+        Review Submissions for: {{ class_info }} ({{ classmates|length }} Students)
+    </p>
+
+    <!-- Student List Table -->
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Student ID</th>
+                    <th>Pic Status</th>
+                    <th>Sig Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if classmates %}
+                    {% for student in classmates %}
+                    <tr>
+                        <td>
+                            <img src="{{ student.picture_url or 'https://placehold.co/40x40/e2e8f0/718096?text=?' }}" alt="Avatar">
+                            <div style="float: left; margin-left: 10px;">
+                                <span style="display: block; color: var(--text-primary); font-weight: 500;">{{ student.last_name }}, {{ student.first_name }}</span>
+                                <span style="display: block; font-size: 14px;">{{ student.email }}</span>
+                            </div>
+                        </td>
+                        <td>{{ student.student_id }}</td>
+                        <td>
+                            <span class="status-badge 
+                                {% if student.picture_status == 'approved' %} status-approved
+                                {% elif student.picture_status == 'pending' %} status-pending
+                                {% else %} status-disapproved {% endif %}">
+                                {{ student.picture_status | capitalize }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-badge
+                                {% if student.signature_status == 'approved' %} status-approved
+                                {% elif student.signature_status == 'pending' %} status-pending
+                                {% else %} status-disapproved {% endif %}">
+                                {{ student.signature_status | capitalize }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('president_review_student', student_id=student.id) }}">
+                                Review
+                                {% if student.picture_status == 'pending' or student.signature_status == 'pending' %}
+                                <span class="pending-dot"></span>
+                                {% endif %}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center;">
+                            No other students found in your class.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+

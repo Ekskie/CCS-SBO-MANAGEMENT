@@ -37,9 +37,10 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Updated grid to include Account Type -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label for="program" class="block text-sm font-medium text-gray-700">Program</Slabel>
+                    <label for="program" class="block text-sm font-medium text-gray-700">Program</label>
                     <select name="program" id="program" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                         <option value="BSIT" {% if student.program == 'BSIT' %}selected{% endif %}>BSIT</option>
                         <option value="BSIS" {% if student.program == 'BSIS' %}selected{% endif %}>BSIS</option>
@@ -51,6 +52,15 @@
                     <select name="semester" id="semester" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                         <option value="1st" {% if student.semester == '1st' %}selected{% endif %}>1st</option>
                         <option value="2nd" {% if student.semester == '2nd' %}selected{% endif %}>2nd</option>
+                    </select>
+                </div>
+                <!-- NEW: Account Type Dropdown -->
+                <div>
+                    <label for="account_type" class="block text-sm font-medium text-gray-700">Account Type</label>
+                    <select name="account_type" id="account_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <option value="student" {% if student.account_type == 'student' %}selected{% endif %}>Student</option>
+                        <option value="president" {% if student.account_type == 'president' %}selected{% endif %}>President</option>
+                        <option value="admin" {% if student.account_type == 'admin' %}selected{% endif %}>Admin</option>
                     </select>
                 </div>
             </div>
@@ -91,12 +101,14 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Update 1x1 Picture</label>
                     <input type="file" name="picture" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-                    <p class="text-xs text-gray-500 mt-1">Current: <a href="{{ student.picture_url or '#' }}" target="_blank" class="text-blue-500 hover:underline">View Image</a></p>
+                    <p class="text-xs text-gray-500 mt-1">Current: <a href="{{ student.picture_url or '#' }}" target="_blank" class="text-blue-500 hover:underline">View Image</a> (Max 5MB. Admin uploads are auto-approved)</p>
+                    <img class="mt-2 h-24 w-auto rounded-md object-contain bg-gray-100 p-2" src="{{ student.picture_url or 'https://placehold.co/150x100/e2e8f0/718096?text=No+Signature' }}" alt="Current Signature">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Update Signature</label>
-                    <input type="file" name="signature" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-                    <p class="text-xs text-gray-500 mt-1">Current: <a href="{{ student.signature_url or '#' }}" target="_blank" class="text-blue-500 hover:underline">View Signature</a></p>
+                    <input type="file" name="signature" accept=".png" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    <p class="text-xs text-gray-500 mt-1">Current: <a href="{{ student.signature_url or '#' }}" target="_blank" class="text-blue-500 hover:underline">View Signature</a> (Max 5MB. Must be transparent PNG. Admin uploads are auto-approved)</p>
+                    <img class="mt-2 h-24 w-auto rounded-md object-contain bg-gray-100 p-2" src="{{ student.signature_url or 'https://placehold.co/150x100/e2e8f0/718096?text=No+Signature' }}" alt="Current Signature">
                 </div>
             </div>
 
@@ -112,3 +124,4 @@
     </form>
 </div>
 {% endblock %}
+

@@ -1,4 +1,9 @@
-/* Modern CSS Variables */
+/* =========================================
+    PROFILE + SETTINGS PAGE (Modern Dark)
+    Author: Dennrick + GPT-5
+    ========================================= */
+
+/* ===== Color Palette ===== */
 :root {
     --primary-color: #1e76dd;
     --secondary-color: #03dac6;
@@ -14,10 +19,11 @@
     --transition: all 0.3s ease;
 }
 
+/* ===== Base Layout ===== */
 body {
-    background: linear-gradient(135deg, var(--background-dark) 0%, #1a1a1a 100%);
-    color: var(--text-primary);
-    font-family: 'Roboto', sans-serif;
+    background: var(--background-dark);
+    color: var(--text-secondary);
+    font-family: 'Poppins', sans-serif;
     margin: 0;
     padding: 0;
     height: 100vh;
@@ -30,61 +36,151 @@ body {
     height: 100vh;
 }
 
+/* ===== Sidebar ===== */
 .sidebar {
     width: 250px;
     background: linear-gradient(180deg, var(--primary-color) 0%, #3700b3 100%);
     padding: 30px 20px;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
     box-shadow: var(--shadow);
-    position: relative;
 }
 
 .sidebar h2 {
     color: var(--text-primary);
-    margin-bottom: 20px;
-    font-weight: 300;
     text-align: center;
+    margin-bottom: 25px;
+    font-weight: 600;
 }
 
 .sidebar ul {
     list-style: none;
     padding: 0;
-    margin: 0;
 }
 
 .sidebar li {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .sidebar a {
-    display: flex;
-    align-items: center;
-    color: var(--text-primary);
-    padding: 15px 20px;
+    display: block;
+    color: var(--text-secondary);
     text-decoration: none;
+    padding: 12px 18px;
     border-radius: var(--border-radius);
     transition: var(--transition);
-    font-weight: 500;
 }
 
-.sidebar a:hover, .sidebar a.active {
-    background: rgba(255, 255, 255, 0.1);
+.sidebar a:hover,
+.sidebar a.active {
+    background: var(--primary-color);
+    color: var(--text-primary);
     transform: translateX(5px);
 }
 
+/* ===== Content Area ===== */
 .content {
     flex: 1;
     padding: 40px;
     background: var(--background-dark);
     overflow-y: auto;
+    animation: fadeSlide 0.6s ease;
 }
 
-.profile-section, .edit-profile-section {
+@keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Profile Section ===== */
+.profile-section,
+.edit-profile-section {
     background: var(--surface-color);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--border-radius);
     padding: 30px;
     box-shadow: var(--shadow);
+    backdrop-filter: blur(8px);
     margin-bottom: 30px;
     animation: fadeIn 0.5s ease;
+}
+
+/* ===== EDIT PROFILE SECTION (Improved Layout) ===== */
+.edit-profile-section form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px 30px;
+    background: var(--surface-color);
+    padding: 25px;
+    border-radius: var(--border-radius);
+}
+
+.edit-profile-section h2 {
+    grid-column: 1 / -1;
+    color: var(--primary-color);
+    text-align: center;
+    font-weight: 500;
+    margin-bottom: 15px;
+}
+
+/* Category Titles (like “Personal Info”, “Academic Info”) */
+.edit-profile-section .form-group-title {
+    grid-column: 1 / -1;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-top: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 5px;
+}
+
+/* Form Labels */
+.edit-profile-section label,
+.review-section label { /* Added review-section label */
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+
+/* Inputs */
+.edit-profile-section input[type="text"],
+.edit-profile-section input[type="file"],
+.edit-profile-section select,
+textarea { /* ADDED textarea */
+    width: 100%;
+    padding: 12px;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(176, 176, 176, 0.3); /* --text-secondary @ 0.3 opacity */
+    background: var(--background-dark);
+    color: var(--text-secondary);
+    font-size: 15px;
+    transition: var(--transition);
+    box-sizing: border-box; /* Added for consistency */
+    min-height: 48px; /* Consistent height */
+}
+
+.edit-profile-section input:focus,
+.edit-profile-section select:focus,
+textarea:focus { /* ADDED textarea */
+    border-color: var(--accent-color);
+    box-shadow: 0 0 5px var(--accent-color);
+    outline: none;
+}
+
+/* Upload section spans full width */
+.edit-profile-section .upload-section {
+    grid-column: 1 / -1;
+    margin-top: 10px;
+}
+
+/* Action buttons at bottom */
+.edit-profile-section .form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
 }
 
 @keyframes fadeIn {
@@ -92,31 +188,39 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-.profile-section h2, .edit-profile-section h2 {
-    color: var(--accent-color);
-    margin-bottom: 20px;
-    font-weight: 300;
+.profile-section h2,
+.edit-profile-section h2 {
+    color: var(--primary-color);
     text-align: center;
+    font-weight: 500;
+    margin-bottom: 25px;
 }
 
+/* ===== Profile Layout ===== */
 .profile-container {
     display: flex;
     justify-content: space-around;
     align-items: center;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 30px;
 }
 
-.photo-section, .signature-section, .info-section {
+.photo-section,
+.signature-section,
+.info-section {
     text-align: center;
     flex: 1;
     min-width: 200px;
 }
 
-.photo-box, .signature-box {
+
+
+/* ===== Profile & Signature Boxes ===== */
+.photo-box,
+.signature-box {
     width: 150px;
     height: 150px;
-    border: 2px solid var(--accent-color);
+    border: 2px solid var(--primary-color);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -125,132 +229,508 @@ body {
     overflow: hidden;
     box-shadow: var(--shadow);
     transition: var(--transition);
+    background: var(--background-dark); /* Added for empty box */
 }
 
-.photo-box:hover, .signature-box:hover {
+.photo-box:hover,
+.signature-box:hover {
     transform: scale(1.05);
+    box-shadow: 0 0 20px var(--accent-color);
 }
 
-.photo-box img, .signature-box img {
+.photo-box img,
+.signature-box img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
+/* Signature-specific override to show transparency */
+.signature-box img {
+    object-fit: contain; /* Show the whole signature */
+    padding: 10px; /* Give it some space */
+}
+
+
+.clickable-img {
+    cursor: pointer;
+    transition: var(--transition);
+}
+.clickable-img:hover {
+    opacity: 0.8;
+}
+
+/* ===== Info Section ===== */
 .info-section p {
     margin: 10px 0;
     font-size: 16px;
     color: var(--text-secondary);
 }
-
-.edit-btn {
-    background: var(--primary-color);
+.info-section p strong {
     color: var(--text-primary);
-    border: none;
+}
+
+/* ===== Buttons ===== */
+.edit-btn,
+.save-btn,
+.cancel-btn,
+.delete-btn { /* Added delete-btn */
     padding: 12px 24px;
+    border: none;
     border-radius: var(--border-radius);
     cursor: pointer;
     font-size: 16px;
+    font-weight: 500;
     transition: var(--transition);
     margin-top: 20px;
+    text-decoration: none; /* For <a> tags styled as buttons */
+    display: inline-block; /* For <a> tags */
+    text-align: center;
 }
 
+/* Edit */
+.edit-btn {
+    background: var(--primary-color);
+    color: var(--text-primary);
+}
 .edit-btn:hover {
-    background: #3700b3;
-    box-shadow: var(--shadow);
+    filter: brightness(0.9);
 }
 
-/* Edit Form Styles */
-.edit-form {
-    display: grid;
-    gap: 20px;
+/* Save */
+.save-btn {
+    background: var(--success-color);
+    color: var(--background-dark); /* Light bg needs dark text */
+}
+.save-btn:hover {
+    filter: brightness(0.9);
 }
 
-.row {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
+/* Cancel */
+.cancel-btn {
+    background: var(--error-color);
+    color: var(--text-primary);
+}
+.cancel-btn:hover {
+    filter: brightness(0.9);
 }
 
-.row > div {
-    flex: 1;
-    min-width: 200px;
+/* Delete (using error color) */
+.delete-btn {
+    background: var(--error-color);
+    color: var(--text-primary);
+}
+.delete-btn:hover {
+    filter: brightness(0.9);
 }
 
-input, select {
+
+/* ===== Input Styles (Fallback) ===== */
+/* These are overridden by .edit-profile-section styles but good for settings */
+input[type="text"],
+input[type="password"],
+input[type="file"],
+select {
     width: 100%;
     padding: 12px;
-    border: 1px solid var(--text-secondary);
     border-radius: var(--border-radius);
-    background: var(--surface-color);
-    color: var(--text-primary);
-    font-size: 16px;
+    border: 1px solid rgba(176, 176, 176, 0.3); /* --text-secondary @ 0.3 opacity */
+    background: var(--background-dark);
+    color: var(--text-secondary);
+    font-size: 15px;
     transition: var(--transition);
+    box-sizing: border-box;
 }
 
 input:focus, select:focus {
     border-color: var(--accent-color);
     outline: none;
-    box-shadow: 0 0 0 2px rgba(187, 134, 252, 0.2);
+    box-shadow: 0 0 5px var(--accent-color);
 }
 
-.upload-section {
-    margin-top: 20px;
+/* ===== File Input ===== */
+input[type="file"] {
+    border: 1px dashed var(--text-secondary);
+    padding: 10px;
 }
-
-.form-label {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--text-secondary);
-    font-weight: 500;
-}
-
-.save-btn, .cancel-btn {
-    padding: 12px 24px;
+input[type="file"]::file-selector-button {
+    background: var(--primary-color);
+    color: var(--text-primary);
     border: none;
+    padding: 8px 12px;
     border-radius: var(--border-radius);
     cursor: pointer;
-    font-size: 16px;
     transition: var(--transition);
-    margin-right: 10px;
+}
+input[type="file"]::file-selector-button:hover {
+    filter: brightness(0.9);
 }
 
-.save-btn {
-    background: var(--success-color);
+/* ===== Select Dropdown ===== */
+select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%23b0b0b0' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>"); /* fill is var(--text-secondary) */
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 1.2em;
+}
+
+/* ===== SETTINGS SECTION ===== */
+.settings-section {
+    background: var(--surface-color);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius);
+    padding: 30px;
+    box-shadow: var(--shadow);
+    animation: fadeIn 0.5s ease;
+}
+
+.settings-section h2 {
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+/* Card */
+.settings-card {
+    background: rgba(40, 40, 40, 0.9); /* Keeping this slightly different from surface */
+    border-radius: var(--border-radius);
+    padding: 25px;
+    margin-bottom: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: var(--transition);
+}
+.settings-card:hover {
+    background: rgba(50, 50, 50, 0.95);
+    box-shadow: 0 0 15px var(--accent-color);
+}
+
+.settings-card h3 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+/* Settings Inputs */
+.settings-card input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(176, 176, 176, 0.3);
+    background: var(--background-dark);
+    color: var(--text-secondary);
+    font-size: 15px;
+    transition: var(--transition);
+}
+
+.settings-card input[type="password"]:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 5px var(--accent-color);
+}
+
+/* Back Button */
+.back-btn {
+    display: inline-block;
+    margin-top: 20px;
+    margin-bottom: 20px; /* Added margin */
+    background: transparent;
+    border: 1px solid var(--text-secondary);
+    color: var(--text-secondary);
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none; /* Added */
+}
+.back-btn:hover {
+    background: var(--text-secondary);
     color: var(--background-dark);
 }
 
-.save-btn:hover {
-    background: #00bfa5;
-    box-shadow: var(--shadow);
+/* ===== Image Modal ===== */
+.modal-overlay {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+    cursor: zoom-out;
 }
 
-.cancel-btn {
-    background: var(--error-color);
-    color: var(--text-primary);
+.modal-image {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 10px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+    border: 2px solid var(--primary-color);
+    animation: zoomIn 0.3s ease;
 }
 
-.cancel-btn:hover {
-    background: #b00020;
-    box-shadow: var(--shadow);
+.modal-close {
+    position: fixed;
+    top: 25px;
+    right: 40px;
+    font-size: 40px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+    z-index: 10000;
+}
+.modal-close:hover {
+    color: var(--primary-color);
+    transform: rotate(90deg);
 }
 
-/* Responsive Design */
+/* Animation */
+@keyframes zoomIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+
+/* ===== Responsive ===== */
 @media (max-width: 768px) {
     .container {
         flex-direction: column;
+        height: auto;
     }
     .sidebar {
         width: 100%;
-        padding: 20px;
+        text-align: center;
     }
     .content {
         padding: 20px;
     }
-    .profile-container {
-        flex-direction: column;
+    .photo-box, .signature-box {
+        width: 120px;
+        height: 120px;
     }
-    .row {
-        flex-direction: column;
+    /* NEW: Responsive grid for review page */
+    .review-grid {
+        grid-template-columns: 1fr !important;
     }
 }
+
+
+/* ===== Profile Status Notification ===== */
+.status-notification-section {
+    background: rgba(30, 118, 221, 0.15); /* primary-color @ 0.15 opacity */
+    border: 2px solid var(--primary-color);
+    border-radius: var(--border-radius);
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 0 20px rgba(30, 118, 221, 0.4); /* primary-color @ 0.4 opacity */
+    backdrop-filter: blur(6px);
+    animation: pulseHighlight 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes pulseHighlight {
+    from { box-shadow: 0 0 10px rgba(30, 118, 221, 0.3); } /* primary-color @ 0.3 */
+    to { box-shadow: 0 0 25px rgba(30, 118, 221, 0.7); } /* primary-color @ 0.7 */
+}
+
+.status-notification-section h3 {
+    color: var(--text-primary);
+    text-align: center;
+    font-weight: 600;
+    font-size: 20px;
+    margin-bottom: 15px;
+    text-shadow: 0 0 8px rgba(30, 118, 221, 0.7); /* primary-color @ 0.7 */
+}
+
+.status-badges {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 15px 0;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: capitalize;
+    font-size: 15px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Color Variants */
+.status-approved {
+    background: var(--success-color);
+    color: var(--background-dark); /* Light bg needs dark text */
+}
+.status-pending {
+    background: var(--primary-color);
+    color: var(--text-primary);
+}
+.status-disapproved {
+    background: var(--error-color);
+    color: var(--text-primary);
+}
+
+.disapproval-box {
+    background: rgba(207, 102, 121, 0.2); /* error-color @ 0.2 opacity */
+    border-left: 4px solid var(--error-color);
+    padding: 15px 20px;
+    border-radius: var(--border-radius);
+    margin-bottom: 20px;
+}
+
+.disapproval-box p {
+    margin: 8px 0;
+    font-size: 15px;
+    color: var(--text-secondary);
+}
+
+.disapproval-box p strong {
+    color: var(--error-color);
+}
+
+.note { /* General note class */
+    text-align: left;
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-top: 10px;
+    opacity: 0.9;
+}
+.status-notification-section .note {
+    text-align: center; /* Override for this specific section */
+}
+
+/*
+=========================================
+ NEW STYLES
+=========================================
+*/
+
+/* ===== Table Styles (for Dashboard) ===== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    box-shadow: var(--shadow);
+    border-radius: var(--border-radius);
+    overflow: hidden; /* Ensures border-radius is respected */
+}
+
+thead {
+    background: linear-gradient(90deg, var(--primary-color) 0%, #3700b3 100%);
+}
+
+th {
+    color: var(--text-primary);
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px; /* Slightly smaller */
+    text-transform: uppercase; /* Added */
+}
+
+tbody tr {
+    background: var(--surface-color);
+    border-bottom: 1px solid var(--background-dark);
+    transition: var(--transition);
+}
+
+tbody tr:last-child {
+    border-bottom: none;
+}
+
+tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05); /* Slight hover effect */
+}
+
+td {
+    padding: 15px;
+    vertical-align: middle;
+    color: var(--text-secondary);
+}
+
+td img { /* For profile pic in table */
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px;
+    float: left;
+}
+
+/* For the "Review" link */
+td a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+td a:hover {
+    color: var(--accent-color);
+    text-decoration: underline;
+}
+
+/* Pending notification bubble */
+.pending-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--error-color);
+    margin-left: 5px;
+    box-shadow: 0 0 8px var(--error-color);
+    animation: pulseDot 1.5s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+    0% { transform: scale(0.9); opacity: 0.7; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(0.9); opacity: 0.7; }
+}
+
+/* ===== President Review Page ===== */
+.review-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 20px;
+}
+
+.review-box {
+    text-align: center;
+}
+
+.review-box h3 {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.review-box .button-group {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.disapproval-form {
+    grid-column: 1 / -1; /* Span full width */
+    margin-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 30px;
+}
+

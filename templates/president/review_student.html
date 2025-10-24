@@ -1,0 +1,80 @@
+{% extends "president/base.html" %}
+
+{% block title %}President - Review {{ student.first_name }} {{ student.last_name }}{% endblock %}
+
+{% block content %}
+<section class="profile-section review-section">
+    <a href="{{ url_for('president_dashboard') }}" class="back-btn">&larr; Back to Dashboard</a>
+    
+    <h2 style="text-align: left; margin-top: 15px;">{{ student.first_name }} {{ student.last_name }}</h2>
+    <p style="margin-top: -20px; margin-bottom: 20px; font-size: 16px;">{{ student.student_id }}</p>
+
+    <form action="{{ url_for('president_review_student', student_id=student.id) }}" method="POST">
+
+        <div class="review-grid">
+            <!-- Picture Review -->
+            <div class="review-box">
+                <h3>1x1 Picture Review</h3>
+                <span class="status-badge 
+                    {% if student.picture_status == 'approved' %} status-approved
+                    {% elif student.picture_status == 'pending' %} status-pending
+                    {% else %} status-disapproved {% endif %}" style="margin-bottom: 15px;">
+                    {{ student.picture_status | capitalize }}
+                </span>
+                
+                <div class="photo-box clickable-img">
+                    <img src="{{ student.picture_url or 'https://placehold.co/150x150/e2e8f0/718096?text=No+Image' }}" alt="Profile picture">
+                </div>
+                
+                {% if student.picture_status != 'approved' %}
+                <div class="button-group">
+                    <button type="submit" name="action" value="approve_picture" class="save-btn">
+                        Approve
+                    </button>
+                    <button type="submit" name="action" value="disapprove_picture" class="delete-btn">
+                        Disapprove
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Signature Review -->
+            <div class="review-box">
+                <h3>Signature Review</h3>
+                <span class="status-badge 
+                    {% if student.signature_status == 'approved' %} status-approved
+                    {% elif student.signature_status == 'pending' %} status-pending
+                    {% else %} status-disapproved {% endif %}" style="margin-bottom: 15px;">
+                    {{ student.signature_status | capitalize }}
+                </span>
+                
+                <div class="signature-box clickable-img">
+                    <img src="{{ student.signature_url or 'https://placehold.co/150x150/e2e8f0/718096?text=No+Signature' }}" alt="Signature">
+                </div>
+
+                {% if student.signature_status != 'approved' %}
+                <div class="button-group">
+                    <button type="submit" name="action" value="approve_signature" class="save-btn">
+                        Approve
+                    </button>
+                    <button type="submit" name="action" value="disapprove_signature" class="delete-btn">
+                        Disapprove
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Disapproval Reason -->
+        {% if student.picture_status != 'approved' or student.signature_status != 'approved' %}
+        <div class_a="disapproval-form">
+            <label for="disapproval_reason">Disapproval Reason (Required if disapproving)</label>
+            <textarea name="disapproval_reason" id="disapproval_reason" rows="3" placeholder="e.g., 'Picture is not 1x1' or 'Signature has a white background'">{% if student.disapproval_reason %}{{ student.disapproval_reason }}{% endif %}</textarea>
+            <p class="note">This reason will be shown to the student. If disapproving both, please provide reasons for both.</p>
+        </div>
+        {% endif %}
+
+    </form>
+</section>
+{% endblock %}
+
