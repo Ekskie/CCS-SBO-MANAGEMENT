@@ -19,7 +19,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # --- Admin Configuration ---
 # !!! IMPORTANT: Add your registered admin email here !!!
-ADMIN_EMAILS = {"admin@example.com", "dennrick.agustin@lspu.edu.ph"}
+ADMIN_EMAILS = {"jakemartin.roca@lspu.edu.ph", "dennrick.agustin@lspu.edu.ph"}
 
 # --- Admin Decorator ---
 def admin_required(f):
