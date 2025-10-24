@@ -91,7 +91,7 @@ def admin_required(f):
             return redirect(url_for('login'))
         if session.get('account_type') != 'admin':
             flash("You do not have permission to access this page.", "error")
-            return redirect(url_sfor('profile'))
+            return redirect(url_for('profile'))
         return f(*args, **kwargs)
     return decorated_function
 
