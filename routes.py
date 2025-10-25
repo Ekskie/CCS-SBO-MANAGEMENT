@@ -460,7 +460,7 @@ def admin_print_preview():
         generation_date = today.strftime("%B %d, %Y") # e.g., "October 24, 2025"
 
         return render_template(
-            '../print_template.html', # Use shared template
+            './print_template.html', # Use shared template
             members=sorted_members, # Pass the new sorted list
             semester_display=semester_display,
             academic_year=academic_year,
@@ -575,7 +575,7 @@ def admin_archive_preview(archive_id):
         generation_date = archive.get('generation_date')
 
         return render_template(
-            '../print_template.html', # Use shared template
+            './print_template.html', # Use shared template
             members=sorted_members,
             semester_display=semester_display,
             academic_year=academic_year,
