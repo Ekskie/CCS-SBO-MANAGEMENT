@@ -5,83 +5,88 @@
 
 {% block content %}
 <div class="bg-white rounded-lg shadow-md overflow-hidden">
-    <div class="p-4 border-b">
-        <h3 class="text-xl font-semibold text-gray-800">All Registered Students ({{ students|length }})</h3>
+    
+    <div class="p-6 border-b border-gray-200">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">All Registered Students ({{ students|length }})</h3>
         
-        <!-- Filter and Search Form -->
-        <form method="GET" action="{{ url_for('admin.admin_students') }}" class="mt-4 grid grid-cols-1 md:grid-cols-6 gap-4">
-            <div>
-                <label for="search_name" class="block text-sm font-medium text-gray-700">Student Name</label>
-                <input type="text" name="search_name" id="search_name" value="{{ search_name or '' }}" placeholder="Search by name..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+        <form method="GET" action="{{ url_for('admin.admin_students') }}">
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                
+                {% macro form_select(name, label, selected_val, options) %}
+                <div>
+                    <label for="{{ name }}" class="block text-sm font-medium text-gray-700 mb-1">{{ label }}</label>
+                    <select name="{{ name }}" id="{{ name }}" 
+                            class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        <option value="">All</option>
+                        {% for option in options %}
+                            <option value="{{ option }}" {% if option == selected_val %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endmacro %}
+
+                <div class="xl:col-span-2">
+                    <label for="search_name" class="block text-sm font-medium text-gray-700 mb-1">Student Name</label>
+                    <input type="text" name="search_name" id="search_name" value="{{ search_name or '' }}" 
+                           placeholder="Search by name, email, or ID..." 
+                           class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                </div>
+                
+                {{ form_select('filter_program', 'Program', filter_program, programs) }}
+                {{ form_select('filter_year_level', 'Year Level', filter_year_level, all_years) }}
+                {{ form_select('filter_section', 'Section', filter_section, sections) }}
+                {{ form_select('filter_major', 'Major', filter_major, all_majors) }}
             </div>
-            <div>
-                <label for="filter_program" class="block text-sm font-medium text-gray-700">Program</label>
-                <select name="filter_program" id="filter_program" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                    <option value="">All Programs</option>
-                    {% for program in programs %}
-                        <option value="{{ program }}" {% if program == filter_program %}selected{% endif %}>{{ program }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <!-- NEW: Year Level Filter -->
-            <div>
-                <label for="filter_year_level" class="block text-sm font-medium text-gray-700">Year Level</label>
-                <select name="filter_year_level" id="filter_year_level" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                    <option value="">All Years</option>
-                    {% for year in all_years %}
-                        <option value="{{ year }}" {% if year == filter_year_level %}selected{% endif %}>{{ year }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div>
-                <label for="filter_section" class="block text-sm font-medium text-gray-700">Section</label>
-                <select name="filter_section" id="filter_section" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                    <option value="">All Sections</option>
-                    {% for section in sections %}
-                        <option value="{{ section }}" {% if section == filter_section %}selected{% endif %}>{{ section }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <!-- NEW: Major Filter -->
-            <div>
-                <label for="filter_major" class="block text-sm font-medium text-gray-700">Major</label>
-                <select name="filter_major" id="filter_major" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                    <option value="">All Majors</option>
-                    {% for major in all_majors %}
-                        <option value="{{ major }}" {% if major == filter_major %}selected{% endif %}>{{ major }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="flex items-end gap-2">
-                <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Filter</button>
-                <a href="{{ url_for('admin.admin_students') }}" class="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Reset</a>
+            
+            <div class="flex items-center gap-2 mt-4">
+                <button type="submit" 
+                        class="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
+                    Filter
+                </button>
+                <a href="{{ url_for('admin.admin_students') }}" 
+                   class="px-5 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition">
+                   Reset
+                </a>
             </div>
         </form>
     </div>
+
     <div class="overflow-x-auto">
-        <table class="w-full min-w-lg">
+        <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Program & Section</th>
-                    <!-- NEW: Role Column -->
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                    <!-- NEW: Picture Status Column -->
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pic Status</th>
-                    <!-- NEW: Signature Status Column -->
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sig Status</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Program & Section</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pic Status</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sig Status</th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
+                
+                {% macro status_badge(status, color_map) %}
+                    <span class="font-bold px-3 py-1 rounded-full text-xs
+                            {% if status == 'approved' %} {{ color_map.approved }}
+                            {% elif status == 'pending' %} {{ color_map.pending }}
+                            {% elif status == 'disapproved' %} {{ color_map.disapproved }}
+                            {% elif status == 'admin' %} {{ color_map.admin }}
+                            {% elif status == 'president' %} {{ color_map.president }}
+                            {% else %} {{ color_map.default }} {% endif %}">
+                            {{ status | capitalize }}
+                    </span>
+                {% endmacro %}
+
                 {% if students %}
                     {% for student in students %}
                     <tr>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 h-10 w-10">
-                                    <img class="h-10 w-10 rounded-full object-cover" src="{{ student.picture_url or 'https://placehold.co/40x40/e2e8f0/718096?text=N/A' }}" alt="Avatar">
+                                    <img class="h-10 w-10 rounded-full object-cover" 
+                                         src="{{ student.picture_url or 'https://placehold.co/40x40/e2e8f0/718096?text=N/A' }}" 
+                                         alt="Avatar">
                                 </div>
                                 <div class="ml-4">
                                     <div class="text-sm font-medium text-gray-900">{{ student.last_name }}, {{ student.first_name }}</div>
@@ -96,47 +101,46 @@
                             <div class="text-sm text-gray-900">{{ student.program }}</div>
                             <div class="text-sm text-gray-500">{{ student.year_level }} - {{ student.section }} {% if student.major %}({{ student.major }}){% endif %}</div>
                         </td>
-                        <!-- NEW: Role Data -->
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                {% if student.account_type == 'admin' %} bg-red-100 text-red-800 
-                                {% elif student.account_type == 'president' %} bg-blue-100 text-blue-800
-                                {% else %} bg-green-100 text-green-800 {% endif %}">
-                                {{ student.account_type | capitalize }}
-                            </span>
+                            {{ status_badge(student.account_type, 
+                                color_map={'admin': 'bg-red-100 text-red-800', 
+                                           'president': 'bg-blue-100 text-blue-800', 
+                                           'default': 'bg-green-100 text-green-800'}) }}
                         </td>
-                        <!-- NEW: Picture Status Data -->
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                {% if student.picture_status == 'approved' %} bg-green-100 text-green-800 
-                                {% elif student.picture_status == 'pending' %} bg-yellow-100 text-yellow-800
-                                {% else %} bg-red-100 text-red-800 {% endif %}">
-                                {{ student.picture_status | capitalize }}
-                            </span>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {{ status_badge(student.picture_status, 
+                                color_map={'approved': 'bg-green-100 text-green-800', 
+                                           'pending': 'bg-yellow-100 text-yellow-800', 
+                                           'disapproved': 'bg-red-100 text-red-800'}) }}
                         </td>
-                        <!-- NEW: Signature Status Data -->
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                {% if student.signature_status == 'approved' %} bg-green-100 text-green-800 
-                                {% elif student.signature_status == 'pending' %} bg-yellow-100 text-yellow-800
-                                {% else %} bg-red-100 text-red-800 {% endif %}">
-                                {{ student.signature_status | capitalize }}
-                            </span>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {{ status_badge(student.signature_status, 
+                                color_map={'approved': 'bg-green-100 text-green-800', 
+                                           'pending': 'bg-yellow-100 text-yellow-800', 
+                                           'disapproved': 'bg-red-100 text-red-800'}) }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <a href="{{ url_for('admin.admin_edit_student', student_id=student.id) }}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
-                            <!-- --- NEW: Review Link --- -->
-                            <a href="{{ url_for('admin.admin_review_student', student_id=student.id) }}" class="text-green-600 hover:text-green-900 ml-4">Review</a>
-                            <!-- --- END OF NEW LINK --- -->
-                            <button type="button" onclick="openDeleteModal('{{ student.id }}', '{{ student.first_name }} {{ student.last_name }}')" class="text-red-600 hover:text-red-900 ml-4">Delete</button>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                            <a href="{{ url_for('admin.admin_review_student', student_id=student.id) }}" 
+                               class="px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition text-xs font-semibold">
+                                Review
+                            </a>
+                            <a href="{{ url_for('admin.admin_edit_student', student_id=student.id) }}" 
+                               class="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition text-xs font-semibold">
+                                Edit
+                            </a>
+                            <button type="button" onclick="openDeleteModal('{{ student.id }}', '{{ student.first_name }} {{ student.last_name }}')" 
+                               class="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition text-xs font-semibold">
+                                Delete
+                            </button>
                         </td>
                     </tr>
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <!-- MODIFIED: Colspan increased to 7 -->
-                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">
-                            No students found matching your criteria.
+                        <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                            <i class="fas fa-search fa-3x text-gray-400 mb-4"></i>
+                            <h4 class="text-lg font-medium">No Students Found</h4>
+                            <p>No students match your current search and filter criteria.</p>
                         </td>
                     </tr>
                 {% endif %}
@@ -145,22 +149,17 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal (Your existing code, unchanged) -->
-<div id="deleteModal" class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+<!-- Delete Modal -->
+<div id="deleteModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <!-- Background overlay -->
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         
-        <!-- Modal panel -->
         <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
                     <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <!-- Assuming Font Awesome is loaded in admin/base.html -->
-                        <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
+                        <i class="fas fa-exclamation-triangle h-6 w-6 text-red-600"></i>
                     </div>
                     <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                         <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Delete Student</h3>
@@ -174,9 +173,18 @@
                 </div>
             </div>
             <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <form id="deleteForm" method="POST" action="">
-                    <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
-                        Delete Student
+                <!-- *** MODIFIED DELETE FORM AND BUTTON *** -->
+                <form id="deleteForm" method="POST" action="" onsubmit="handleDeleteSubmit()">
+                    <button type="submit" id="delete-button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-75 disabled:cursor-not-allowed">
+                        
+                        <!-- SVG Spinner (hidden by default) -->
+                        <svg id="delete-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" style="display: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        
+                        <!-- Button Text -->
+                        <span id="delete-button-text">Delete Student</span>
                     </button>
                 </form>
                 <button type="button" onclick="closeDeleteModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
@@ -187,8 +195,20 @@
     </div>
 </div>
 
+<!-- *** NEW SCRIPT FOR MODAL LOADING STATE *** -->
 <script>
     function openDeleteModal(student_id, student_name) {
+        // Reset button state just in case
+        const deleteButton = document.getElementById('delete-button');
+        const spinner = document.getElementById('delete-spinner');
+        const buttonText = document.getElementById('delete-button-text');
+
+        if (deleteButton) {
+            deleteButton.disabled = false;
+            if (spinner) spinner.style.display = 'none';
+            if (buttonText) buttonText.style.display = 'inline'; // Or 'block' if it was
+        }
+
         document.getElementById('deleteStudentName').innerText = student_name;
         document.getElementById('deleteForm').action = '/admin/delete_student/' + student_id;
         document.getElementById('deleteModal').classList.remove('hidden');
@@ -196,6 +216,31 @@
 
     function closeDeleteModal() {
         document.getElementById('deleteModal').classList.add('hidden');
+
+        // Also reset button state on close
+        const deleteButton = document.getElementById('delete-button');
+        const spinner = document.getElementById('delete-spinner');
+        const buttonText = document.getElementById('delete-button-text');
+
+        if (deleteButton) {
+            deleteButton.disabled = false;
+            if (spinner) spinner.style.display = 'none';
+            if (buttonText) buttonText.style.display = 'inline';
+        }
+    }
+
+    function handleDeleteSubmit() {
+        // This function is called on form submit
+        const deleteButton = document.getElementById('delete-button');
+        const spinner = document.getElementById('delete-spinner');
+        const buttonText = document.getElementById('delete-button-text');
+
+        if (deleteButton) {
+            deleteButton.disabled = true;
+            if (spinner) spinner.style.display = 'block';
+            if (buttonText) buttonText.style.display = 'none';
+        }
+        // The form will now submit
     }
 </script>
 {% endblock %}

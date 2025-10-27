@@ -4,60 +4,135 @@
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <!-- Stat Card: Total Students -->
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex items-center">
-            <div class="p-3 bg-blue-500 text-white rounded-full">
-                <i class="fas fa-users fa-2x"></i>
-            </div>
-            <div class="ml-4">
-                <h3 class="text-lg font-semibold text-gray-700">Total Students</h3>
-                <p class="text-3xl font-bold text-gray-900">{{ student_count }}</p>
-            </div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    
+    <div class="bg-white rounded-lg shadow p-6 flex items-center justify-between">
+        <div>
+            <div class="text-sm font-medium text-gray-500 uppercase">Total Students</div>
+            <div class="text-3xl font-bold text-gray-900">{{ student_count }}</div>
+        </div>
+        <div class="p-3 bg-blue-100 text-blue-600 rounded-full">
+            <i class="fas fa-users fa-2x"></i>
         </div>
     </div>
 
-    <!-- Stat Card: Total Programs -->
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex items-center">
-            <div class="p-3 bg-green-500 text-white rounded-full">
-                <i class="fas fa-book fa-2x"></i>
-            </div>
-            <div class="ml-4">
-                <h3 class="text-lg font-semibold text-gray-700">Unique Programs</h3>
-                <p class="text-3xl font-bold text-gray-900">{{ program_count }}</p>
-            </div>
+    <div class="bg-white rounded-lg shadow p-6 flex items-center justify-between">
+        <div>
+            <div class="text-sm font-medium text-gray-500 uppercase">Unique Programs</div>
+            <div class="text-3xl font-bold text-gray-900">{{ program_count }}</div>
+        </div>
+        <div class="p-3 bg-green-100 text-green-600 rounded-full">
+            <i class="fas fa-book fa-2x"></i>
         </div>
     </div>
 
-    <!-- Stat Card: Notifications (Placeholder) -->
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex items-center">
-            <div class="p-3 bg-yellow-500 text-white rounded-full">
-                <i class="fas fa-bell fa-2x"></i>
-            </div>
-            <div class="ml-4">
-                <h3 class="text-lg font-semibold text-gray-700">Notifications</h3>
-                <p class="text-3xl font-bold text-gray-900">0</p>
-            </div>
+    <div class="bg-white rounded-lg shadow p-6 flex items-center justify-between">
+        <div>
+            <div class="text-sm font-medium text-gray-500 uppercase">Pending Approvals</div>
+            <div class="text-3xl font-bold text-gray-900">{{ pending_count }}</div> 
+        </div>
+        <div class="p-3 bg-yellow-100 text-yellow-600 rounded-full">
+            <i class="fas fa-bell fa-2x"></i>
         </div>
     </div>
 </div>
 
-<div class="mt-8 bg-white rounded-lg shadow-md p-6">
+<div class="mb-8">
     <h3 class="text-xl font-semibold text-gray-800 mb-4">Quick Links</h3>
-    <div class="flex flex-wrap gap-4">
-        <a href="{{ url_for('admin.admin_students') }}" class="px-5 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition duration-300">
-            View All Students
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <a href="{{ url_for('admin.admin_students') }}" 
+           class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center text-center text-gray-700 hover:text-blue-600 hover:shadow-lg transition duration-300">
+            <i class="fas fa-users fa-3x mb-3"></i>
+            <span class="font-semibold">Manage Students</span>
         </a>
-        <a href="{{ url_for('admin.admin_printing') }}" class="px-5 py-3 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition duration-300">
-            Go to Printing Station
+        
+        <a href="{{ url_for('admin.admin_printing') }}" 
+           class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center text-center text-gray-700 hover:text-green-600 hover:shadow-lg transition duration-300">
+            <i class="fas fa-print fa-3x mb-3"></i>
+            <span class="font-semibold">Printing Station</span>
         </a>
-        <a href="{{ url_for('admin.admin_archive') }}" class="px-5 py-3 bg-gray-600 text-white rounded-lg shadow hover:bg-gray-700 transition duration-300">
-            Manage Archive
+        
+        <a href="{{ url_for('admin.admin_archive') }}" 
+           class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center text-center text-gray-700 hover:text-gray-900 hover:shadow-lg transition duration-300">
+            <i class="fas fa-archive fa-3x mb-3"></i>
+            <span class="font-semibold">View Archive</span>
         </a>
+
+        <a href="{{ url_for('core.profile') }}" 
+           class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center text-center text-gray-700 hover:text-indigo-600 hover:shadow-lg transition duration-300">
+            <i class="fas fa-user-circle fa-3x mb-3"></i>
+            <span class="font-semibold">Back to Profile</span>
+        </a>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="p-6 border-b border-gray-200">
+        <h3 class="text-xl font-semibold text-gray-800">Pending Approvals</h3>
+        <p class="text-sm text-gray-500">Students who require approval for their 1x1 Picture or Signature.</p>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Program</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Picture Status</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Signature Status</th>
+                    <th scope="col" class="relative px-6 py-3"><span class="sr-only">Review</span></th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                
+                {% macro status_badge(status) %}
+                    <span class="font-bold px-3 py-1 rounded-full text-xs
+                        {% if status == 'approved' %} bg-green-100 text-green-800
+                        {% elif status == 'pending' %} bg-yellow-100 text-yellow-800
+                        {% elif status == 'disapproved' %} bg-red-100 text-red-800
+                        {% else %} bg-gray-100 text-gray-800 {% endif %}">
+                        {{ status | capitalize }}
+                    </span>
+                {% endmacro %}
+
+                {% if pending_students %}
+                    {% for student in pending_students %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ student.first_name }} {{ student.last_name }}</div>
+                            <div class="text-sm text-gray-500">{{ student.email }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ student.program }}</div>
+                            <div class="text-sm text-gray-500">{{ student.year_level }} - {{ student.section }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {{ status_badge(student.picture_status) }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                             {{ status_badge(student.signature_status) }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="{{ url_for('admin.admin_review_student', student_id=student.id) }}" 
+                               class="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition text-xs">
+                                Review
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                            <i class="fas fa-check-circle fa-3x text-green-500 mb-4"></i>
+                            <h4 class="text-lg font-medium">All Caught Up!</h4>
+                            <p>There are no pending approvals.</p>
+                        </td>
+                    </tr>
+                {% endif %}
+                </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}
-

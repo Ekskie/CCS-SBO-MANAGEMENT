@@ -1,77 +1,248 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-gray-100">
+
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Profile{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Profile{% endblock %} | SOMS</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+
     {% block head %}{% endblock %}
 </head>
-<body>
-<div class="container">
-    <aside class="sidebar">
-        <h2>Menu</h2>
-        <ul>
-            <li><a href="{{ url_for('core.profile') }}" {% if request.endpoint == 'profile' %}class="active"{% endif %}>Profile</a></li>
-            <li><a href="{{ url_for('core.settings') }}" {% if request.endpoint == 'settings' %}class="active"{% endif %}>Settings</a></li>
-            
-            {% if is_president or is_admin %}
-            <li><a href="{{ url_for('president.president_dashboard') }}">President Dashboard</a></li>
-            {% endif %}
-            <li><a href="{{ url_for('auth.logout') }}">Sign Out</a></li>
-        </ul>
-    </aside>
 
-    <main id="mainContent" class="content">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            <div class="mb-4">
-                {% for category, message in messages %}
-                <div class="status-notification-section {% if category == 'error' %}disapproval-box{% else %}status-approved{% endif %}" role="alert">
-                    <p>{{ message }}</p>
-                </div>
-                {% endfor %}
+<body class="h-full font-sans">
+
+    <!-- *** NEW: Page Loader *** -->
+    <div id="page-loader" class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900 bg-opacity-75" style="display: none;">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+    </div>
+    <!-- *** END: Page Loader *** -->
+
+    <div class="flex h-screen bg-gray-100 md:bg-gray-900 md:text-white">
+
+        <aside id="sidebar"
+               class="hidden md:flex flex-col w-64 bg-gray-800 text-gray-300
+                      fixed inset-y-0 left-0 z-40 transition-transform duration-300 ease-in-out">
+            <div class="flex items-center justify-center h-20 border-b border-gray-700 shadow-md">
+                <img src="{{ url_for('static', filename='image/lspu.png') }}" alt="LSPU Logo" class="w-10 h-10 mr-3">
+                <span class="text-white font-bold text-xl">SOMS</span>
             </div>
-            {% endif %}
-        {% endwith %}
 
-        {% block content %}{% endblock %}
+            <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                <a href="{{ url_for('core.profile') }}"
+                   class="flex items-center px-4 py-3 rounded-lg transition duration-200 nav-link
+                         {% if request.endpoint == 'core.profile' %}
+                             bg-blue-600 text-white
+                         {% else %}
+                             hover:bg-gray-700 hover:text-white
+                         {% endif %}">
+                    <i class="fas fa-user w-6 text-center mr-3"></i>
+                    <span class="font-medium">Profile</span>
+                </a>
 
-    </main>
-</div>
+                <a href="{{ url_for('core.settings') }}"
+                   class="flex items-center px-4 py-3 rounded-lg transition duration-200 nav-link
+                         {% if request.endpoint == 'core.settings' %}
+                             bg-blue-600 text-white
+                         {% else %}
+                             hover:bg-gray-700 hover:text-white
+                         {% endif %}">
+                    <i class="fas fa-cog w-6 text-center mr-3"></i>
+                    <span class="font-medium">Settings</span>
+                </a>
 
-<div id="imageModal" class="modal-overlay" style="display: none;">
-    <span class="modal-close" id="modalCloseBtn">&times;</span>
-    <img class="modal-image" id="modalImageContent">
-</div>
+                {% if is_president or is_admin %}
+                <a href="{{ url_for('president.president_dashboard') }}"
+                   class="flex items-center px-4 py-3 rounded-lg transition duration-200 nav-link
+                         {% if request.endpoint.startswith('president.') %}
+                             bg-blue-600 text-white
+                         {% else %}
+                             hover:bg-gray-700 hover:text-white
+                         {% endif %}">
+                    <i class="fas fa-tachometer-alt w-6 text-center mr-3"></i>
+                    <span class="font-medium">President Dashboard</span>
+                </a>
+                {% endif %}
+
+                {% if is_admin %}
+                <a href="{{ url_for('admin.admin_dashboard') }}"
+                   class="flex items-center px-4 py-3 rounded-lg transition duration-200 nav-link
+                         {% if request.endpoint.startswith('admin.') %}
+                                bg-blue-600 text-white
+                         {% else %}
+                                hover:bg-gray-700 hover:text-white
+                         {% endif %}">
+                    <i class="fas fa-shield w-6 text-center mr-3"></i>
+                    <span class="font-medium">Admin Dashboard</span>
+                </a>
+                {% endif %}
+            </nav>
+
+            <div class="p-4 border-t border-gray-700">
+                 <a href="{{ url_for('auth.logout') }}"
+                    class="flex items-center px-4 py-3 rounded-lg transition duration-200 nav-link text-red-400 hover:bg-red-500 hover:text-white">
+                    <i class="fas fa-sign-out-alt w-6 text-center mr-3"></i>
+                    <span class="font-medium">Sign Out</span>
+                 </a>
+            </div>
+        </aside>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+
+            <header class="md:hidden flex items-center justify-between h-20 bg-white border-b border-gray-200 px-4 shadow-sm">
+                 <button id="hamburger-button" class="text-gray-600 hover:text-gray-800 focus:outline-none">
+                     <i class="fas fa-bars fa-lg"></i>
+                 </button>
+                 <img src="{{ url_for('static', filename='image/lspu.png') }}" alt="LSPU Logo" class="w-8 h-8">
+                 <div class="w-8"></div>
+            </header>
+
+           <header class="hidden md:ml-64 md:flex items-center justify-between h-20 bg-white border-b border-gray-200 px-8 shadow-sm">
+                 <h1 class="text-2xl font-semibold text-gray-800">
+                     {% block page_title %}Profile{% endblock %}
+                 </h1>
+                 <div class="text-gray-600">
+                     Welcome, <span class="font-medium text-gray-800">{{ session.email }}</span>
+                 </div>
+            </header>
+
+            <main id="mainContent" class="flex-1 overflow-y-auto bg-gray-100 md:ml-64">
+                <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
+
+                <div class="p-4 md:p-8">
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                        <div class="mb-6">
+                            {% for category, message in messages %}
+                            <div class="px-4 py-3 rounded-lg
+                                        {% if category == 'error' %}
+                                            bg-red-100 border border-red-400 text-red-700
+                                        {% else %}
+                                            bg-green-100 border border-green-400 text-green-700
+                                        {% endif %}"
+                                 role="alert">
+                                <p>{{ message }}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    {% endwith %}
+
+                    {% block content %}{% endblock %}
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm p-4 hidden">
+        <div class="relative bg-white p-4 rounded-lg shadow-2xl max-w-3xl max-h-full">
+            <img class="object-contain max-w-full max-h-[80vh]" id="modalImageContent" src="">
+            <button id="modalCloseBtn"
+                class="absolute -top-4 -right-4 w-10 h-10 bg-white text-gray-800 rounded-full shadow-lg text-2xl font-bold flex items-center justify-center hover:bg-gray-200 transition">
+                &times;
+            </button>
+        </div>
+    </div>
 
 
-<script>
-    // UPDATED: Base JavaScript - only modal closing logic remains.
-    // All navigation logic is now handled by standard <a> links.
-    document.addEventListener('DOMContentLoaded', (event) => {
-        
-        const modal = document.getElementById('imageModal');
-        const closeModalBtn = document.getElementById('modalCloseBtn');
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // --- Modal Logic ---
+            const modal = document.getElementById('imageModal');
+            const closeModalBtn = document.getElementById('modalCloseBtn');
+            const modalImage = document.getElementById('modalImageContent');
+            const mainContentArea = document.getElementById('mainContent'); 
 
-        if (closeModalBtn) {
-            closeModalBtn.addEventListener('click', () => {
-                if (modal) modal.style.display = 'none';
-            });
-        }
+            if (mainContentArea) {
+                mainContentArea.addEventListener('click', function(e) {
+                    const trigger = e.target.closest('[data-modal-trigger]');
+                    if (trigger) {
+                        const imageSrc = trigger.dataset.src;
+                        if (imageSrc) {
+                            modalImage.src = imageSrc;
+                            modal.classList.remove('hidden');
+                        }
+                    }
+                });
+            }
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', () => modal.classList.add('hidden'));
+            }
+            if (modal) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) { // Click on overlay
+                        modal.classList.add('hidden');
+                    }
+                });
+            }
 
-        if (modal) {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.style.display = 'none';
+            // --- Mobile Sidebar Toggle Logic ---
+            const hamburgerButton = document.getElementById('hamburger-button');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            if (hamburgerButton && sidebar && overlay) {
+                hamburgerButton.addEventListener('click', () => {
+                    sidebar.classList.toggle('hidden');
+                    overlay.classList.toggle('hidden');
+                });
+
+                overlay.addEventListener('click', () => {
+                    sidebar.classList.add('hidden');
+                    overlay.classList.add('hidden');
+                });
+            }
+
+            // --- *** NEW: Page Loader Logic *** ---
+            const pageLoader = document.getElementById('page-loader');
+            // Select all links in the sidebar
+            const navLinks = document.querySelectorAll('#sidebar .nav-link'); 
+
+            if (pageLoader && navLinks.length > 0) {
+                navLinks.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        const href = this.getAttribute('href');
+                        if (this.target === '_blank' || (href && (href.startsWith('#') || href.startsWith('javascript:')))) {
+                            return;
+                        }
+                        pageLoader.style.display = 'flex';
+                    });
+                });
+            }
+
+            // Hide loader on page load/back navigation
+            window.addEventListener('pageshow', function(event) {
+                if (pageLoader) {
+                    pageLoader.style.display = 'none';
                 }
             });
-        }
-    });
-</script>
+            // --- *** END: Page Loader Logic *** ---
+        });
+    </sCRIPT>
 
-{% block scripts %}{% endblock %}
+    {% block scripts %}{% endblock %}
 
 </body>
+
 </html>

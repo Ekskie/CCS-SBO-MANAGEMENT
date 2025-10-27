@@ -1,191 +1,274 @@
-{% extends 'client/base.html' %}
+{% extends "client/base.html" %}
 
-{% block title %}User Profile{% endblock %}
+{% block title %}My Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block head %}
+<style>
+    input[type="file"]::file-selector-button {
+        @apply px-4 py-2 bg-gray-600 text-gray-200 border-none rounded-md font-medium text-sm hover:bg-gray-700 cursor-pointer transition;
+    }
+
+    input[type="file"] {
+         @apply text-gray-700 text-sm;
+    }
+</style>
+{% endblock %}
 
 
 {% block content %}
-<section class="profile-section">
-    <h2>Profile</h2>
+
+<div id="profile-view-section">
 
     {% if profile.picture_status != 'approved' or profile.signature_status != 'approved' %}
-    <div class="status-notification-section">
-        <h3>Profile Status</h3>
-
-        {% if profile.disapproval_reason %}
-        <div class="disapproval-box">
-            <p><strong>Disapproval Reason(s)</strong></p>
-            <p>{{ profile.disapproval_reason }}</p>
-            <p class="note">Please update your profile information and re-upload the required files below.
-            </p>
+    <div class="bg-white rounded-lg shadow-md mb-8">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-800">Profile Status</h3>
         </div>
-        {% endif %}
+        <div class="p-6 space-y-4">
 
-        <div class="status-badges">
-            <div>
-                <strong>1x1 Picture:</strong>
-                <span class="status-badge 
-                    {% if profile.picture_status == 'approved' %}status-approved
-                    {% elif profile.picture_status == 'pending' %}status-pending
-                    {% else %}status-disapproved{% endif %}">
-                    {{ profile.picture_status | capitalize }}
-                </span>
+            {% if profile.disapproval_reason %}
+            <div class="p-4 bg-red-100 text-red-800 rounded-lg">
+                <p class="font-bold mb-1">Disapproval Reason(s)</p>
+                <p class="text-sm">{{ profile.disapproval_reason }}</p>
+                <p class="text-sm mt-2 italic">Please update your profile information and re-upload the required files below.</p>
             </div>
-            <div>
-                <strong>Signature:</strong>
-                <span class="status-badge
-                    {% if profile.signature_status == 'approved' %}status-approved
-                    {% elif profile.signature_status == 'pending' %}status-pending
-                    {% else %}status-disapproved{% endif %}">
-                    {{ profile.signature_status | capitalize }}
-                </span>
+            {% endif %}
+
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1 flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+                    <span class="font-medium text-gray-700">1x1 Picture:</span>
+                    <span class="font-bold px-3 py-1 rounded-full text-sm
+                        {% if profile.picture_status == 'approved' %} bg-green-100 text-green-800
+                        {% elif profile.picture_status == 'pending' %} bg-yellow-100 text-yellow-800
+                        {% else %} bg-red-100 text-red-800 {% endif %}">
+                        {{ profile.picture_status | capitalize }}
+                    </span>
+                </div>
+                <div class="flex-1 flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+                    <span class="font-medium text-gray-700">Signature:</span>
+                    <span class="font-bold px-3 py-1 rounded-full text-sm
+                        {% if profile.signature_status == 'approved' %} bg-green-100 text-green-800
+                        {% elif profile.signature_status == 'pending' %} bg-yellow-100 text-yellow-800
+                        {% else %} bg-red-100 text-red-800 {% endif %}">
+                        {{ profile.signature_status | capitalize }}
+                    </span>
+                </div>
             </div>
+
+            {% if profile.picture_status == 'pending' or profile.signature_status == 'pending' %}
+            <p class="text-sm text-gray-600 italic text-center">Your submissions are pending review by your class president.</p>
+            {% endif %}
         </div>
-        {% if profile.picture_status == 'pending' or profile.signature_status == 'pending' %}
-        <p class="note">Your submissions are pending review by your class president.</p>
-        {% endif %}
     </div>
     {% endif %}
-    <div class="profile-container">
-        <div class="photo-section">
-            {% if profile.picture_url %}
-            <div class="photo-box clickable-img">
-                <img src="{{ profile.picture_url }}" alt="1x1 Picture">
+
+    <div class="flex flex-col lg:flex-row gap-8">
+
+        <div class="w-full lg:w-2/3">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800">Student Information</h3>
+                        <p class="text-sm text-gray-500">Your personal and academic details.</p>
+                    </div>
+                    <button id="editBtn" class="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
+                        Edit
+                    </button>
+                </div>
+
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+
+                    {% macro profile_row(label, value) %}
+                        <div class="py-2">
+                            <span class="block text-sm font-medium text-gray-500">{{ label }}</span>
+                            <span class="block text-lg font-medium text-gray-800">{{ value | default('N/A', true) }}</span>
+                        </div>
+                    {% endmacro %}
+
+                    {{ profile_row('Full Name', profile.first_name ~ ' ' ~ profile.middle_name ~ ' ' ~ profile.last_name) }}
+                    {{ profile_row('Student ID', profile.student_id) }}
+                    {{ profile_row('Email', profile.email) }}
+                    {{ profile_row('Program', profile.program) }}
+                    {{ profile_row('Year & Section', profile.year_level ~ ' - ' ~ profile.section) }}
+
+                    {% if profile.major %}
+                        {{ profile_row('Major', profile.major) }}
+                    {% endif %}
+
+                     {{ profile_row('Semester', profile.semester ~ ' Semester') }}
+                </div>
             </div>
-            {% else %}
-            <div class="photo-box">No Picture Available</div>
-            {% endif %}
         </div>
 
-        <div class="info-section">
-            <p><strong>Full Name:</strong> {{ profile.first_name }} {{ profile.middle_name }} {{
-                profile.last_name }}</p>
-            <p><strong>Program:</strong> {{ profile.program }}</p>
-            <p><strong>Section:</strong> {{ profile.year_level }} {{ profile.section }} {% if profile.major
-                %} {{ profile.major }} {% endif %}</p>
-            <p><strong>Semester:</strong> {{ profile.semester }} Semester</p>
-            <button class="edit-btn" id="editBtn">Edit</button>
-        </div>
+        <div class="w-full lg:w-1/3">
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Uploaded Images</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <span class="block text-sm font-medium text-gray-500 mb-2">1x1 Picture</span>
+                            <div class="aspect-square border border-gray-200 rounded-lg overflow-hidden">
+                                {% if profile.picture_url %}
+                                    <img src="{{ profile.picture_url }}" alt="1x1 Picture"
+                                         class="w-full h-full object-cover cursor-pointer hover:opacity-80 transition"
+                                         data-modal-trigger data-src="{{ profile.picture_url }}">
+                                {% else %}
+                                    <div class="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
+                                        <i class="fas fa-image fa-2x"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
 
-        <div class="signature-section">
-            {% if profile.signature_url %}
-            <div class="signature-box clickable-img">
-                <img src="{{ profile.signature_url }}" alt="Signature">
+                        <div>
+                            <span class="block text-sm font-medium text-gray-500 mb-2">Signature</span>
+                            <div class="aspect-square border border-gray-200 rounded-lg overflow-hidden p-2">
+                                 {% if profile.signature_url %}
+                                    <img src="{{ profile.signature_url }}" alt="Signature"
+                                         class="w-full h-full object-contain cursor-pointer hover:opacity-80 transition"
+                                         data-modal-trigger data-src="{{ profile.signature_url }}">
+                                 {% else %}
+                                     <div class="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
+                                        <i class="fas fa-signature fa-2x"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            {% else %}
-            <div class="signature-box">No Signature Available</div>
-            {% endif %}
         </div>
     </div>
-</section>
+</div>
 
-<section class="edit-profile-section" id="editSection" style="display: none;">
-    <form method="POST" action="{{ url_for('core.update_profile') }}" enctype="multipart/form-data">
-        <h2>Edit Profile</h2>
 
-        <div class="form-group-title">Personal Information</div>
-        <div>
-            <label>First Name</label>
-            <input type="text" name="first_name" value="{{ profile.first_name }}" required>
-        </div>
-        <div>
-            <label>Middle Name</label>
-            <input type="text" name="middle_name" value="{{ profile.middle_name or '' }}">
-        </div>
-        <div>
-            <label>Last Name</label>
-            <input type="text" name="last_name" value="{{ profile.last_name }}" required>
-        </div>
+<div id="editSection" style="display: none;">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <form method="POST" action="{{ url_for('core.update_profile') }}" enctype="multipart/form-data">
 
-        <div class="form-group-title">Academic Information</div>
-        <div>
-            <label>Program</label>
-            <select name="program" required>
-                <option value="">Select Program</option>
-                <option value="BSIT" {% if profile.program=='BSIT' %}selected{% endif %}>BSIT</option>
-                <option value="BSIS" {% if profile.program=='BSIS' %}selected{% endif %}>BSIS</option>
-                <option value="BSCS" {% if profile.program=='BSCS' %}selected{% endif %}>BSCS</option>
-            </select>
-        </div>
-        <div>
-            <label>Semester</label>
-            <select name="semester" required>
-                <option value="">Select Semester</option>
-                <option value="1st" {% if profile.semester=='1st' %}selected{% endif %}>1st</option>
-                <option value="2nd" {% if profile.semester=='2nd' %}selected{% endif %}>2nd</option>
-            </select>
-        </div>
-        <div>
-            <label>Year Level</label>
-            <select name="year_level" id="edit_year_level" required onchange="toggleEditMajor()">
-                <option value="">Select Year</option>
-                <option value="1st Year" {% if profile.year_level=='1st Year' %}selected{% endif %}>1st Year
-                </option>
-                <option value="2nd Year" {% if profile.year_level=='2nd Year' %}selected{% endif %}>2nd Year
-                </option>
-                <option value="3rd Year" {% if profile.year_level=='3rd Year' %}selected{% endif %}>3rd Year
-                </option>
-                <option value="4th Year" {% if profile.year_level=='4th Year' %}selected{% endif %}>4th Year
-                </option>
-            </select>
-        </div>
-        <div>
-            <label>Section</label>
-            <select name="section" required>
-                <option value="">Select Section</option>
-                <option value="A" {% if profile.section=='A' %}selected{% endif %}>A</option>
-                <option value="B" {% if profile.section=='B' %}selected{% endif %}>B</option>
-                <option value="C" {% if profile.section=='C' %}selected{% endif %}>C</option>
-                <option value="D" {% if profile.section=='D' %}selected{% endif %}>D</option>
-            </select>
-        </div>
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800">Edit Profile</h3>
+                <p class="text-sm text-gray-500">Update your information below.</p>
+            </div>
 
-        <div style="grid-column: 1 / -1;">
-            <label>Major (for 3rd/4th Year)</label>
-            <select name="major" id="edit_major"
-                style="display: {% if profile.year_level in ['3rd Year','4th Year'] %}block{% else %}none{% endif %};">
-                <option value="">Select Major</option>
-                <option value="AMG" {% if profile.major=='AMG' %}selected{% endif %}>AMG</option>
-                <option value="NETAD" {% if profile.major=='NETAD' %}selected{% endif %}>NETAD</option>
-                <option value="WMAD" {% if profile.major=='WMAD' %}selected{% endif %}>WMAD</option>
-                <option value="SMP" {% if profile.major=='SMP' %}selected{% endif %}>SMP</option>
-            </select>
-        </div>
+            {% macro form_input(name, label, value, type='text', required=True) %}
+            <div>
+                <label for="{{ name }}" class="block text-sm font-medium text-gray-700 mb-1">{{ label }}</label>
+                <input type="{{ type }}" name="{{ name }}" id="{{ name }}" value="{{ value | default('', true) }}"
+                       {% if required %}required{% endif %}
+                       class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+            </div>
+            {% endmacro %}
 
-        <div class="form-group-title">Upload Documents</div>
-        <div class="upload-section">
-            <label>1x1 Picture</label>
-            <input type="file" name="picture" accept="image/*">
-            <p class="note">Max 5MB. Resets approval to pending.</p>
+            {% macro form_select(name, label, selected_val, options, id=None, onchange=None) %}
+            <div>
+                <label for="{{ id or name }}" class="block text-sm font-medium text-gray-700 mb-1">{{ label }}</label>
+                <select name="{{ name }}" id="{{ id or name }}"
+                        {% if onchange %}onchange="{{ onchange }}"{% endif %} required
+                        class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    <option value="">Select {{ label }}</option>
+                    {% for option in options %}
+                    <option value="{{ option.value }}" {% if option.value == selected_val %}selected{% endif %}>
+                        {{ option.text }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endmacro %}
 
-            <label style="margin-top: 10px; display: block;">Signature (PNG with transparent background)</label>
-            <input type="file" name="signature" accept=".png">
-            <p class="note">Max 5MB. Transparent PNG only.</p>
-        </div>
+            <div class="p-6 space-y-4">
+                <h4 class="text-lg font-semibold text-gray-700 border-b pb-2">Personal Information</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {{ form_input('first_name', 'First Name', profile.first_name) }}
+                    {{ form_input('middle_name', 'Middle Name', profile.middle_name, required=False) }}
+                    {{ form_input('last_name', 'Last Name', profile.last_name) }}
+                </div>
+            </div>
 
-        <div class="form-actions">
-            <button type="submit" class="save-btn">Save Changes</button>
-            <button type="button" class="cancel-btn" id="cancelBtn">Cancel</button>
-        </div>
-    </form>
-</section>
+            <div class="p-6 space-y-4 border-t border-gray-200">
+                <h4 class="text-lg font-semibold text-gray-700 border-b pb-2">Academic Information</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    {{ form_select('program', 'Program', profile.program,
+                                   options=[{'value': 'BSIT', 'text': 'BSIT'},
+                                            {'value': 'BSIS', 'text': 'BSIS'},
+                                            {'value': 'BSCS', 'text': 'BSCS'}],
+                                   id='edit_program', onchange='toggleEditMajor()') }}
+
+                    {{ form_select('semester', 'Semester', profile.semester,
+                                   options=[{'value': '1st', 'text': '1st'},
+                                            {'value': '2nd', 'text': '2nd'}]) }}
+
+                    {{ form_select('year_level', 'Year Level', profile.year_level,
+                                   options=[{'value': '1st Year', 'text': '1st Year'},
+                                            {'value': '2nd Year', 'text': '2nd Year'},
+                                            {'value': '3rd Year', 'text': '3rd Year'},
+                                            {'value': '4th Year', 'text': '4th Year'}],
+                                   id='edit_year_level', onchange='toggleEditMajor()') }}
+
+                    {{ form_select('section', 'Section', profile.section,
+                                   options=[{'value': 'A', 'text': 'A'},
+                                            {'value': 'B', 'text': 'B'},
+                                            {'value': 'C', 'text': 'C'},
+                                            {'value': 'D', 'text': 'D'}]) }}
+                </div>
+
+                <div id="edit_major_wrapper" style="display: none;">
+                    <label for="edit_major" class="block text-sm font-medium text-gray-700 mb-1">Major (for 3rd/4th Year)</label>
+                    <select name="major" id="edit_major"
+                            class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        <option value="">Select Major</option>
+                        </select>
+                </div>
+            </div>
+
+            <div class="p-6 space-y-4 border-t border-gray-200">
+                <h4 class="text-lg font-semibold text-gray-700 border-b pb-2">Upload Documents</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="picture" class="block text-sm font-medium text-gray-700 mb-1">1x1 Picture</label>
+                        <input type="file" name="picture" id="picture" accept="image/*"
+                               class="w-full file:mr-4 file:border-0
+                                      bg-white border border-gray-300 rounded-lg
+                                      focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                        <p class="text-xs text-gray-500 mt-1 italic">Max 5MB. Re-uploading will reset approval to pending.</p>
+                    </div>
+                    <div>
+                        <label for="signature" class="block text-sm font-medium text-gray-700 mb-1">Signature (Transparent PNG)</label>
+                        <input type="file" name="signature" id="signature" accept=".png"
+                               class="w-full file:mr-4 file:border-0
+                                      bg-white border border-gray-300 rounded-lg
+                                      focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                        <p class="text-xs text-gray-500 mt-1 italic">Max 5MB. Transparent PNG only.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-4">
+                <button type="button" id="cancelBtn" class="px-5 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition">
+                    Cancel
+                </button>
+                <button type="submit" class="px-5 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
 
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', (event) => {
-        // --- Profile-Specific Variables ---
+        // --- Get Elements ---
         const editBtn = document.getElementById('editBtn');
         const cancelBtn = document.getElementById('cancelBtn');
-        const profileSection = document.querySelector('.profile-section');
+        const profileSection = document.getElementById('profile-view-section');
         const editSection = document.getElementById('editSection');
 
-        // Modal *opening* variables
-        const modal = document.getElementById('imageModal');
-        const modalImg = document.getElementById('modalImageContent');
-        const clickableImages = document.querySelectorAll('.clickable-img');
-
-        // --- Profile Listeners ---
+        // --- Toggle Listeners ---
         if (editBtn) {
             editBtn.addEventListener('click', () => {
                 if (profileSection) profileSection.style.display = 'none';
@@ -195,41 +278,87 @@
 
         if (cancelBtn) {
             cancelBtn.addEventListener('click', () => {
+                // Reset form fields if needed (optional)
+                // document.querySelector('#editSection form').reset();
                 if (profileSection) profileSection.style.display = 'block';
                 if (editSection) editSection.style.display = 'none';
             });
         }
 
-        // --- Modal Opening Listeners ---
-        clickableImages.forEach(el => {
-            el.addEventListener('click', () => {
-                if (modal && modalImg) {
-                    const img = el.querySelector('img'); // Find the img tag inside the div
-                    if (img) { // Check if we found an image
-                        modal.style.display = 'flex';
-                        modalImg.src = img.src; // Set the modal source
-                    }
-                }
-            });
-        });
-        
-        // Initialize major field visibility on load
+        // --- Major Field Logic ---
+        // Initialize major field visibility on page load
         toggleEditMajor();
     });
 
-    // --- Profile-Specific Functions ---
-    function toggleEditMajor() {
-        const major = document.getElementById('edit_major');
-        const year = document.getElementById('edit_year_level');
+    // --- *** NEW: Dynamic Major Logic *** ---
+    // 1. Define Major Options
+    const majorOptions = {
+        'BSIT': [
+            { value: 'AMG', text: 'AMG' },
+            { value: 'NETAD', text: 'NETAD' },
+            { value: 'WMAD', text: 'WMAD' },
+            { value: 'SMP', text: 'SMP' }
+        ],
+        'BSCS': [
+            { value: 'GV', text: 'GV' },
+            { value: 'IS', text: 'IS' }
+        ],
+        'BSIS': [] // No majors
+    };
 
-        if (major && year) {
-            if (year.value === '3rd Year' || year.value === '4th Year') {
-                major.style.display = 'block';
+    // 2. Store the student's current major from Flask
+    const currentMajor = "{{ profile.major or '' }}";
+
+    // 3. Define the toggle function
+    function toggleEditMajor() {
+        const programEl = document.getElementById('edit_program');
+        const yearEl = document.getElementById('edit_year_level');
+        const majorWrapper = document.getElementById('edit_major_wrapper');
+        const majorEl = document.getElementById('edit_major');
+
+        // Check if elements exist before proceeding
+        if (!programEl || !yearEl || !majorWrapper || !majorEl) {
+            console.error("One or more elements for major toggle not found.");
+            return; 
+        }
+
+        const programValue = programEl.value;
+        const yearValue = yearEl.value;
+
+        const majors = majorOptions[programValue] || [];
+        const isMajorYear = yearValue === '3rd Year' || yearValue === '4th Year';
+        const hasMajors = majors.length > 0;
+
+        // Clear existing major options, keeping the placeholder
+        majorEl.innerHTML = '<option value="">Select Major</option>'; 
+
+        if (isMajorYear && hasMajors) {
+            // Add new options
+            majors.forEach(function(major) {
+                const option = new Option(major.text, major.value);
+                majorEl.add(option);
+            });
+
+            // Show and require
+            majorWrapper.style.display = 'block';
+            majorEl.required = true;
+
+            // Re-select the student's current major if it's in the list
+            // Check against the current value *before* trying to set it
+            if (majors.some(m => m.value === currentMajor)) {
+                 majorEl.value = currentMajor;
             } else {
-                major.style.display = 'none';
-                major.value = '';
+                 majorEl.value = ""; // Default to placeholder if currentMajor isn't valid
             }
+
+
+        } else {
+            // Hide and unrequire
+            majorWrapper.style.display = 'none';
+            majorEl.value = ''; // Ensure value is empty when hidden
+            majorEl.required = false;
         }
     }
+    // --- *** END OF NEW LOGIC *** ---
 </script>
 {% endblock %}

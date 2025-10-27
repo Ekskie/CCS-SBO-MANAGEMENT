@@ -146,6 +146,12 @@ def settings():
     # This just renders the HTML fragment, which is loaded by profile.html's JS
     return render_template('settings.html')
 
+@core_bp.route('/index')
+@login_required
+def index():
+    # This just renders the HTML fragment, which is loaded by profile.html's JS
+    return render_template('index.html')
+
 @core_bp.route('/change_password', methods=['POST'])
 @login_required
 def change_password():

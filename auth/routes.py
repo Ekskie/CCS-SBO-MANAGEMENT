@@ -14,7 +14,7 @@ auth_bp = Blueprint('auth', __name__,
 def home():
     if 'user_id' in session:
         return redirect(url_for('core.profile')) # Corrected to core.profile
-    return render_template('login.html')
+    return render_template('./index.html')
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():

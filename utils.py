@@ -1,6 +1,6 @@
 import os
 import io
-from flask import session, redirect, url_for, flash
+from flask import session, redirect, url_for, flash, current_app # Added current_app
 from functools import wraps
 from PIL import Image
 from config import Config # Import Config to get MAX_FILE_SIZE
@@ -16,13 +16,14 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# Keep only this version of admin_required
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            flash("Please log in to access this page.", "error")
-            return redirect(url_for('auth.login'))
-        if session.get('account_type') != 'admin':
+        account_type = session.get('account_type')
+        # Use Flask's built-in logger
+        current_app.logger.info(f"Admin check: account_type in session is '{account_type}'") # Add logging
+        if account_type != 'admin':
             flash("You do not have permission to access this page.", "error")
             return redirect(url_for('core.profile')) # Redirect to core profile
         return f(*args, **kwargs)
@@ -42,8 +43,6 @@ def president_required(f):
     return decorated_function
 
 # --- Helper to check user roles (for templates) ---
-# THIS IS THE FIX:
-# This is now a plain function, no decorator.
 def inject_user_roles():
     is_admin = False
     is_president = False
@@ -92,4 +91,3 @@ def check_transparency(file_stream):
         print(f"Error checking transparency: {e}")
         # Fail-safe: if image is invalid, reject it.
         return False
-

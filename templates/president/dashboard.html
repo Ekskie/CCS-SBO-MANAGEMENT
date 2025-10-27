@@ -1,74 +1,82 @@
 {% extends "president/base.html" %}
 
-{% block title %}President - Class Dashboard{% endblock %}
+{% block president_content %}
+<div class="space-y-8">
 
-{% block content %}
-<section class="profile-section">
-    <h2>Class Dashboard</h2>
-    <p style="text-align: center; margin-top: -20px; margin-bottom: 20px;">
-        Review Submissions for: {{ class_info }} ({{ classmates|length }} Students)
-    </p>
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-800">Class List: {{ class_name }}</h3>
+            <p class="text-sm text-gray-500">View and manage the students in your class.</p>
+        </div>
 
-    <!-- Student List Table -->
-    <div style="overflow-x: auto;">
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Student ID</th>
-                    <th>Pic Status</th>
-                    <th>Sig Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if classmates %}
-                    {% for student in classmates %}
-                    <tr>
-                        <td>
-                            <img src="{{ student.picture_url or 'https://placehold.co/40x40/e2e8f0/718096?text=?' }}" alt="Avatar">
-                            <div style="float: left; margin-left: 10px;">
-                                <span style="display: block; color: var(--text-primary); font-weight: 500;">{{ student.last_name }}, {{ student.first_name }}</span>
-                                <span style="display: block; font-size: 14px;">{{ student.email }}</span>
-                            </div>
-                        </td>
-                        <td>{{ student.student_id }}</td>
-                        <td>
-                            <span class="status-badge 
-                                {% if student.picture_status == 'approved' %} status-approved
-                                {% elif student.picture_status == 'pending' %} status-pending
-                                {% else %} status-disapproved {% endif %}">
-                                {{ student.picture_status | capitalize }}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="status-badge
-                                {% if student.signature_status == 'approved' %} status-approved
-                                {% elif student.signature_status == 'pending' %} status-pending
-                                {% else %} status-disapproved {% endif %}">
-                                {{ student.signature_status | capitalize }}
-                            </span>
-                        </td>
-                        <td>
-                            <a href="{{ url_for('president.president_review_student', student_id=student.id) }}">
-                                Review
-                                {% if student.picture_status == 'pending' or student.signature_status == 'pending' %}
-                                <span class="pending-dot"></span>
-                                {% endif %}
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="5" style="text-align: center;">
-                            No other students found in your class.
-                        </td>
-                    </tr>
-                {% endif %}
-            </tbody>
-        </table>
+        <div class="p-6">
+            {% if classmates %}
+                <div class="overflow-x-auto rounded-lg border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Name
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Student ID
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Picture Status
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Signature Status
+                                </th>
+                                <th scope="col" class="relative px-6 py-3">
+                                    <span class="sr-only">Review</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for student in classmates %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ student.first_name }} {{ student.last_name }}</div>
+                                    <div class="text-sm text-gray-500">{{ student.email }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ student.student_id }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="font-bold px-3 py-1 rounded-full text-xs
+                                        {% if student.picture_status == 'approved' %} bg-green-100 text-green-800
+                                        {% elif student.picture_status == 'pending' %} bg-yellow-100 text-yellow-800
+                                        {% else %} bg-red-100 text-red-800 {% endif %}">
+                                        {{ student.picture_status | capitalize }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="font-bold px-3 py-1 rounded-full text-xs
+                                        {% if student.signature_status == 'approved' %} bg-green-100 text-green-800
+                                        {% elif student.signature_status == 'pending' %} bg-yellow-100 text-yellow-800
+                                        {% else %} bg-red-100 text-red-800 {% endif %}">
+                                        {{ student.signature_status | capitalize }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <a href="{{ url_for('president.president_review_student', student_id=student.id) }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition text-xs">
+                                        Review
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <i class="fas fa-users fa-3x text-gray-400 mb-4"></i>
+                    <h4 class="text-lg font-medium text-gray-700">No Classmates Found</h4>
+                    <p class="text-gray-500">There are no other students found in your registered class.</p>
+                </div>
+            {% endif %}
+        </div>
     </div>
-</section>
-{% endblock %}
 
+</div>
+{% endblock %}

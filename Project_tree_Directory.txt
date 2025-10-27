@@ -1,0 +1,72 @@
+your_project_directory/
+│
+├── .gitignore
+├── config.py
+├── extensions.py
+├── main.py
+├── Project_tree_Directory.txt
+├── requirements.txt
+├── utils.py
+├── vercel.json
+│
+├── auth/
+│   └── routes.py           # Handles login, register, logout, etc.
+│
+├── core/
+│   └── routes.py           # Handles profile, settings, password changes
+│
+├── admin/
+│   └── routes.py           # All routes starting with /admin
+│
+├── president/
+│   └── routes.py           # All routes starting with /president
+│
+├── templates/
+│   ├── index.html
+│   ├── print_template.html   # The shared template for printing
+│   │
+│   ├── client/
+│   │   ├── base.html
+│   │   ├── check_email.html
+│   │   ├── forgot_password.html
+│   │   ├── login.html
+│   │   ├── profile.html
+│   │   ├── register.html
+│   │   └── settings.html
+│   │
+│   ├── admin/
+│   │   ├── archive.html
+│   │   ├── base.html
+│   │   ├── dashboard.html
+│   │   ├── edit_student.html
+│   │   ├── printing.html
+│   │   ├── review_student.html
+│   │   └── students.html
+│   │
+│   └── president/
+│       ├── base.html
+│       ├── dashboard.html
+│       └── review_student.html
+│
+└── static/
+    ├── css/
+    │   ├── index.css
+    │   ├── login.css
+    │   ├── printing.css
+    │   ├── profile.css
+    │   └── register.css
+    │
+    ├── font/
+    │   ├── calibri-bold-italic.ttf
+    │   ├── calibri-bold.ttf
+    │   ├── calibri-italic.ttf
+    │   ├── calibri-regular.ttf
+    │   ├── Ignis-et-Glacies-Sharp-Bold.ttf.eot
+    │   ├── Ignis-et-Glacies-Sharp-Bold.ttf.svg
+    │   ├── Ignis-et-Glacies-Sharp-Bold.ttf.woff
+    │   └── oldenglishtextmt.ttf
+    │
+    └── image/
+        ├── background.jpg
+        ├── LSPU-FRONTLINE.PNG
+        └── lspu.png

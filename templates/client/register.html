@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 
 <head>
     <meta charset="UTF-8">
@@ -7,27 +7,56 @@
     <title>Student Registration | LSPU</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Ruda:wght@700;900&display=swap"
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+
+    <style>
+        input[type="file"]::file-selector-button {
+            @apply px-4 py-2 bg-gray-600 text-gray-200 border-none rounded-md font-medium text-sm hover:bg-gray-700 cursor-pointer transition;
+        }
+
+        input[type="file"] {
+            @apply text-gray-300 text-sm;
+        }
+
+        /* Hide the browser's default validation bubble */
+        input:invalid,
+        select:invalid {
+            box-shadow: none;
+        }
+    </style>
 </head>
 
-<body>
-    <div class="left-panel">
-        <img src="{{ url_for('static', filename='image/lspu.png') }}" alt="LSPU Logo">
-        <p>STUDENT ORGANIZATION<br>MANAGEMENT SYSTEM</p>
-    </div>
+<body class="h-full font-sans"
+    style="background-image: url('/static/image/background.jpg'); background-repeat: no-repeat; background-size: cover; background-attachment: fixed;">
 
-    <div class="right-panel">
+    <div class="flex flex-col items-center justify-start min-h-full w-full p-6 py-12"
+        style="background-color: rgb(0, 0, 0, 0.6);">
 
-        <img src="{{ url_for('static', filename='image/LSPU-FRONTLINE.PNG') }}" alt="Banner">
-        <h2>REGISTER</h2>
+        <a href="{{ url_for('core.index') }}">
+            <img src="{{ url_for('static', filename='image/lspu.png') }}" alt="LSPU Logo" class="w-24 md:w-28 mb-4">
+        </a>
+        <!-- Flash Messages -->
         {% with messages = get_flashed_messages() %}
         {% if messages %}
-        <!-- Updated alert to show all messages, especially for transparency errors -->
-        <div class="alert alert-danger" style="margin-top: 20px; width: 100%; max-width: 500px;">
-            <ul style="margin-bottom: 0; padding-left: 20px;">
+        <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg" role="alert">
+            <p class="font-bold">Notification</p>
+            <ul class="list-disc list-inside">
                 {% for message in messages %}
                 <li>{{ message }}</li>
                 {% endfor %}
@@ -35,98 +64,220 @@
         </div>
         {% endif %}
         {% endwith %}
+        <div class="w-full max-w-2xl bg-white bg-opacity-10 backdrop-blur-lg rounded-xl shadow-2xl p-8 text-white">
 
-        <form method="POST" enctype="multipart/form-data" class="register-form" id="registerForm">
-            <div class="row g-2">
-                <div class="col-md-4"><input type="text" name="first_name" placeholder="First Name" required></div>
-                <div class="col-md-4"><input type="text" name="middle_name" placeholder="Middle Name"></div>
-                <div class="col-md-4"><input type="text" name="last_name" placeholder="Last Name" required></div>
+            <h2 class="text-3xl font-bold text-center mb-6">Create Account</h2>
+
+            <!-- Progress Bar -->
+            <div class="flex items-center justify-between mb-8 px-4">
+                <div class="flex flex-col items-center">
+                    <div id="progress-1"
+                        class="w-10 h-10 rounded-full flex items-center justify-center font-bold bg-blue-600 text-white">
+                        1</div>
+                    <p class="text-xs mt-1 text-gray-200">Account</p>
+                </div>
+                <div class="flex-1 h-1 bg-gray-600 mx-2"></div>
+                <div class="flex flex-col items-center">
+                    <div id="progress-2"
+                        class="w-10 h-10 rounded-full flex items-center justify-center font-bold bg-gray-600 text-gray-300">
+                        2</div>
+                    <p class="text-xs mt-1 text-gray-400">Personal</p>
+                </div>
+                <div class="flex-1 h-1 bg-gray-600 mx-2"></div>
+                <div class="flex flex-col items-center">
+                    <div id="progress-3"
+                        class="w-10 h-10 rounded-full flex items-center justify-center font-bold bg-gray-600 text-gray-300">
+                        3</div>
+                    <p class="text-xs mt-1 text-gray-400">Academic</p>
+                </div>
+                <div class="flex-1 h-1 bg-gray-600 mx-2"></div>
+                <div class="flex flex-col items-center">
+                    <div id="progress-4"
+                        class="w-10 h-10 rounded-full flex items-center justify-center font-bold bg-gray-600 text-gray-300">
+                        4</div>
+                    <p class="text-xs mt-1 text-gray-400">Uploads</p>
+                </div>
             </div>
 
-            <input type="text" name="student_id" placeholder="Student ID" required>
-            <input type="email" name="email" placeholder="Email Address(student@lspu.edu.ph)" pattern=".+@lspu\.edu\.ph"
-                title="Please use a valid @lspu.edu.ph email address" required>
 
+            <!-- Registration Form -->
+            <form method="POST" enctype="multipart/form-data" id="registerForm" novalidate>
 
-            <div class="row g-2">
-                <div class="col-md-6">
-                    <input type="password" name="password" placeholder="Password" required>
+                <!-- Jinja Macro for Form Input -->
+                {% macro form_input(name, placeholder, type='text', required=True, pattern=None, title=None) %}
+                <div>
+                    <label for="{{ name }}" class="block text-sm font-medium text-gray-200 mb-1">{{ placeholder
+                        }}</label>
+                    <input type="{{ type }}" name="{{ name }}" id="{{ name }}" placeholder="{{ placeholder }}" {% if
+                        required %}required{% endif %} {% if pattern %}pattern="{{ pattern }}" {% endif %} {% if title
+                        %}title="{{ title }}" {% endif %}
+                        class="w-full px-4 py-3 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition invalid:border-red-500 invalid:ring-red-500">
                 </div>
-                <div class="col-md-6">
-                    <input type="password" name="confirm_password" placeholder="Confirm Password" required>
-                </div>
-            </div>
+                {% endmacro %}
 
-            <div class="row g-2">
-                <div class="col-md-6">
-                    <!-- ADDED onchange="toggleMajor()" -->
-                    <select name="program" id="program" required onchange="toggleMajor()">
-                        <option value="">Program</option>
-                        <option value="BSIT">BSIT</option>
-                        <option value="BSIS">BSIS</option>
-                        <option value="BSCS">BSCS</option>
+                <!-- Jinja Macro for Form Select -->
+                {% macro form_select(name, label, options, required=True, onchange=None) %}
+                <div>
+                    <label for="{{ name }}" class="block text-sm font-medium text-gray-200 mb-1">{{ label }}</label>
+                    <select name="{{ name }}" id="{{ name }}" {% if required %}required{% endif %} {% if onchange
+                        %}onchange="{{ onchange }}" {% endif %}
+                        class="w-full px-4 py-3 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition invalid:border-red-500 invalid:ring-red-500">
+                        <option value="" class="bg-gray-800">{{ label }}</Soption>
+                            {% for option in options %}
+                        <option value="{{ option.value }}" class="bg-gray-800">{{ option.text }}</option>
+                        {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-6">
-                    <select name="semester" required>
-                        <option value="">Semester</option>
-                        <option value="1st">1st</option>
-                        <option value="2nd">2nd</option>
-                    </select>
-                </div>
-            </div>
+                {% endmacro %}
 
-            <div class="row g-2">
-                <div class="col-md-6">
-                    <select name="year_level" id="year_level" required onchange="toggleMajor()">
-                        <option value="">Year Level</option>
-                        <option value="1st Year">1st Year</option>
-                        <option value="2nd Year">2nd Year</option>
-                        <option value="3rd Year">3rd Year</option>
-                        <option value="4th Year">4th Year</option>
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <select name="section" required>
-                        <option value="">Section</option>
-                        <option value="A">A</option>
-                        <option value="B">B</option>
-                        <option value="C">C</option>
-                        <option value="D">D</option>
-                    </select>
-                </div>
-            </div>
+                <!-- Step-specific error message -->
+                <p id="step-error" class="text-red-400 text-center text-sm mb-4" style="display: none;"></p>
 
-            <!-- Major options are now dynamically populated by script -->
-            <select name="major" id="major" style="display:none;">
-                <option value="">Major</option>
-            </select>
+                <!-- Step 1: Account -->
+                <fieldset id="form-step-1" class="space-y-4">
+                    {{ form_input('email', 'Email Address (student@lspu.edu.ph)', type='email',
+                    pattern='.+@lspu\\.edu\\.ph', title='Please use a valid @lspu.edu.ph email address') }}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {{ form_input('password', 'Password', type='password') }}
+                        {{ form_input('confirm_password', 'Confirm Password', type='password') }}
+                    </div>
+                    <div class="flex justify-end pt-4">
+                        <button type="button" id="next-btn-1"
+                            class="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold text-center shadow-lg hover:bg-blue-700 transition duration-300">
+                            Next &rarr;
+                        </button>
+                    </div>
+                </fieldset>
 
-            <div class="upload-section">
-                <label class="form-label" for="picture-upload">Upload 1x1 Picture (Max 5MB):</label>
-                <input type="file" id="picture-upload" name="picture" accept="image/*" required>
-                <!-- Error message placeholder for picture -->
-                <p id="picture-error" style="color: #cf6679; display: none; margin-top: 5px; font-size: 0.9em;"></p>
+                <!-- Step 2: Personal -->
+                <fieldset id="form-step-2" class="space-y-4" style="display: none;">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {{ form_input('first_name', 'First Name') }}
+                        {{ form_input('middle_name', 'Middle Name', required=False) }}
+                        {{ form_input('last_name', 'Last Name') }}
+                    </div>
+                    {{ form_input('student_id', 'Student ID') }}
+                    <div class="flex justify-between pt-4">
+                        <button type="button" data-nav="prev"
+                            class="px-6 py-3 bg-gray-600 text-white rounded-lg font-semibold text-center shadow-lg hover:bg-gray-700 transition duration-300">
+                            &larr; Previous
+                        </button>
+                        <button type="button" data-nav="next"
+                            class="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold text-center shadow-lg hover:bg-blue-700 transition duration-300">
+                            Next &rarr;
+                        </button>
+                    </div>
+                </fieldset>
 
-                <label class="form-label mt-2" for="signature-upload">Upload Signature (Transparent PNG only, Max
-                    5MB):</label>
-                <!-- Updated input to accept only PNG and added ID -->
-                <input type="file" id="signature-upload" name="signature" accept="image/png" required>
-                <!-- Error message placeholder for signature -->
-                <p id="signature-error" style="color: #cf6679; display: none; margin-top: 5px; font-size: 0.9em;"></p>
-            </div>
+                <!-- Step 3: Academic -->
+                <fieldset id="form-step-3" class="space-y-4" style="display: none;">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {{ form_select('program', 'Program',
+                        options=[{'value': 'BSIT', 'text': 'BSIT'},
+                        {'value': 'BSIS', 'text': 'BSIS'},
+                        {'value': 'BSCS', 'text': 'BSCS'}],
+                        onchange='toggleMajor()') }}
+                        {{ form_select('semester', 'Semester',
+                        options=[{'value': '1st', 'text': '1st'},
+                        {'value': '2nd', 'text': '2nd'}]) }}
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {{ form_select('year_level', 'Year Level',
+                        options=[{'value': '1st Year', 'text': '1st Year'},
+                        {'value': '2nd Year', 'text': '2nd Year'},
+                        {'value': '3rd Year', 'text': '3rd Year'},
+                        {'value': '4th Year', 'text': '4th Year'}],
+                        onchange='toggleMajor()') }}
+                        {{ form_select('section', 'Section',
+                        options=[{'value': 'A', 'text': 'A'},
+                        {'value': 'B', 'text': 'B'},
+                        {'value': 'C', 'text': 'C'},
+                        {'value': 'D', 'text': 'D'}]) }}
+                    </div>
 
-            <button type="submit">REGISTER</button>
+                    <div id="major-wrapper" style="display: none;">
+                        <label for="major" class="block text-sm font-medium text-gray-200 mb-1">Major</label>
+                        <select name="major" id="major"
+                            class="w-full px-4 py-3 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition invalid:border-red-500 invalid:ring-red-500">
+                            <option value="" class="bg-gray-800">Major</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-between pt-4">
+                        <button type="button" data-nav="prev"
+                            class="px-6 py-3 bg-gray-600 text-white rounded-lg font-semibold text-center shadow-lg hover:bg-gray-700 transition duration-300">
+                            &larr; Previous
+                        </button>
+                        <button type="button" data-nav="next"
+                            class="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold text-center shadow-lg hover:bg-blue-700 transition duration-300">
+                            Next &rarr;
+                        </button>
+                    </div>
+                </fieldset>
 
-            <p class="login-text">Already have an Account? <a href="{{ url_for('auth.login') }}">Login</a></p>
-        </form>
+                <!-- Step 4: Uploads -->
+                <fieldset id="form-step-4" class="space-y-4" style="display: none;">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-200" for="picture-upload">
+                            Upload 1x1 Picture (Max 5MB)
+                        </label>
+                        <input type="file" id="picture-upload" name="picture" accept="image/*" required
+                            class="w-full mt-1 file:mr-4 file:border-0 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500">
+                        <p id="picture-error" class="text-red-400 text-sm mt-1" style="display: none;"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-200" for="signature-upload">
+                            Upload Signature (Transparent PNG only, Max 5MB)
+                        </label>
+                        <input type="file" id="signature-upload" name="signature" accept="image/png" required
+                            class="w-full mt-1 file:mr-4 file:border-0 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 invalid:border-red-500 invalid:ring-red-500">
+                        <p id="signature-error" class="text-red-400 text-sm mt-1" style="display: none;"></p>
+                    </div>
+                    <div class="flex justify-between pt-4">
+                        <button type="button" data-nav="prev"
+                            class="px-6 py-3 bg-gray-600 text-white rounded-lg font-semibold text-center shadow-lg hover:bg-gray-700 transition duration-300">
+                            &larr; Previous
+                        </button>
+                        <!-- *** MODIFIED REGISTER BUTTON *** -->
+                        <button type="submit" id="register-button"
+                            class="w-1/2 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold text-center shadow-lg hover:bg-green-700 transition duration-300 flex items-center justify-center disabled:opacity-75 disabled:cursor-not-allowed">
 
-        <footer>© 2025 Laguna State Polytechnic University – BSIT 4C AMG B</footer>
+                            <!-- SVG Spinner (hidden by default) -->
+                            <svg id="loading-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                                style="display: none;" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+
+                            <!-- Button Text -->
+                            <span id="register-button-text">REGISTER</span>
+                        </button>
+                    </div>
+                </fieldset>
+
+                <p class="text-center mt-6 text-sm text-gray-300">
+                    Already have an Account?
+                    <a href="{{ url_for('auth.login') }}"
+                        class="font-medium text-blue-400 hover:text-blue-300 hover:underline">
+                        Login
+                    </a>
+                </p>
+            </form>
+
+        </div>
+
+        <footer class="mt-8 text-sm text-gray-400 text-center">
+            © 2025 Laguna State Polytechnic University – BSIT 4C AMG B
+        </footer>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-        // --- NEW: Major options data ---
+        // --- Major options data ---
         const majorOptions = {
             'BSIT': [
                 { value: 'AMG', text: 'AMG' },
@@ -141,11 +292,12 @@
             'BSIS': [] // No majors
         };
 
-        // --- UPDATED: toggleMajor function ---
+        // --- Toggle Major Function ---
         function toggleMajor() {
             const programEl = document.getElementById('program');
             const yearEl = document.getElementById('year_level');
             const majorEl = document.getElementById('major');
+            const majorWrapper = document.getElementById('major-wrapper'); // Get the wrapper div
 
             const programValue = programEl.value;
             const yearValue = yearEl.value;
@@ -155,26 +307,28 @@
             const hasMajors = majors.length > 0;
 
             // Clear existing major options
-            majorEl.innerHTML = '<option value="">Major</option>';
+            majorEl.innerHTML = '<option value="" class="bg-gray-800">Major</option>';
 
             if (isMajorYear && hasMajors) {
                 // Add new options
-                majors.forEach(function(major) {
-                    majorEl.add(new Option(major.text, major.value));
+                majors.forEach(function (major) {
+                    const option = new Option(major.text, major.value);
+                    option.className = 'bg-gray-800';
+                    majorEl.add(option);
                 });
 
                 // Show and require
-                majorEl.style.display = 'block';
+                majorWrapper.style.display = 'block'; // Show the wrapper
                 majorEl.required = true;
             } else {
                 // Hide and unrequire
-                majorEl.style.display = 'none';
+                majorWrapper.style.display = 'none'; // Hide the wrapper
                 majorEl.value = '';
                 majorEl.required = false;
             }
         }
 
-        // --- Reusable File Check Function ---
+        // --- File Check Function ---
         const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
         function validateFile(file, errorEl, isSignature) {
@@ -258,7 +412,7 @@
             return true;
         }
 
-        // --- Event Listener for Picture Upload ---
+        // --- File Event Listeners ---
         document.getElementById('picture-upload').addEventListener('change', function (event) {
             const file = event.target.files[0];
             const errorEl = document.getElementById('picture-error');
@@ -267,12 +421,189 @@
             }
         });
 
-        // --- Event Listener for Signature Upload ---
         document.getElementById('signature-upload').addEventListener('change', function (event) {
             const file = event.target.files[0];
             const errorEl = document.getElementById('signature-error');
             if (!validateFile(file, errorEl, true)) {
                 event.target.value = ''; // Clear input if invalid
+            }
+        });
+    </script>
+
+    <!-- *** MAIN FORM STEPPER SCRIPT *** -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let currentStep = 1;
+            const form = document.getElementById('registerForm');
+            const steps = [
+                document.getElementById('form-step-1'),
+                document.getElementById('form-step-2'),
+                document.getElementById('form-step-3'),
+                document.getElementById('form-step-4')
+            ];
+            const progressBubbles = [
+                document.getElementById('progress-1'),
+                document.getElementById('progress-2'),
+                document.getElementById('progress-3'),
+                document.getElementById('progress-4')
+            ];
+            const progressText = [
+                progressBubbles[0].nextElementSibling,
+                progressBubbles[1].nextElementSibling,
+                progressBubbles[2].nextElementSibling,
+                progressBubbles[3].nextElementSibling
+            ];
+            const stepError = document.getElementById('step-error');
+
+            // --- Initial setup ---
+            toggleMajor(); // Run this on load
+            showStep(1);   // Show the first step
+
+            // --- Handle 'Enter' key press ---
+            form.addEventListener('keydown', function (e) {
+                // Check if the key pressed was 'Enter' and the target is an input
+                if (e.key === 'Enter' && e.target.tagName.toLowerCase() === 'input') {
+                    // Prevent the default form submission
+                    e.preventDefault();
+
+                    // Find the currently active fieldset
+                    const currentFieldset = steps[currentStep - 1];
+
+                    // Find the 'Next' button within that fieldset
+                    const nextButton = currentFieldset.querySelector('#next-btn-1, [data-nav="next"]');
+
+                    if (nextButton) {
+                        // Programmatically click the 'Next' button
+                        nextButton.click();
+                    }
+                }
+            });
+
+            // --- Navigation Button Listeners ---
+            form.addEventListener('click', function (e) {
+                if (e.target.matches('[data-nav="next"]')) {
+                    if (validateStep(currentStep)) {
+                        showStep(currentStep + 1);
+                    }
+                } else if (e.target.matches('[data-nav="prev"]')) {
+                    showStep(currentStep - 1);
+                } else if (e.target.matches('#next-btn-1')) { // Special case for first button
+                    if (validateStep(1)) {
+                        // Custom password match validation
+                        const password = form.password.value;
+                        const confirmPassword = form.confirm_password.value;
+                        if (password !== confirmPassword) {
+                            showStepError('Passwords do not match.');
+                            form.confirm_password.classList.add('border-red-500', 'ring-red-500');
+                        } else {
+                            form.confirm_password.classList.remove('border-red-500', 'ring-red-500');
+                            showStep(2);
+                        }
+                    }
+                }
+            });
+
+            // --- Form Submit Listener (*** MODIFIED ***) ---
+            form.addEventListener('submit', function (e) {
+                // Final check to make sure all steps are valid
+                if (!validateStep(4)) {
+                    e.preventDefault();
+                    showStepError('Please fill out all required fields.');
+                    return; // Stop if validation fails
+                }
+
+                // Also double-check file uploads
+                const pictureFile = document.getElementById('picture-upload').value;
+                const signatureFile = document.getElementById('signature-upload').value;
+
+                if (!pictureFile || !signatureFile) {
+                    e.preventDefault();
+                    showStepError('Please ensure you have uploaded both a picture and a signature.');
+                    return; // Stop if files are missing
+                }
+
+                // --- *** NEW LOADING STATE CODE *** ---
+                // If we get here, all validation passed.
+                const registerButton = document.getElementById('register-button');
+                const spinner = document.getElementById('loading-spinner');
+                const buttonText = document.getElementById('register-button-text');
+
+                if (registerButton) {
+                    registerButton.disabled = true;
+                    if (spinner) spinner.style.display = 'block';
+                    if (buttonText) buttonText.style.display = 'none';
+                }
+                // The form will now submit
+            });
+
+            // --- Helper Functions ---
+            function showStepError(message) {
+                stepError.textContent = message;
+                stepError.style.display = 'block';
+            }
+
+            function clearStepError() {
+                stepError.textContent = '';
+                stepError.style.display = 'none';
+            }
+
+            function showStep(stepNumber) {
+                clearStepError();
+                steps.forEach((step, index) => {
+                    step.style.display = (index + 1 === stepNumber) ? 'block' : 'none';
+                });
+
+                progressBubbles.forEach((bubble, index) => {
+                    const text = progressText[index];
+                    if (index + 1 < stepNumber) {
+                        // Completed step
+                        bubble.classList.remove('bg-blue-600', 'bg-gray-600', 'text-gray-300');
+                        bubble.classList.add('bg-green-600', 'text-white');
+                        text.classList.remove('text-gray-400');
+                        text.classList.add('text-gray-200');
+                    } else if (index + 1 === stepNumber) {
+                        // Current step
+                        bubble.classList.remove('bg-green-600', 'bg-gray-600', 'text-gray-300');
+                        bubble.classList.add('bg-blue-600', 'text-white');
+                        text.classList.remove('text-gray-400');
+                        text.classList.add('text-gray-200');
+                    } else {
+                        // Future step
+                        bubble.classList.remove('bg-green-600', 'bg-blue-600', 'text-white');
+                        bubble.classList.add('bg-gray-600', 'text-gray-300');
+                        text.classList.remove('text-gray-200');
+                        text.classList.add('text-gray-400');
+                    }
+                });
+
+                currentStep = stepNumber;
+            }
+
+            function validateStep(stepNumber) {
+                let isValid = true;
+                const currentFieldset = steps[stepNumber - 1];
+                // Get all required inputs and selects that are not inside a hidden container (like the 'major' select)
+                const inputs = currentFieldset.querySelectorAll('input[required], select[required]');
+
+                clearStepError();
+
+                for (const input of inputs) {
+                    // Check if the input itself or its parent wrapper is hidden
+                    const isHidden = !input.offsetParent && input.style.display !== 'block'; // A simple visibility check
+                    const wrapperHidden = input.closest('#major-wrapper') && input.closest('#major-wrapper').style.display === 'none';
+
+                    if (isHidden || wrapperHidden) {
+                        continue; // Don't validate hidden required fields
+                    }
+
+                    if (!input.checkValidity()) {
+                        isValid = false;
+                        showStepError('Please fill out all required fields correctly.');
+                        break;
+                    }
+                }
+
+                return isValid;
             }
         });
     </script>

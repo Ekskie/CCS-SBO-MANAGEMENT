@@ -1,79 +1,116 @@
 {% extends "president/base.html" %}
 
-{% block title %}President - Review {{ student.first_name }} {{ student.last_name }}{% endblock %}
+{# Set the page title to the student's name #}
+{% block page_title %}
+    Review Student
+{% endblock %}
 
-{% block content %}
-<section class="profile-section review-section">
-    <a href="{{ url_for('president.president_dashboard') }}" class="back-btn">&larr; Back to Dashboard</a>
-    
-    <h2 style="text-align: left; margin-top: 15px;">{{ student.first_name }} {{ student.last_name }}</h2>
-    <p style="margin-top: -20px; margin-bottom: 20px; font-size: 16px;">{{ student.student_id }}</p>
+{% block president_content %}
+<div>
+    <div class="mb-4">
+        <a href="{{ url_for('president.president_dashboard') }}" 
+           class="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Dashboard
+        </a>
+    </div>
+
+    <div class="mb-6">
+        <h2 class="text-3xl font-bold text-gray-800">{{ student.first_name }} {{ student.last_name }}</h2>
+        <p class="text-lg text-gray-500">{{ student.student_id }}</p>
+    </div>
 
     <form action="{{ url_for('president.president_review_student', student_id=student.id) }}" method="POST">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-        <div class="review-grid">
-            <!-- Picture Review -->
-            <div class="review-box">
-                <h3>1x1 Picture Review</h3>
-                <span class="status-badge 
-                    {% if student.picture_status == 'approved' %} status-approved
-                    {% elif student.picture_status == 'pending' %} status-pending
-                    {% else %} status-disapproved {% endif %}" style="margin-bottom: 15px;">
-                    {{ student.picture_status | capitalize }}
-                </span>
-                
-                <div class="photo-box clickable-img">
-                    <img src="{{ student.picture_url or 'https://placehold.co/150x150/e2e8f0/718096?text=No+Image' }}" alt="Profile picture">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-xl font-semibold text-gray-800">1x1 Picture Review</h3>
+                    <span class="font-bold px-3 py-1 rounded-full text-sm
+                        {% if student.picture_status == 'approved' %} bg-green-100 text-green-800
+                        {% elif student.picture_status == 'pending' %} bg-yellow-100 text-yellow-800
+                        {% else %} bg-red-100 text-red-800 {% endif %}">
+                        {{ student.picture_status | capitalize }}
+                    </span>
                 </div>
                 
+                <div class="p-6 text-center">
+                    <div class="w-48 h-48 mx-auto border border-gray-200 rounded-lg overflow-hidden">
+                        <img src="{{ student.picture_url or 'https://placehold.co/150x150/e2e8f0/718096?text=No+Image' }}" 
+                             alt="Profile picture"
+                             class="w-full h-full object-cover cursor-pointer hover:opacity-80 transition"
+                             data-modal-trigger 
+                             data-src="{{ student.picture_url or 'https://placehold.co/150x150/e2e8f0/718096?text=No+Image' }}">
+                    </div>
+                </div>
+
                 {% if student.picture_status != 'approved' %}
-                <div class="button-group">
-                    <button type="submit" name="action" value="approve_picture" class="save-btn">
-                        Approve
-                    </button>
-                    <button type="submit" name="action" value="disapprove_picture" class="delete-btn">
+                <div class="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-4">
+                    <button type="submit" name="action" value="disapprove_picture" 
+                            class="px-5 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">
                         Disapprove
+                    </button>
+                    <button type="submit" name="action" value="approve_picture" 
+                            class="px-5 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition">
+                        Approve
                     </button>
                 </div>
                 {% endif %}
             </div>
 
-            <!-- Signature Review -->
-            <div class="review-box">
-                <h3>Signature Review</h3>
-                <span class="status-badge 
-                    {% if student.signature_status == 'approved' %} status-approved
-                    {% elif student.signature_status == 'pending' %} status-pending
-                    {% else %} status-disapproved {% endif %}" style="margin-bottom: 15px;">
-                    {{ student.signature_status | capitalize }}
-                </span>
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-xl font-semibold text-gray-800">Signature Review</h3>
+                    <span class="font-bold px-3 py-1 rounded-full text-sm
+                        {% if student.signature_status == 'approved' %} bg-green-100 text-green-800
+                        {% elif student.signature_status == 'pending' %} bg-yellow-100 text-yellow-800
+                        {% else %} bg-red-100 text-red-800 {% endif %}">
+                        {{ student.signature_status | capitalize }}
+                    </span>
+                </div>
                 
-                <div class="signature-box clickable-img">
-                    <img src="{{ student.signature_url or 'https://placehold.co/150x150/e2e8f0/718096?text=No+Signature' }}" alt="Signature">
+                <div class="p-6 text-center">
+                    <div class="w-full h-48 p-4 border border-gray-200 rounded-lg overflow-hidden">
+                        <img src="{{ student.signature_url or 'https://placehold.co/300x150/e2e8f0/718096?text=No+Signature' }}" 
+                             alt="Signature"
+                             class="w-full h-full object-contain cursor-pointer hover:opacity-80 transition"
+                             data-modal-trigger
+                             data-src="{{ student.signature_url or 'https://placehold.co/300x150/e2e8f0/718096?text=No+Signature' }}">
+                    </div>
                 </div>
 
                 {% if student.signature_status != 'approved' %}
-                <div class="button-group">
-                    <button type="submit" name="action" value="approve_signature" class="save-btn">
-                        Approve
-                    </button>
-                    <button type="submit" name="action" value="disapprove_signature" class="delete-btn">
+                <div class="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-4">
+                    <button type="submit" name="action" value="disapprove_signature" 
+                            class="px-5 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">
                         Disapprove
+                    </button>
+                    <button type="submit" name="action" value="approve_signature" 
+                            class="px-5 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition">
+                        Approve
                     </button>
                 </div>
                 {% endif %}
             </div>
-        </div>
 
-        <!-- Disapproval Reason -->
-        {% if student.picture_status != 'approved' or student.signature_status != 'approved' %}
-        <div class_a="disapproval-form">
-            <label for="disapproval_reason">Disapproval Reason (Required if disapproving)</label>
-            <textarea name="disapproval_reason" id="disapproval_reason" rows="3" placeholder="e.g., 'Picture is not 1x1' or 'Signature has a white background'">{% if student.disapproval_reason %}{{ student.disapproval_reason }}{% endif %}</textarea>
-            <p class="note">This reason will be shown to the student. If disapproving both, please provide reasons for both.</p>
+        </div> {% if student.picture_status != 'approved' or student.signature_status != 'approved' %}
+        <div class_a="mt-8 bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800">Disapproval Reason</h3>
+                <p class="text-sm text-gray-500">Required if you are disapproving an item.</p>
+            </div>
+            <div class="p-6">
+                <label for="disapproval_reason" class="sr-only">Disapproval Reason</label>
+                <textarea name="disapproval_reason" id="disapproval_reason" rows="4" 
+                          placeholder="e.g., 'Picture is not 1x1' or 'Signature has a white background'"
+                          class="w-full p-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                >{% if student.disapproval_reason %}{{ student.disapproval_reason }}{% endif %}</textarea>
+                <p class="text-xs text-gray-500 mt-2 italic">This reason will be shown to the student. If disapproving both, please provide reasons for both.</p>
+            </div>
         </div>
         {% endif %}
 
     </form>
-</section>
+</div>
 {% endblock %}

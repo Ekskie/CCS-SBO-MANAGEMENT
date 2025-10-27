@@ -3,125 +3,225 @@
 {% block title %}Edit Student{% endblock %}
 {% block page_title %}Edit Student Profile{% endblock %}
 
+{% block head %}
+<style>
+    input[type="file"]::file-selector-button {
+        @apply px-4 py-2 bg-blue-100 text-blue-700 border-none rounded-md font-medium text-sm hover:bg-blue-200 cursor-pointer transition;
+    }
+    
+    input[type="file"] {
+         @apply text-gray-700 text-sm;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="bg-white rounded-lg shadow-md overflow-hidden">
     <form method="POST" enctype="multipart/form-data">
-        <div class="p-6 space-y-6">
+        
+        <div class="p-6 border-b border-gray-200">
             <h3 class="text-xl font-semibold text-gray-800">Editing profile for: {{ student.first_name }} {{ student.last_name }}</h3>
-
-            <!-- Read-only Info -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Student ID (Read-only)</label>
-                    <input type="text" value="{{ student.student_id }}" readonly class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 sm:text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Email (Read-only)</label>
-                    <input type="email" value="{{ student.email }}" readonly class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 sm:text-sm">
-                </div>
-            </div>
-
-            <!-- Editable Info -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
-                    <input type="text" name="first_name" id="first_name" value="{{ student.first_name }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                </div>
-                <div>
-                    <label for="middle_name" class="block text-sm font-medium text-gray-700">Middle Name</label>
-                    <input type="text" name="middle_name" id="middle_name" value="{{ student.middle_name or '' }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                </div>
-                <div>
-                    <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
-                    <input type="text" name="last_name" id="last_name" value="{{ student.last_name }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                </div>
-            </div>
-
-            <!-- Updated grid to include Account Type -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label for="program" class="block text-sm font-medium text-gray-700">Program</label>
-                    <select name="program" id="program" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        <option value="BSIT" {% if student.program == 'BSIT' %}selected{% endif %}>BSIT</option>
-                        <option value="BSIS" {% if student.program == 'BSIS' %}selected{% endif %}>BSIS</option>
-                        <option value="BSCS" {% if student.program == 'BSCS' %}selected{% endif %}>BSCS</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="semester" class="block text-sm font-medium text-gray-700">Semester</label>
-                    <select name="semester" id="semester" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        <option value="1st" {% if student.semester == '1st' %}selected{% endif %}>1st</option>
-                        <option value="2nd" {% if student.semester == '2nd' %}selected{% endif %}>2nd</option>
-                    </select>
-                </div>
-                <!-- NEW: Account Type Dropdown -->
-                <div>
-                    <label for="account_type" class="block text-sm font-medium text-gray-700">Account Type</label>
-                    <select name="account_type" id="account_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        <option value="student" {% if student.account_type == 'student' %}selected{% endif %}>Student</option>
-                        <option value="president" {% if student.account_type == 'president' %}selected{% endif %}>President</option>
-                        <option value="admin" {% if student.account_type == 'admin' %}selected{% endif %}>Admin</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label for="year_level" class="block text-sm font-medium text-gray-700">Year Level</label>
-                    <select name="year_level" id="year_level" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        <option value="1st Year" {% if student.year_level == '1st Year' %}selected{% endif %}>1st Year</option>
-                        <option value="2nd Year" {% if student.year_level == '2nd Year' %}selected{% endif %}>2nd Year</option>
-                        <option value="3rd Year" {% if student.year_level == '3rd Year' %}selected{% endif %}>3rd Year</option>
-                        <option value="4th Year" {% if student.year_level == '4th Year' %}selected{% endif %}>4th Year</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="section" class="block text-sm font-medium text-gray-700">Section</label>
-                    <select name="section" id="section" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        <option value="A" {% if student.section == 'A' %}selected{% endif %}>A</option>
-                        <option value="B" {% if student.section == 'B' %}selected{% endif %}>B</option>
-                        <option value="C" {% if student.section == 'C' %}selected{% endif %}>C</option>
-                        <option value="D" {% if student.section == 'D' %}selected{% endif %}>D</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="major" class="block text-sm font-medium text-gray-700">Major (if applicable)</label>
-                    <select name="major" id="major" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        <option value="">None</option>
-                        <option value="AMG" {% if student.major == 'AMG' %}selected{% endif %}>AMG</option>
-                        <option value="NETAD" {% if student.major == 'NETAD' %}selected{% endif %}>NETAD</option>
-                        <option value="WMAD" {% if student.major == 'WMAD' %}selected{% endif %}>WMAD</option>
-                        <option value="SMP" {% if student.major == 'SMP' %}selected{% endif %}>SMP</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- File Uploads -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Update 1x1 Picture</label>
-                    <input type="file" name="picture" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-                    <p class="text-xs text-gray-500 mt-1">Current: <a href="{{ student.picture_url or '#' }}" target="_blank" class="text-blue-500 hover:underline">View Image</a> (Max 5MB. Admin uploads are auto-approved)</p>
-                    <img class="mt-2 h-24 w-auto rounded-md object-contain bg-gray-100 p-2" src="{{ student.picture_url or 'https://placehold.co/150x100/e2e8f0/718096?text=No+Signature' }}" alt="Current Signature">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Update Signature</label>
-                    <input type="file" name="signature" accept=".png" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-                    <p class="text-xs text-gray-500 mt-1">Current: <a href="{{ student.signature_url or '#' }}" target="_blank" class="text-blue-500 hover:underline">View Signature</a> (Max 5MB. Must be transparent PNG. Admin uploads are auto-approved)</p>
-                    <img class="mt-2 h-24 w-auto rounded-md object-contain bg-gray-100 p-2" src="{{ student.signature_url or 'https://placehold.co/150x100/e2e8f0/718096?text=No+Signature' }}" alt="Current Signature">
-                </div>
-            </div>
-
         </div>
-        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-            <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+
+        <div class="p-6 space-y-6">
+            
+            {% macro form_input(name, label, value, type='text', required=True, readonly=False) %}
+            <div>
+                <label for="{{ name }}" class="block text-sm font-medium text-gray-700 mb-1">{{ label }}</label>
+                <input type="{{ type }}" name="{{ name }}" id="{{ name }}" value="{{ value | default('', true) }}"
+                       {% if required %}required{% endif %}
+                       {% if readonly %}readonly{% endif %}
+                       class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition
+                              {% if readonly %} bg-gray-100 cursor-not-allowed {% endif %}">
+            </div>
+            {% endmacro %}
+            
+            {% macro form_select(name, label, selected_val, options, id=None, onchange=None) %}
+            <div>
+                <label for="{{ id or name }}" class="block text-sm font-medium text-gray-700 mb-1">{{ label }}</label>
+                <select name="{{ name }}" id="{{ id or name }}" required
+                        {% if onchange %}onchange="{{ onchange }}"{% endif %}
+                        class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    {% for option in options %}
+                    <option value="{{ option.value }}" {% if option.value == selected_val %}selected{% endif %}>
+                        {{ option.text }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endmacro %}
+
+            <fieldset class="space-y-4">
+                <legend class="text-lg font-semibold text-gray-700 border-b pb-2 w-full mb-2">Account Details</legend>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {{ form_input('student_id', 'Student ID (Read-only)', student.student_id, readonly=True) }}
+                    {{ form_input('email', 'Email (Read-only)', student.email, type='email', readonly=True) }}
+                </div>
+            </fieldset>
+
+            <fieldset class="space-y-4">
+                <legend class="text-lg font-semibold text-gray-700 border-b pb-2 w-full mb-2">Personal Information</legend>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {{ form_input('first_name', 'First Name', student.first_name) }}
+                    {{ form_input('middle_name', 'Middle Name', student.middle_name, required=False) }}
+                    {{ form_input('last_name', 'Last Name', student.last_name) }}
+                </div>
+            </fieldset>
+
+            <fieldset class="space-y-4">
+                <legend class="text-lg font-semibold text-gray-700 border-b pb-2 w-full mb-2">Academic & Role</legend>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    
+                    {{ form_select('program', 'Program', student.program,
+                                   options=[{'value': 'BSIT', 'text': 'BSIT'},
+                                            {'value': 'BSIS', 'text': 'BSIS'},
+                                            {'value': 'BSCS', 'text': 'BSCS'}],
+                                   id='program', onchange='adminToggleMajor()') }}
+                    
+                    {{ form_select('semester', 'Semester', student.semester,
+                                   options=[{'value': '1st', 'text': '1st'},
+                                            {'value': '2nd', 'text': '2nd'}]) }}
+                    
+                    {{ form_select('account_type', 'Account Type', student.account_type,
+                                   options=[{'value': 'student', 'text': 'Student'},
+                                            {'value': 'president', 'text': 'President'},
+                                            {'value': 'admin', 'text': 'Admin'}]) }}
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    
+                    {{ form_select('year_level', 'Year Level', student.year_level,
+                                   options=[{'value': '1st Year', 'text': '1st Year'},
+                                            {'value': '2nd Year', 'text': '2nd Year'},
+                                            {'value': '3rd Year', 'text': '3rd Year'},
+                                            {'value': '4th Year', 'text': '4th Year'}],
+                                   id='year_level', onchange='adminToggleMajor()') }}
+                    
+                    {{ form_select('section', 'Section', student.section,
+                                   options=[{'value': 'A', 'text': 'A'},
+                                            {'value': 'B', 'text': 'B'},
+                                            {'value': 'C', 'text': 'C'},
+                                            {'value': 'D', 'text': 'D'}]) }}
+                    
+                    <div id="major-wrapper">
+                        <label for="major" class="block text-sm font-medium text-gray-700 mb-1">Major (if applicable)</label>
+                        <select name="major" id="major"
+                                class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="space-y-4">
+                <legend class="text-lg font-semibold text-gray-700 border-b pb-2 w-full mb-2">File Management</legend>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Update 1x1 Picture</label>
+                        <img class="h-24 w-24 rounded-md object-cover bg-gray-100 p-1 border" 
+                             src="{{ student.picture_url or 'https://placehold.co/100x100/e2e8f0/718096?text=N/A' }}" 
+                             alt="Current Picture">
+                        
+                        <input type="file" name="picture" accept="image/*" 
+                               class="w-full mt-4 file:mr-4 file:border-0
+                                      bg-white border border-gray-300 rounded-lg
+                                      focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                        <p class="text-xs text-gray-500 mt-1 italic">Admin uploads are auto-approved.</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Update Signature</label>
+                        <div class="h-24 w-full rounded-md bg-gray-100 p-1 border flex justify-center items-center">
+                            <img class="max-h-full max-w-full object-contain" 
+                                 src="{{ student.signature_url or 'https://placehold.co/200x100/e2e8f0/718096?text=No+Signature' }}" 
+                                 alt="Current Signature">
+                        </div>
+                        
+                        <input type="file" name="signature" accept=".png" 
+                               class="w-full mt-4 file:mr-4 file:border-0
+                                      bg-white border border-gray-300 rounded-lg
+                                      focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                        <p class="text-xs text-gray-500 mt-1 italic">Must be transparent PNG. Admin uploads are auto-approved.</p>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        
+        <div class="bg-gray-50 px-4 py-3 sm:px-6 flex justify-end gap-4">
+            <a href="{{ url_for('admin.admin_students') }}" 
+               class="px-5 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition">
+               Cancel
+            </a>
+            <button type="submit" 
+                    class="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
                 Save Changes
             </button>
-            <a href="{{ url_for('admin.admin_students') }}" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                Cancel
-            </a>
         </div>
     </form>
 </div>
-{% endblock %}
 
+<script>
+    // 1. Define Major Options (same as registration page)
+    const majorOptions = {
+        'BSIT': [
+            { value: 'AMG', text: 'AMG' },
+            { value: 'NETAD', text: 'NETAD' },
+            { value: 'WMAD', text: 'WMAD' },
+            { value: 'SMP', text: 'SMP' }
+        ],
+        'BSCS': [
+            { value: 'GV', text: 'GV' },
+            { value: 'IS', text: 'IS' }
+        ],
+        'BSIS': [] // No majors
+    };
+
+    // 2. Store the student's current major from Flask
+    const currentMajor = "{{ student.major or '' }}";
+
+    // 3. Define the toggle function
+    function adminToggleMajor() {
+        const programEl = document.getElementById('program');
+        const yearEl = document.getElementById('year_level');
+        const majorWrapper = document.getElementById('major-wrapper');
+        const majorEl = document.getElementById('major');
+
+        const programValue = programEl.value;
+        const yearValue = yearEl.value;
+
+        const majors = majorOptions[programValue] || [];
+        const isMajorYear = yearValue === '3rd Year' || yearValue === '4th Year';
+        const hasMajors = majors.length > 0;
+
+        // Clear existing major options
+        majorEl.innerHTML = '<option value="">None</option>';
+
+        if (isMajorYear && hasMajors) {
+            // Add new options
+            majors.forEach(function(major) {
+                const option = new Option(major.text, major.value);
+                majorEl.add(option);
+            });
+
+            // Show and require
+            majorWrapper.style.display = 'block';
+            majorEl.required = true;
+            
+            // Re-select the student's current major if it's in the list
+            if (majors.some(m => m.value === currentMajor)) {
+                majorEl.value = currentMajor;
+            }
+            
+        } else {
+            // Hide and unrequire
+            majorWrapper.style.display = 'none';
+            majorEl.value = ''; // Set value to 'None'
+            majorEl.required = false;
+        }
+    }
+
+    // 4. Run the function on page load to set the initial state
+    document.addEventListener('DOMContentLoaded', function() {
+        adminToggleMajor();
+    });
+</script>
+{% endblock %}

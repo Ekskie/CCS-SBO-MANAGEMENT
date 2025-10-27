@@ -1,51 +1,67 @@
-{% extends '/client/base.html' %}
+{% extends "client/base.html" %}
 
 {% block title %}Settings{% endblock %}
-
+{% block page_title %}Settings{% endblock %}
 
 {% block content %}
-<section class="settings-section">
-    <h2>Settings</h2>
 
-    <div class="settings-card">
-        <h3>Change Password</h3>
+{% macro form_input(name, label, type='text', required=True) %}
+<div>
+    <label for="{{ name }}" class="block text-sm font-medium text-gray-700 mb-1">{{ label }}</label>
+    <input type="{{ type }}" name="{{ name }}" id="{{ name }}"
+           {% if required %}required{% endif %}
+           class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+</div>
+{% endmacro %}
+
+<div class="max-w-3xl mx-auto space-y-8">
+
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <form method="POST" action="{{ url_for('core.change_password') }}">
-            <div style="margin-bottom: 15px;">
-                <label for="current_password">Current Password</label>
-                <input type="password" name="current_password" id="current_password" required>
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800">Change Password</h3>
+                <p class="text-sm text-gray-500">Update your account password.</p>
             </div>
-            <div style="margin-bottom: 15px;">
-                <label for="new_password">New Password</label>
-                <input type="password" name="new_password" id="new_password" required>
+
+            <div class="p-6 space-y-4">
+                {{ form_input('current_password', 'Current Password', type='password') }}
+                {{ form_input('new_password', 'New Password', type='password') }}
+                {{ form_input('confirm_new_password', 'Confirm New Password', type='password') }}
             </div>
-            <div style="margin-bottom: 20px;">
-                <label for="confirm_password">Confirm New Password</label>
-                <input type="password" name="confirm_password" id="confirm_password" required>
+
+            <div class="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
+                <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
+                    Update Password
+                </button>
             </div>
-            <button type="submit" class="save-btn" style="margin-top: 0; width: 100%;">Update Password</button>
         </form>
     </div>
 
-    <div class="settings-card">
-        <h3>Delete Account</h3>
-        <p>This action is irreversible. All your data, profile, and files will be permanently deleted.</p>
-        <button type="button" class="delete-btn">Delete My Account</button>
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <form method="POST" action="{{ url_for('core.update_profile') }}">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800">Change Email</h3>
+                <p class="text-sm text-gray-500">Update your contact and login email.</p>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <div class="p-4 bg-yellow-100 text-yellow-800 rounded-lg">
+                    <p class="text-sm font-medium"><i class="fas fa-exclamation-triangle mr-2"></i>You will need to verify your new email address.</p>
+                </div>
+                {{ form_input('new_email', 'New Email Address', type='email') }}
+                {{ form_input('password_for_email', 'Current Password', type='password') }}
+            </div>
+
+            <div class="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
+                <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
+                    Update Email
+                </button>
+            </div>
+        </form>
     </div>
 
-    <button type="button" class="back-btn" id="settingsBackBtn">&larr; Back to Profile</button>
-</section>
+</div>
 {% endblock %}
 
-
 {% block scripts %}
-<script>
-    // This script runs when the settings.html page is loaded
-    const backBtn = document.getElementById('settingsBackBtn');
-    if (backBtn) {
-        backBtn.addEventListener('click', () => {
-            // Navigate back to the profile page
-            location.href = "{{ url_for('core.profile') }}";
-        });
-    }
-</script>
 {% endblock %}

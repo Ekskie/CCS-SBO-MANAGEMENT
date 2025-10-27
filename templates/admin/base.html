@@ -1,16 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-gray-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Admin Dashboard{% endblock %} | SOMS</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Poppins', 'sans-serif'],
                     },
                     colors: {
                         'navy': '#000080',
@@ -20,70 +26,188 @@
             },
         }
     </script>
-    <!-- Simple icon font for sidebar -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    {% block head %}{% endblock %} {# Added head block for potential page-specific styles #}
 </head>
-<body class="bg-gray-100 font-sans">
-    <div class="flex h-screen bg-gray-100">
-        <!-- Sidebar -->
-        <div class="hidden md:flex flex-col w-64 bg-gray-800 text-white">
-            <div class="flex items-center justify-center h-16 bg-gray-900 shadow-md">
+<body class="h-full font-sans">
+
+    <!-- *** NEW: Page Loader *** -->
+    <div id="page-loader" class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900 bg-opacity-75" style="display: none;">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+    </div>
+    <!-- *** END: Page Loader *** -->
+
+    <div class="flex h-screen bg-gray-100 md:bg-gray-900 md:text-white">
+
+        <aside id="sidebar"
+               class="hidden md:flex flex-col w-64 bg-gray-800 text-gray-300
+                      fixed inset-y-0 left-0 z-40 transition-transform duration-300 ease-in-out">
+
+            <div class="flex items-center justify-center h-20 border-b border-gray-700 shadow-md">
+                <img src="{{ url_for('static', filename='image/lspu.png') }}" alt="LSPU Logo" class="w-10 h-10 mr-3">
                 <span class="text-white font-bold text-xl">SOMS ADMIN</span>
             </div>
-            <div class="flex flex-col flex-1 overflow-y-auto">
-                <nav class="flex-1 px-2 py-4 bg-gray-800">
-                    <a href="{{ url_for('admin.admin_dashboard') }}" class="flex items-center px-4 py-2 text-gray-100 hover:bg-gray-700 rounded-md {% if request.path == url_for('admin.admin_dashboard') %}bg-gray-900{% endif %}">
-                        <i class="fas fa-tachometer-alt w-6"></i>
-                        <span class="ml-3">Dashboard</span>
-                    </a>
-                    <a href="{{ url_for('admin.admin_students') }}" class="flex items-center px-4 py-2 mt-2 text-gray-100 hover:bg-gray-700 rounded-md {% if request.path == url_for('admin.admin_students') %}bg-gray-900{% endif %}">
-                        <i class="fas fa-users w-6"></i>
-                        <span class="ml-3">Students</span>
-                    </a>
-                    <a href="{{ url_for('admin.admin_printing') }}" class="flex items-center px-4 py-2 mt-2 text-gray-100 hover:bg-gray-700 rounded-md {% if request.path == url_for('admin.admin_printing') %}bg-gray-900{% endif %}">
-                        <i class="fas fa-print w-6"></i>
-                        <span class="ml-3">Printing Station</span>
-                    </a>
-                    <a href="{{ url_for('admin.admin_archive') }}" class="flex items-center px-4 py-2 mt-2 text-gray-100 hover:bg-gray-700 rounded-md {% if request.path == url_for('admin.admin_archive') %}bg-gray-900{% endif %}">
-                        <i class="fas fa-calendar-alt w-6"></i>
-                        <span class="ml-3">Archive</span>
-                    </a>
-                </nav>
-            </div>
-            <div class="p-4 border-t border-gray-700">
-                 <a href="{{ url_for('core.profile') }}" class="flex items-center px-4 py-2 text-gray-100 hover:bg-gray-700 rounded-md">
-                    <i class="fas fa-user w-6"></i>
-                    <span class="ml-3">Back to Profile</span>
-                </a>
-            </div>
-        </div>
 
-        <!-- Main content -->
-        <div class="flex flex-col flex-1 overflow-y-auto">
-            <div class="flex items-center justify-between h-16 bg-white border-b border-gray-200 px-4">
-                <h1 class="text-2xl font-semibold text-gray-800">{% block page_title %}Dashboard{% endblock %}</h1>
-                <div class="flex items-center">
-                    <span class="text-gray-600 mr-2">Welcome, {{ session.email }}</span>
-                    <a href="{{ url_for('auth.logout') }}" class="text-sm text-blue-500 hover:underline">Logout</a>
+            <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+
+                <a href="{{ url_for('admin.admin_dashboard') }}"
+                   class="flex items-center px-4 py-3 rounded-lg transition duration-200 nav-link
+                         {% if request.endpoint == 'admin.admin_dashboard' %}
+                             bg-blue-600 text-white
+                         {% else %}
+                             hover:bg-gray-700 hover:text-white
+                         {% endif %}">
+                    <i class="fas fa-tachometer-alt w-6 text-center mr-3"></i>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+
+                <a href="{{ url_for('admin.admin_students') }}"
+                   class="flex items-center px-4 py-3 rounded-lg transition duration-200 nav-link
+                         {% if request.endpoint in ['admin.admin_students', 'admin.admin_edit_student', 'admin.admin_review_student'] %}
+                             bg-blue-600 text-white
+                         {% else %}
+                             hover:bg-gray-700 hover:text-white
+                         {% endif %}">
+                    <i class="fas fa-users w-6 text-center mr-3"></i>
+                    <span class="font-medium">Students</span>
+                </a>
+
+                <a href="{{ url_for('admin.admin_printing') }}"
+                   class="flex items-center px-4 py-3 rounded-lg transition duration-200 nav-link
+                         {% if request.endpoint == 'admin.admin_printing' %}
+                             bg-blue-600 text-white
+                         {% else %}
+                             hover:bg-gray-700 hover:text-white
+                         {% endif %}">
+                    <i class="fas fa-print w-6 text-center mr-3"></i>
+                    <span class="font-medium">Printing Station</span>
+                </a>
+
+                <a href="{{ url_for('admin.admin_archive') }}"
+                   class="flex items-center px-4 py-3 rounded-lg transition duration-200 nav-link
+                         {% if request.endpoint == 'admin.admin_archive' %}
+                             bg-blue-600 text-white
+                         {% else %}
+                             hover:bg-gray-700 hover:text-white
+                         {% endif %}">
+                    <i class="fas fa-archive w-6 text-center mr-3"></i>
+                    <span class="font-medium">Archive</span>
+                </a>
+            </nav>
+
+            <div class="p-4 border-t border-gray-700 space-y-2">
+                 <a href="{{ url_for('core.profile') }}"
+                    class="flex items-center px-4 py-3 rounded-lg transition duration-200 nav-link hover:bg-gray-700 hover:text-white">
+                    <i class="fas fa-user w-6 text-center mr-3"></i>
+                    <span class="font-medium">Back to Profile</span>
+                 </a>
+                 <a href="{{ url_for('auth.logout') }}"
+                    class="flex items-center px-4 py-3 rounded-lg transition duration-200 nav-link text-red-400 hover:bg-red-500 hover:text-white">
+                    <i class="fas fa-sign-out-alt w-6 text-center mr-3"></i>
+                    <span class="font-medium">Sign Out</span>
+                 </a>
+            </div>
+        </aside>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+
+            <header class="md:hidden flex items-center justify-between h-20 bg-white border-b border-gray-200 px-4 shadow-sm">
+                 <button id="hamburger-button" class="text-gray-600 hover:text-gray-800 focus:outline-none">
+                     <i class="fas fa-bars fa-lg"></i>
+                 </button>
+                 <span class="text-gray-800 font-bold text-lg">SOMS ADMIN</span>
+                 <div class="w-8"></div>
+            </header>
+
+            <header class="hidden md:ml-64 md:flex items-center justify-between h-20 bg-white border-b border-gray-200 px-8 shadow-sm">
+                <h1 class="text-2xl font-semibold text-gray-800">
+                   {% block page_title %}Dashboard{% endblock %}
+                </h1>
+                <div class="text-gray-600">
+                    Welcome, <span class="font-medium text-gray-800">{{ session.email }}</span>
                 </div>
-            </div>
-            <div class="p-4 md:p-8">
-                <!-- Flash Messages -->
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="mb-4 px-4 py-3 rounded-md {% if category == 'error' %}bg-red-100 border border-red-400 text-red-700{% else %}bg-blue-100 border border-blue-400 text-blue-700{% endif %}" role="alert">
-                            <span class="block sm:inline">{{ message }}</span>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-                {% endwith %}
-                
-                <!-- Content block -->
-                {% block content %}{% endblock %}
-            </div>
+            </header>
+
+            <main id="mainContent" class="flex-1 overflow-y-auto bg-gray-100 md:ml-64">
+                <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
+
+                <div class="p-4 md:p-8">
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="mb-6 px-4 py-3 rounded-lg
+                                        {% if category == 'error' %}
+                                            bg-red-100 border border-red-400 text-red-700
+                                        {% else %}
+                                            bg-green-100 border border-green-400 text-green-700
+                                        {% endif %}"
+                                 role="alert">
+                                <span class="block sm:inline">{{ message }}</span>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
         </div>
     </div>
+    
+    <!-- *** MODIFIED SCRIPT *** -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const hamburgerButton = document.getElementById('hamburger-button');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            if (hamburgerButton && sidebar && overlay) {
+                hamburgerButton.addEventListener('click', () => {
+                    sidebar.classList.toggle('hidden');
+                    overlay.classList.toggle('hidden');
+                });
+
+                overlay.addEventListener('click', () => {
+                    sidebar.classList.add('hidden');
+                    overlay.classList.add('hidden');
+                });
+            }
+
+            // --- *** NEW: Page Loader Logic *** ---
+            const pageLoader = document.getElementById('page-loader');
+            // Select all links in the sidebar and profile/logout links
+            const navLinks = document.querySelectorAll('#sidebar .nav-link'); 
+
+            if (pageLoader && navLinks.length > 0) {
+                navLinks.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        // Get the href attribute
+                        const href = this.getAttribute('href');
+
+                        // Don't show loader for:
+                        // 1. Links that open in a new tab
+                        // 2. Links that are just fragments (#)
+                        // 3. Links that are JavaScript (javascript:;)
+                        if (this.target === '_blank' || (href && (href.startsWith('#') || href.startsWith('javascript:')))) {
+                            return;
+                        }
+
+                        // If it's a real navigation, show the loader
+                        pageLoader.style.display = 'flex';
+                    });
+                });
+            }
+
+            // Hide loader if user navigates back (e.g., with back button)
+            // This uses the pageshow event
+            window.addEventListener('pageshow', function(event) {
+                if (pageLoader) {
+                    pageLoader.style.display = 'none';
+                }
+            });
+            // --- *** END: Page Loader Logic *** ---
+        });
+    </script>
+    {% block scripts %}{% endblock %} {# Added scripts block #}
 </body>
 </html>
-

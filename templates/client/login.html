@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 
 <head>
     <meta charset="UTF-8">
@@ -7,136 +7,187 @@
     <title>Login | Student Organization Management System</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Orbitron:wght@700&display=swap"
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;7ZOO&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
-    
-    <!-- 1. ADD SUPABASE JS CLIENT -->
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        // 5. Configure Tailwind
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
 
 </head>
 
-<body>
-    <!-- LEFT SIDE -->
-    <div class="left-panel">
-        <img src="{{ url_for('static', filename='image/lspu.png') }}" alt="LSPU Logo">
-        <p>STUDENT ORGANIZATION<br>MANAGEMENT SYSTEM</p>
-    </div>
+<body class="h-full font-sans bg-cover bg-center" style="background-image: url('/static/image/background.jpg');">
 
-    <!-- RIGHT SIDE -->
-    <div class="right-panel">
-        <img src="{{ url_for('static', filename='image/LSPU-FRONTLINE.PNG') }}" alt="Banner">
-        
-        <!-- This container will hold both forms -->
-        <div id="form-container" style="width: 100%; max-width: 420px;">
-        
-            <!-- 2. DEFAULT LOGIN FORM (Visible by default) -->
-            <div id="login-form-wrapper">
-                <h2>LOGIN</h2>
-                <form method="POST" action="{{ url_for('auth.login') }}" id="login-form">
-                    <input type="text" name="student_id" placeholder="Student ID" required>
-                    <input type="password" name="password" placeholder="Enter Your Password" required>
+    <div class="flex flex-col items-center justify-center min-h-full w-full p-6"
+        style="background-color: rgb(0, 0, 0, 0.6);">
 
-                    <div class="forgot">
-                        <a href="{{ url_for('auth.forgot_password') }}">Forgot your password?</a>
-                    </div>
+        <a href="{{ url_for('core.index') }}">
+            <img src="{{ url_for('static', filename='image/lspu.png') }}" alt="LSPU Logo" class="w-24 md:w-28 mb-4">
+        </a>
 
-                    <button type="submit" class="btn-login">LOGIN</button>
-
-                    <p class="register-text">
-                        Don’t have an account?
-                        <a href="{{ url_for('auth.register') }}">Register</a>
-                    </p>
-                </form>
-            </div>
-
-            <!-- 3. NEW PASSWORD RESET FORM (Hidden by default) -->
-            <div id="reset-password-form-wrapper" style="display: none;">
-                <h2>CREATE NEW PASSWORD</h2>
-                <form id="reset-password-form">
-                    <p style="color: #ccc; font-size: 0.9rem; margin-bottom: 15px;">
-                        Enter your new password below.
-                    </p>
-                    <input type="password" id="new-password" placeholder="New Password" required>
-                    <input type="password" id="confirm-password" placeholder="Confirm New Password" required>
-
-                    <button type="submit" class="btn-login">SAVE NEW PASSWORD</button>
-                </form>
-            </div>
-
-        </div> <!-- End of form-container -->
-
-        <!-- Flash message container -->
-        <div id="flash-message-container" style="margin-top: 20px; width: 100%; max-width: 420px;">
+        <div id="flash-message-container" class="w-full max-w-md mt-6">
             {% with messages = get_flashed_messages() %}
             {% if messages %}
-                <div class="alert alert-danger">
-                    {{ messages[0] }}
-                </div>
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg" role="alert">
+                <p class="font-bold">Notification</p>
+                <p>{{ messages[0] }}</p>
+            </div>
             {% endif %}
             {% endwith %}
-            <!-- JS errors will be injected here -->
         </div>
 
-        <footer>© 2025 Laguna State Polytechnic University – BSIT 4C AMG B</footer>
+        <div id="form-container" class="w-full max-w-md">
+
+            <div id="login-form-wrapper"
+                class="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl shadow-2xl p-8 text-white">
+                <h2 class="text-3xl font-bold text-center mb-6">Student Login</h2>
+
+                <form method="POST" action="{{ url_for('auth.login') }}" id="login-form">
+
+                    <div>
+                        <label for="student_id" class="block text-sm font-medium text-gray-200 mb-1">Student ID</label>
+                        <input type="text" name="student_id" id="student_id" placeholder="Enter your Student ID"
+                            required
+                            class="w-full px-4 py-3 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    </div>
+
+                    <div class="mt-4">
+                        <label for="password" class="block text-sm font-medium text-gray-200 mb-1">Password</label>
+                        <input type="password" name="password" id="password" placeholder="Enter Your Password" required
+                            class="w-full px-4 py-3 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    </div>
+
+                    <div class="text-right mt-3">
+                        <a href="{{ url_for('auth.forgot_password') }}"
+                            class="text-sm text-blue-400 hover:text-blue-300 hover:underline">
+                            Forgot your password?
+                        </a>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold text-center shadow-lg hover:bg-blue-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                        LOGIN
+                    </button>
+
+                    <p class="text-center mt-6 text-sm text-gray-300">
+                        Don’t have an account?
+                        <a href="{{ url_for('auth.register') }}"
+                            class="font-medium text-blue-400 hover:text-blue-300 hover:underline">
+                            Register
+                        </a>
+                    </p>
+                </form>
+            </div>
+
+            <div id="reset-password-form-wrapper"
+                class="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl shadow-2xl p-8 text-white"
+                style="display: none;">
+                <h2 class="text-3xl font-bold text-center mb-4">Create New Password</h2>
+                <p class="text-center text-sm text-gray-300 mb-6">
+                    Enter your new password below.
+                </p>
+
+                <form id="reset-password-form">
+
+                    <div>
+                        <label for="new-password" class="block text-sm font-medium text-gray-200 mb-1">New
+                            Password</label>
+                        <input type="password" id="new-password" placeholder="New Password" required
+                            class="w-full px-4 py-3 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    </div>
+
+                    <div class="mt-4">
+                        <label for="confirm-password" class="block text-sm font-medium text-gray-200 mb-1">Confirm New
+                            Password</label>
+                        <input type="password" id="confirm-password" placeholder="Confirm New Password" required
+                            class="w-full px-4 py-3 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    </div>
+
+                    <button type="submit"
+                        class="w-full mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold text-center shadow-lg hover:bg-blue-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                        SAVE NEW PASSWORD
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+        <footer class="absolute bottom-5 text-sm text-gray-400">
+            © 2025 Laguna State Polytechnic University – BSIT 4C AMG B
+        </footer>
     </div>
-    
-    <!-- Registration Success Modal -->
+
     <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="successModalLabel">Registration Successful!</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            Congrats! Your account is verified. You can now log in.
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-          </div>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="successModalLabel">Registration Successful!</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Congrats! Your account is verified. You can now log in.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-    
-    <!-- Password Reset Success Modal -->
-    <div class="modal fade" id="resetSuccessModal" tabindex="-1" aria-labelledby="resetSuccessModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="resetSuccessModalLabel">Password Reset Successful!</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            Your password has been changed. You can now log in with your new password.
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-          </div>
+
+    <div class="modal fade" id="resetSuccessModal" tabindex="-1" aria-labelledby="resetSuccessModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resetSuccessModalLabel">Password Reset Successful!</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Your password has been changed. You can now log in with your new password.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- 4. NEW JAVASCRIPT LOGIC -->
+
     <script>
         // --- Initialize Supabase Client ---
-        // We need these keys to call Supabase auth functions from the client
         const SUPABASE_URL = "https://lnbjifvircxceupkcpnl.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuYmppZnZpcmN4Y2V1cGtjcG5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxMDQwMTQsImV4cCI6MjA3NTY4MDAxNH0._43eZLux5YGYyeSB3ztctYszDAK05rkhNxJGV0Is_5w";
         const { createClient } = supabase;
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // --- Helper to show errors ---
+        // --- Helper to show errors (NOW USES TAILWIND CLASSES) ---
         function showClientError(message) {
             const flashContainer = document.getElementById('flash-message-container');
             // Clear existing Flask flashes
-            flashContainer.innerHTML = ''; 
+            flashContainer.innerHTML = '';
             // Add new error
             const errorAlert = document.createElement('div');
-            errorAlert.className = 'alert alert-danger';
-            errorAlert.textContent = message;
+            // Add Tailwind classes for the error alert
+            errorAlert.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg';
+            errorAlert.setAttribute('role', 'alert');
+            errorAlert.innerHTML = `<p class="font-bold">Error</p><p>${message}</p>`;
             flashContainer.appendChild(errorAlert);
         }
 
@@ -148,38 +199,38 @@
         const loginForm = document.getElementById('login-form-wrapper');
         const resetForm = document.getElementById('reset-password-form-wrapper');
         const resetPasswordForm = document.getElementById('reset-password-form');
-        const errorAlert = document.querySelector('.alert-danger');
+        const flaskErrorAlert = document.querySelector('#flash-message-container .bg-red-100'); // Select the Flask error
 
         // --- Main Logic on Page Load ---
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const urlParams = new URLSearchParams(window.location.search);
             const hash = window.location.hash;
 
             // --- Case 1: Handle Registration Success ---
             if (urlParams.get('registered') === 'success') {
-                if (errorAlert) {
-                    errorAlert.style.display = 'none';
+                if (flaskErrorAlert) {
+                    flaskErrorAlert.style.display = 'none';
                 }
                 successModal.show();
-                window.history.replaceState({}, document.title, window.location.pathname);
+                // Clear the query parameter from URL
+                window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
             }
-            
+
             // --- Case 2: Handle Password Reset Flow ---
-            // Check if the URL hash contains the recovery token
             if (hash.includes('type=recovery') && hash.includes('access_token=')) {
                 // Show the reset password form and hide the login form
                 loginForm.style.display = 'none';
                 resetForm.style.display = 'block';
-                if (errorAlert) {
-                    errorAlert.style.display = 'none';
+                if (flaskErrorAlert) {
+                    flaskErrorAlert.style.display = 'none';
                 }
             }
         });
 
         // --- Event Listener for the New Password Form ---
-        resetPasswordForm.addEventListener('submit', async function(e) {
+        resetPasswordForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const newPassword = document.getElementById('new-password').value;
             const confirmPassword = document.getElementById('confirm-password').value;
 
@@ -193,13 +244,16 @@
                 return;
             }
 
-            // The Supabase client automatically gets the token from the URL hash
-            // when it's initialized on this page.
             try {
-                // Use onAuthStateChange to get the session from the URL
+                // Supabase logic (unchanged, but adding a check for the callback)
+                let authStateChangeHandled = false;
+
                 supabaseClient.auth.onAuthStateChange(async (event, session) => {
                     // This event fires when the page loads with a token in the URL
-                    if (event === 'PASSWORD_RECOVERY' && session) {
+                    // We only want to run this ONCE
+                    if (event === 'PASSWORD_RECOVERY' && session && !authStateChangeHandled) {
+                        authStateChangeHandled = true; // Prevent multiple runs
+
                         const { data, error } = await supabaseClient.auth.updateUser({
                             password: newPassword
                         });
@@ -208,22 +262,50 @@
                             showClientError(`Error updating password: ${error.message}`);
                         } else {
                             // Success!
-                            // Hide the reset form and show the success modal
                             resetForm.style.display = 'none';
-                            loginForm.style.display = 'block'; // Show login form again
+                            loginForm.style.display = 'block';
                             resetSuccessModal.show();
-                            
+
                             // Clear the URL hash
                             window.history.replaceState({}, document.title, window.location.pathname);
                         }
                     }
                 });
+
+                // Handle case where auth state change already fired on page load
+                // We re-check the session info
+                const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+
+                if (session && session.user && !authStateChangeHandled) {
+                    // This handles the case where the submit happens *after* the initial event
+                    // and the session is already established from the URL token.
+                    authStateChangeHandled = true; // Prevent multiple runs
+
+                    const { data, error } = await supabaseClient.auth.updateUser({
+                        password: newPassword
+                    });
+
+                    if (error) {
+                        showClientError(`Error updating password: ${error.message}`);
+                    } else {
+                        resetForm.style.display = 'none';
+                        loginForm.style.display = 'block';
+                        resetSuccessModal.show();
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+                } else if (!session && sessionError) {
+                    showClientError(`Session error: ${sessionError.message}`);
+                } else if (!session && !authStateChangeHandled) {
+                    // This can happen if the token is invalid or expired
+                    showClientError('Invalid or expired password recovery token. Please try again.');
+                }
+
             } catch (error) {
-                 showClientError(`An error occurred: ${error.message}`);
+                showClientError(`An error occurred: ${error.message}`);
             }
         });
 
     </script>
 </body>
-</html>
 
+</html>
