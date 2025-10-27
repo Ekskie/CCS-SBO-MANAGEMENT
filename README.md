@@ -1,54 +1,236 @@
 # CCS SBO Management System
 
-A complete web application built with Flask and Supabase designed to manage student profiles, handle document approvals, and generate printable class lists for the College of Computer Studies (CCS) Student Body Organization (SBO).
-
-This system provides a three-tiered role-based access model:
-* **Student:** Can register, upload their profile picture and signature, and update their information.
-* **President:** Can review and approve/disapprove pending student picture and signature submissions.
-* **Admin:** Has full control over the system, including student CRUD, manual profile editing, approval management, and class list generation/archiving.
-
----
+A comprehensive web application for managing College of Computer Studies (CCS) Student Body Organization (SBO) student profiles, built with Flask and Supabase.
 
 ## Features
 
-* **Role-Based Access Control:** Separate dashboards and permissions for Students, Presidents, and Admins.
-* **Secure Authentication:** Handles user registration, login, logout, and password reset functionality.
-* **Profile Management:** Students can upload and update their 1x1 picture and digital signature.
-* **File Validation:**
-    * Strict file size limits for uploads (defined in `config.py`).
-    * Signature validation ensures the file is a valid PNG with a transparent background.
-* **Admin Student Dashboard:**
-    * Full Create, Read, Update, Delete (CRUD) capabilities for all student profiles.
-    * Advanced search and filtering by name, program, year level, section, and major.
-* **Approval Workflow:**
-    * Admins and Presidents can review pending student submissions (pictures/signatures).
-    * Ability to "Approve" or "Disapprove" submissions, including a field for providing a reason for disapproval.
-* **Class List Printing:**
-    * Filter students by Program, Year, Section, Major, and Semester to form a group.
-    * Generates a print-ready HTML preview (`/print_preview`) of the selected group, displaying each student's picture, full name (sorted alphabetically), student ID, and signature.
-* **Group Archiving:**
-    * Ability to save a snapshot of a generated class list (including all student data and images) to an `archived_groups` table for historical records.
-    * Admins can view, preview, and delete these historical archives.
+### Student Management
+- **Registration**: Students can register with personal details, academic information, and upload required documents (1x1 picture and signature)
+- **Profile Management**: Students can view and update their profiles
+- **Document Approval**: Admin review system for uploaded pictures and signatures
 
----
+### Administrative Functions
+- **Dashboard**: Overview of student statistics and pending approvals
+- **Student Management**: Search, filter, edit, and delete student profiles
+- **Document Review**: Approve or disapprove student-uploaded pictures and signatures
+- **Printing System**: Generate printable student lists organized by program, year, section, and major
+- **Archiving**: Archive student groups for historical records
+
+### President Access
+- Review student profiles and approval statuses
+- Access to administrative functions with appropriate permissions
+
+### Security & Authentication
+- Secure login/logout system
+- Role-based access control (Student, President, Admin)
+- Email verification for new accounts
+- Password reset functionality
+- Session management
 
 ## Tech Stack
 
-* **Backend:** **Flask**
-    * Uses Blueprints for modular routing (`auth`, `core`, `admin`, `president`).
-    * Server-side rendering with **Jinja2** templates.
-* **Database:** **Supabase (PostgreSQL)**
-    * Manages user profiles, roles, and archived group data.
-* **Authentication:** **Supabase Auth**
-    * Handles user sign-up, sign-in, and password resets.
-* **File Storage:** **Supabase Storage**
-    * Stores all student pictures and signatures in separate buckets.
-* **Image Processing:** **Pillow**
-    * Used server-side to validate signature transparency.
-* **Deployment:** **Vercel**
-    * Configured for serverless deployment (see `main.py` and `vercel.json`).
+- **Backend**: Python Flask
+- **Database**: Supabase (PostgreSQL with real-time capabilities)
+- **Authentication**: Supabase Auth
+- **File Storage**: Supabase Storage
+- **Frontend**: HTML, CSS, JavaScript (Jinja2 templates)
+- **Deployment**: Vercel
+- **Image Processing**: Pillow
 
----
+## Prerequisites
+
+- Python 3.8 or higher
+- Supabase account and project
+- Vercel account (for deployment)
+
+## Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd ccs-sbo-management
+   ```
+
+2. **Create a virtual environment**:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Set up environment variables**:
+   Create a `.env` file in the root directory:
+   ```env
+   FLASK_SECRET_KEY=your-secret-key-here
+   SUPABASE_URL=your-supabase-project-url
+   SUPABASE_KEY=your-supabase-anon-key
+   SUPABASE_SERVICE_KEY=your-supabase-service-role-key
+   ```
+
+5. **Configure Supabase**:
+   - Create the necessary tables in your Supabase database
+   - Set up storage buckets for `pictures` and `signatures`
+   - Configure authentication settings
+
+## Database Schema
+
+### Profiles Table
+```sql
+CREATE TABLE profiles (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  email TEXT,
+  student_id TEXT UNIQUE,
+  first_name TEXT,
+  middle_name TEXT,
+  last_name TEXT,
+  program TEXT,
+  semester TEXT,
+  year_level TEXT,
+  section TEXT,
+  major TEXT,
+  picture_url TEXT,
+  signature_url TEXT,
+  account_type TEXT DEFAULT 'student',
+  picture_status TEXT DEFAULT 'pending',
+  signature_status TEXT DEFAULT 'pending',
+  disapproval_reason TEXT
+);
+```
+
+### Archived Groups Table
+```sql
+CREATE TABLE archived_groups (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  academic_year TEXT,
+  semester TEXT,
+  group_name TEXT,
+  student_data JSONB,
+  generation_date TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+## Usage
+
+### Local Development
+
+1. **Run the application**:
+   ```bash
+   python main.py
+   ```
+
+2. **Access the application**:
+   Open your browser and navigate to `http://localhost:5000`
+
+### User Roles
+
+- **Students**: Can register, login, view/edit their profile
+- **Presidents**: Can review student profiles and access president-specific features
+- **Admins**: Full access to all administrative functions
+
+## Deployment
+
+### Vercel Deployment
+
+1. **Connect your repository to Vercel**
+2. **Set environment variables in Vercel**:
+   - `FLASK_SECRET_KEY`
+   - `SUPABASE_URL`
+   - `SUPABASE_KEY`
+   - `SUPABASE_SERVICE_KEY`
+   - `PORT` (automatically set by Vercel)
+
+3. **Deploy**: Vercel will automatically build and deploy using the `vercel.json` configuration
 
 ## Project Structure
-/ ├── admin/ │ ├── routes.py # Admin dashboard, student CRUD, printing, archiving ├── auth/ │ ├── routes.py # Login, register, logout, password reset ├── core/ │ ├── routes.py # Core student profile dashboard ├── president/ │ ├── routes.py # President's approval dashboard ├── static/ │ ├── css/ │ └── image/ ├── templates/ │ ├── admin/ # Admin HTML templates │ ├── client/ # Student/Auth HTML templates │ ├── president/ # President HTML templates │ └── print_template.html # Shared template for printing ├── config.py # Configuration loader (e.g., file size limits) ├── extensions.py # Supabase client initialization ├── main.py # Flask app factory (create_app) ├── requirements.txt # Python dependencies ├── utils.py # Helper functions (e.g., auth decorators, transparency check) └── vercel.json # Vercel deployment configuration
+
+```
+your_project_directory/
+│
+├── auth/
+│   └── routes.py           # Authentication routes (login, register, etc.)
+│
+├── core/
+│   └── routes.py           # Core user routes (profile, settings)
+│
+├── admin/
+│   └── routes.py           # Admin routes (dashboard, student management)
+│
+├── president/
+│   └── routes.py           # President routes (review functions)
+│
+├── templates/
+│   ├── client/            # Student-facing templates
+│   ├── admin/             # Admin templates
+│   ├── president/         # President templates
+│   └── print_template.html # Printing template
+│
+├── static/
+│   ├── css/               # Stylesheets
+│   ├── font/              # Custom fonts
+│   └── image/             # Static images
+│
+├── .env                   # Environment variables
+├── main.py                # Application entry point
+├── config.py              # Configuration settings
+├── extensions.py          # Supabase initialization
+├── utils.py               # Helper functions and decorators
+├── requirements.txt       # Python dependencies
+├── vercel.json            # Vercel deployment config
+└── README.md              # This file
+```
+
+## API Endpoints
+
+### Authentication
+- `GET/POST /login` - User login
+- `GET/POST /register` - User registration
+- `GET /logout` - User logout
+- `GET /forgot_password` - Password reset request
+- `GET /check_email` - Password reset confirmation
+
+### Core
+- `GET /` - Home page (redirects to profile if logged in)
+- `GET /profile` - User profile page
+- `GET/POST /settings` - User settings
+
+### Admin
+- `GET /admin/dashboard` - Admin dashboard
+- `GET /admin/students` - Student management
+- `GET/POST /admin/edit_student/<id>` - Edit student profile
+- `POST /admin/delete_student/<id>` - Delete student
+- `GET /admin/printing` - Printing interface
+- `GET /admin/archive` - Archive management
+- `GET /admin/review_student/<id>` - Review student documents
+
+### President
+- `GET /president/dashboard` - President dashboard
+- `GET /president/review_student/<id>` - Review student profiles
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Security Notes
+
+- All uploaded files are validated for size and type
+- Signatures must be PNG format with transparent backgrounds
+- Role-based access control prevents unauthorized actions
+- Sensitive operations require admin privileges
+- File uploads are handled securely through Supabase Storage
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For support or questions, please contact the development team or create an issue in the repository.
