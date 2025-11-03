@@ -51,7 +51,6 @@
         <a href="{{ url_for('core.index') }}">
             <img src="{{ url_for('static', filename='image/lspu.png') }}" alt="LSPU Logo" class="w-24 md:w-28 mb-4">
         </a>
-        <!-- Flash Messages -->
         {% with messages = get_flashed_messages() %}
         {% if messages %}
         <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg" role="alert">
@@ -68,7 +67,6 @@
 
             <h2 class="text-3xl font-bold text-center mb-6">Create Account</h2>
 
-            <!-- Progress Bar -->
             <div class="flex items-center justify-between mb-8 px-4">
                 <div class="flex flex-col items-center">
                     <div id="progress-1"
@@ -100,10 +98,8 @@
             </div>
 
 
-            <!-- Registration Form -->
             <form method="POST" enctype="multipart/form-data" id="registerForm" novalidate>
 
-                <!-- Jinja Macro for Form Input -->
                 {% macro form_input(name, placeholder, type='text', required=True, pattern=None, title=None) %}
                 <div>
                     <label for="{{ name }}" class="block text-sm font-medium text-gray-200 mb-1">{{ placeholder
@@ -115,7 +111,6 @@
                 </div>
                 {% endmacro %}
 
-                <!-- Jinja Macro for Form Select -->
                 {% macro form_select(name, label, options, required=True, onchange=None) %}
                 <div>
                     <label for="{{ name }}" class="block text-sm font-medium text-gray-200 mb-1">{{ label }}</label>
@@ -130,13 +125,14 @@
                 </div>
                 {% endmacro %}
 
-                <!-- Step-specific error message -->
                 <p id="step-error" class="text-red-400 text-center text-sm mb-4" style="display: none;"></p>
 
-                <!-- Step 1: Account -->
                 <fieldset id="form-step-1" class="space-y-4">
                     {{ form_input('email', 'Email Address (student@lspu.edu.ph)', type='email',
                     pattern='.+@lspu\\.edu\\.ph', title='Please use a valid @lspu.edu.ph email address') }}
+                    
+                    {{ form_input('student_id', 'Student ID') }}
+                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {{ form_input('password', 'Password', type='password') }}
                         {{ form_input('confirm_password', 'Confirm Password', type='password') }}
@@ -149,14 +145,13 @@
                     </div>
                 </fieldset>
 
-                <!-- Step 2: Personal -->
                 <fieldset id="form-step-2" class="space-y-4" style="display: none;">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {{ form_input('first_name', 'First Name') }}
                         {{ form_input('middle_name', 'Middle Name', required=False) }}
                         {{ form_input('last_name', 'Last Name') }}
                     </div>
-                    {{ form_input('student_id', 'Student ID') }}
+                    
                     <div class="flex justify-between pt-4">
                         <button type="button" data-nav="prev"
                             class="px-6 py-3 bg-gray-600 text-white rounded-lg font-semibold text-center shadow-lg hover:bg-gray-700 transition duration-300">
@@ -169,7 +164,6 @@
                     </div>
                 </fieldset>
 
-                <!-- Step 3: Academic -->
                 <fieldset id="form-step-3" class="space-y-4" style="display: none;">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {{ form_select('program', 'Program',
@@ -214,7 +208,6 @@
                     </div>
                 </fieldset>
 
-                <!-- Step 4: Uploads -->
                 <fieldset id="form-step-4" class="space-y-4" style="display: none;">
                     <div>
                         <label class="block text-sm font-medium text-gray-200" for="picture-upload">
@@ -237,11 +230,9 @@
                             class="px-6 py-3 bg-gray-600 text-white rounded-lg font-semibold text-center shadow-lg hover:bg-gray-700 transition duration-300">
                             &larr; Previous
                         </button>
-                        <!-- *** MODIFIED REGISTER BUTTON *** -->
                         <button type="submit" id="register-button"
                             class="w-1/2 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold text-center shadow-lg hover:bg-green-700 transition duration-300 flex items-center justify-center disabled:opacity-75 disabled:cursor-not-allowed">
 
-                            <!-- SVG Spinner (hidden by default) -->
                             <svg id="loading-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                                 style="display: none;" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24">
@@ -252,7 +243,6 @@
                                 </path>
                             </svg>
 
-                            <!-- Button Text -->
                             <span id="register-button-text">REGISTER</span>
                         </button>
                     </div>
@@ -280,10 +270,10 @@
         // --- Major options data ---
         const majorOptions = {
             'BSIT': [
-                { value: 'AMG', text: 'AMG' },
-                { value: 'NETAD', text: 'NETAD' },
-                { value: 'WMAD', text: 'WMAD' },
-                { value: 'SMP', text: 'SMP' }
+                { value: 'WMAD - A', text: 'WMAD - A' },
+                { value: 'SMP - B', text: 'SMP - B' },
+                { value: 'AMG - C', text: 'AMG - C' },
+                { value: 'NETAD - D', text: 'NETAD - D' }
             ],
             'BSCS': [
                 { value: 'GV', text: 'GV' },
@@ -430,7 +420,6 @@
         });
     </script>
 
-    <!-- *** MAIN FORM STEPPER SCRIPT *** -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             let currentStep = 1;

@@ -29,7 +29,7 @@
 
     <div class="bg-white rounded-lg shadow p-6 flex items-center justify-between">
         <div>
-            <div class="text-sm font-medium text-gray-500 uppercase">Pending Approvals</div>
+            <div class="text-sm font-medium text-gray-500 uppercase">Pending Items</div>
             <div class="text-3xl font-bold text-gray-900">{{ pending_count }}</div> 
         </div>
         <div class="p-3 bg-yellow-100 text-yellow-600 rounded-full">
@@ -68,6 +68,45 @@
     </div>
 </div>
 
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-800">Upload Status (Total Items)</h3>
+        </div>
+        <div class="p-6">
+            <canvas id="approvalStatusChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-800">Students by Program</h3>
+        </div>
+        <div class="p-6">
+            <canvas id="programChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-800">Students by Year Level</h3>
+        </div>
+        <div class="p-6">
+            <canvas id="yearLevelChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-800">New Registrations Over Time</h3>
+        </div>
+        <div class="p-6">
+            <canvas id="registrationsChart"></canvas>
+        </div>
+    </div>
+
+</div>
 <div class="bg-white rounded-lg shadow-md overflow-hidden">
     <div class="p-6 border-b border-gray-200">
         <h3 class="text-xl font-semibold text-gray-800">Pending Approvals</h3>
@@ -89,11 +128,11 @@
                 
                 {% macro status_badge(status) %}
                     <span class="font-bold px-3 py-1 rounded-full text-xs
-                        {% if status == 'approved' %} bg-green-100 text-green-800
-                        {% elif status == 'pending' %} bg-yellow-100 text-yellow-800
-                        {% elif status == 'disapproved' %} bg-red-100 text-red-800
-                        {% else %} bg-gray-100 text-gray-800 {% endif %}">
-                        {{ status | capitalize }}
+                            {% if status == 'approved' %} bg-green-100 text-green-800
+                            {% elif status == 'pending' %} bg-yellow-100 text-yellow-800
+                            {% elif status == 'disapproved' %} bg-red-100 text-red-800
+                            {% else %} bg-gray-100 text-gray-800 {% endif %}">
+                            {{ status | capitalize }}
                     </span>
                 {% endmacro %}
 
@@ -135,4 +174,154 @@
         </table>
     </div>
 </div>
+{% endblock %}
+
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // --- Data from Flask ---
+        const approvalLabels = {{ approval_status_labels|tojson }};
+        const approvalData = {{ approval_status_data|tojson }};
+        
+        const programLabels = {{ program_chart_labels|tojson }};
+        const programData = {{ program_chart_data|tojson }};
+        
+        const yearLabels = {{ year_chart_labels|tojson }};
+        const yearData = {{ year_chart_data|tojson }};
+        
+        const regLabels = {{ reg_chart_labels|tojson }};
+        const regData = {{ reg_chart_data|tojson }};
+
+        // --- Chart 1: Approval Status Pie ---
+        const ctxApproval = document.getElementById('approvalStatusChart');
+        if (ctxApproval && approvalData.length > 0) {
+            new Chart(ctxApproval, {
+                type: 'pie', // Changed to 'pie'
+                data: {
+                    labels: approvalLabels,
+                    datasets: [{
+                        label: 'Upload Statuses',
+                        data: approvalData,
+                        backgroundColor: [
+                            'rgba(251, 191, 36, 0.7)', // Yellow-400
+                            'rgba(239, 68, 68, 0.7)',  // Red-500
+                            'rgba(52, 211, 153, 0.7)'  // Green-400
+                        ],
+                        borderColor: [
+                            'rgba(251, 191, 36, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(52, 211, 153, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
+        }
+        
+        // --- Chart 2: Program Pie ---
+        const ctxProgram = document.getElementById('programChart');
+        if (ctxProgram && programData.length > 0) {
+            new Chart(ctxProgram, {
+                type: 'pie', // Changed to 'pie'
+                data: {
+                    labels: programLabels,
+                    datasets: [{
+                        label: 'Students by Program',
+                        data: programData,
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.7)', // Blue-500
+                            'rgba(16, 185, 129, 0.7)', // Green-500
+                            'rgba(234, 179, 8, 0.7)',  // Yellow-500
+                            'rgba(139, 92, 246, 0.7)'  // Violet-500
+                        ],
+                        borderColor: [
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(234, 179, 8, 1)',
+                            'rgba(139, 92, 246, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
+        }
+        
+        // --- Chart 3: Year Level Bar ---
+        const ctxYear = document.getElementById('yearLevelChart');
+        if (ctxYear && yearData.length > 0) {
+            new Chart(ctxYear, {
+                type: 'bar',
+                data: {
+                    labels: yearLabels,
+                    datasets: [{
+                        label: 'Number of Students',
+                        data: yearData,
+                        backgroundColor: 'rgba(234, 179, 8, 0.6)', // Yellow-500
+                        borderColor: 'rgba(234, 179, 8, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1, precision: 0 }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+        
+        // --- Chart 4: Registrations Line ---
+        const ctxReg = document.getElementById('registrationsChart');
+        if (ctxReg && regData.length > 0) {
+            new Chart(ctxReg, {
+                type: 'line',
+                data: {
+                    labels: regLabels,
+                    datasets: [{
+                        label: 'New Registrations',
+                        data: regData,
+                        fill: true,
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)', // Green-500
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1, precision: 0 }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

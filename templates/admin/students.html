@@ -53,15 +53,56 @@
 
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
+            
             <thead class="bg-gray-50">
                 <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Program & Section</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pic Status</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sig Status</th>
-                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    {% macro sort_link(column_key, display_name) %}
+                        {% set new_order = 'asc' %}
+                        {% if current_sort_by == column_key and current_sort_order == 'asc' %}
+                            {% set new_order = 'desc' %}
+                        {% endif %}
+                        
+                        <a href="{{ url_for('admin.admin_students', 
+                                    search_name=search_name, 
+                                    filter_program=filter_program, 
+                                    filter_year_level=filter_year_level, 
+                                    filter_section=filter_section, 
+                                    filter_major=filter_major,
+                                    sort_by=column_key, 
+                                    sort_order=new_order) }}" 
+                           class="inline-flex items-center group">
+                            {{ display_name }}
+                            
+                            <span class="fas fa-sort text-gray-300 ml-1.5 group-hover:text-gray-500 
+                                   {% if current_sort_by == column_key %}hidden{% endif %}"></span>
+                                   
+                            {% if current_sort_by == column_key %}
+                                <span class="fas fa-sort-{{ 'up' if current_sort_order == 'asc' else 'down' }} text-gray-800 ml-1.5"></span>
+                            {% endif %}
+                        </a>
+                    {% endmacro %}
+
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {{ sort_link('last_name', 'Name') }}
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {{ sort_link('student_id', 'Student ID') }}
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {{ sort_link('program', 'Program & Section') }}
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {{ sort_link('account_type', 'Role') }}
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {{ sort_link('picture_status', 'Pic Status') }}
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {{ sort_link('signature_status', 'Sig Status') }}
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                    </th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -149,7 +190,6 @@
     </div>
 </div>
 
-<!-- Delete Modal -->
 <div id="deleteModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
@@ -173,17 +213,14 @@
                 </div>
             </div>
             <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <!-- *** MODIFIED DELETE FORM AND BUTTON *** -->
                 <form id="deleteForm" method="POST" action="" onsubmit="handleDeleteSubmit()">
                     <button type="submit" id="delete-button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-75 disabled:cursor-not-allowed">
                         
-                        <!-- SVG Spinner (hidden by default) -->
                         <svg id="delete-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" style="display: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                         
-                        <!-- Button Text -->
                         <span id="delete-button-text">Delete Student</span>
                     </button>
                 </form>
@@ -195,7 +232,6 @@
     </div>
 </div>
 
-<!-- *** NEW SCRIPT FOR MODAL LOADING STATE *** -->
 <script>
     function openDeleteModal(student_id, student_name) {
         // Reset button state just in case
