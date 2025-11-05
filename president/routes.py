@@ -32,19 +32,50 @@ def president_dashboard():
         response = query.order("last_name", desc=False).execute()
         classmates = response.data
 
-        class_name_parts = [program, f"{year_level}{section}"]
+        class_name_parts = [program, f"{year_level} {section}"]
         if major:
             class_name_parts.append(major)
         class_name = " - ".join(class_name_parts)
 
+        # --- New Chart Logic ---
+        fully_approved_count = 0
+        pending_review_count = 0
+        disapproved_count = 0
+        
+        for student in classmates:
+            pic_status = student.get('picture_status')
+            sig_status = student.get('signature_status')
+            
+            # Priority 1: If anything is disapproved
+            if pic_status == 'disapproved' or sig_status == 'disapproved':
+                disapproved_count += 1
+            # Priority 2: If anything is pending (and not disapproved)
+            elif pic_status == 'pending' or sig_status == 'pending':
+                pending_review_count += 1
+            # Priority 3: If both are approved
+            elif pic_status == 'approved' and sig_status == 'approved':
+                fully_approved_count += 1
+        
+        total_classmates = len(classmates)
+        approval_percentage = 0
+        if total_classmates > 0:
+            approval_percentage = round((fully_approved_count / total_classmates) * 100)
+        # --- End Chart Logic ---
+
         return render_template(
             'president/dashboard.html', 
             classmates=classmates,
-            class_name=class_name
+            class_name=class_name,
+            # --- Pass new data ---
+            fully_approved_count=fully_approved_count,
+            pending_review_count=pending_review_count,
+            disapproved_count=disapproved_count,
+            approval_percentage=approval_percentage
         )
     except Exception as e:
         flash(f"Error fetching classmates: {str(e)}", "error")
-        return render_template('president/dashboard.html', classmates=[], class_name="Error")
+        # Pass 0s for chart data on error to prevent template crash
+        return render_template('president/dashboard.html', classmates=[], class_name="Error", fully_approved_count=0, pending_review_count=0, disapproved_count=0, approval_percentage=0)
 
 
 @president_bp.route('/review/<student_id>', methods=['GET', 'POST'])
@@ -119,4 +150,3 @@ def president_review_student(student_id):
 
     # GET request
     return render_template('president/review_student.html', student=student)
-

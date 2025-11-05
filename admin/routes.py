@@ -1,6 +1,5 @@
 import os
 import io
-# --- ADDED Counter ---
 from collections import Counter
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session # Added session
 from extensions import supabase, supabase_admin
@@ -17,67 +16,30 @@ admin_bp = Blueprint('admin', __name__,
 def admin_dashboard():
     try:
         # --- MODIFICATION: Fetch all data for charts in one go ---
-        all_profiles_res = supabase.table("profiles").select("program, year_level, picture_status, signature_status, created_at").execute()
+        all_profiles_res = supabase.table("profiles").select("program, picture_status, signature_status").execute()
         all_profiles = all_profiles_res.data
         
         student_count = len(all_profiles)
+        approved_count = 0 # For stats card
         
-        # --- Chart 1: Approval Status Pie ---
-        approval_counts = {"Pending": 0, "Disapproved": 0, "Approved": 0}
-        for p in all_profiles:
-            # Check Picture Status
-            pic_status = p.get('picture_status')
-            if pic_status == 'pending':
-                approval_counts["Pending"] += 1
-            elif pic_status == 'disapproved':
-                approval_counts["Disapproved"] += 1
-            elif pic_status == 'approved':
-                approval_counts["Approved"] += 1
-                
-            # Check Signature Status
-            sig_status = p.get('signature_status')
-            if sig_status == 'pending':
-                approval_counts["Pending"] += 1
-            elif sig_status == 'disapproved':
-                approval_counts["Disapproved"] += 1
-            elif sig_status == 'approved':
-                approval_counts["Approved"] += 1
+        # --- Chart 1: Approval Status Pie (REMOVED) ---
 
-        approval_status_labels = list(approval_counts.keys())
-        approval_status_data = list(approval_counts.values())
-
-        # --- Chart 2: Program Pie Chart ---
+        # --- Chart 2: Program Pie Chart (Data is Kept) ---
         program_list = [p['program'] for p in all_profiles if p.get('program')]
         program_counts_dict = Counter(program_list)
         program_count = len(program_counts_dict) # This is the "Unique Programs" stat
         program_chart_labels = list(program_counts_dict.keys())
         program_chart_data = list(program_counts_dict.values())
         
-        # --- Chart 3: Year Level Bar Chart ---
-        year_list = [p['year_level'] for p in all_profiles if p.get('year_level')]
-        year_counts_dict = Counter(year_list)
-        # Define a specific order for the bar chart
-        year_order = ["1st Year", "2nd Year", "3rd Year", "4th Year"]
-        year_chart_labels = year_order
-        year_chart_data = [year_counts_dict.get(year, 0) for year in year_order]
+        # --- Chart 3: Year Level Bar Chart (REMOVED) ---
         
-        # --- Chart 4: Registrations Line Chart ---
-        reg_dates = []
-        for p in all_profiles:
-            if p.get('created_at'):
-                try:
-                    # Parse the ISO timestamp
-                    date_obj = datetime.fromisoformat(p['created_at'].replace('Z', '+00:00'))
-                    reg_dates.append(date_obj.strftime('%Y-%m-%d'))
-                except Exception:
-                    pass # Ignore invalid date formats
-        
-        reg_counts_dict = Counter(reg_dates)
-        # Sort the dates chronologically for the line chart
-        sorted_dates = sorted(list(reg_counts_dict.keys()))
-        reg_chart_labels = sorted_dates
-        reg_chart_data = [reg_counts_dict[date] for date in sorted_dates]
+        # --- Chart 4: Registrations Line Chart (REMOVED) ---
 
+        # --- Calculate Approved Count for Stats Card ---
+        for p in all_profiles:
+            if p.get('picture_status') == 'approved' and p.get('signature_status') == 'approved':
+                approved_count += 1
+                
         # --- Fetch Pending Approvals (for table) ---
         pending_query = supabase.table("profiles").select("*", count='exact').or_("picture_status.eq.pending,signature_status.eq.pending")
         pending_res = pending_query.order("last_name", desc=False).execute()
@@ -90,17 +52,12 @@ def admin_dashboard():
             student_count=student_count, 
             program_count=program_count,
             pending_count=pending_count,
+            approved_count=approved_count, # <-- Pass new approved count
             pending_students=pending_students,
             
-            # Pass all chart data
-            approval_status_labels=approval_status_labels,
-            approval_status_data=approval_status_data,
+            # Pass only program chart data
             program_chart_labels=program_chart_labels,
-            program_chart_data=program_chart_data,
-            year_chart_labels=year_chart_labels,
-            year_chart_data=year_chart_data,
-            reg_chart_labels=reg_chart_labels,
-            reg_chart_data=reg_chart_data
+            program_chart_data=program_chart_data
         )
     except Exception as e:
         flash(f"Error loading dashboard: {str(e)}", "error")
@@ -109,16 +66,14 @@ def admin_dashboard():
             student_count=0, 
             program_count=0,
             pending_count=0,
+            approved_count=0,
             pending_students=[],
             # Default empty values
-            approval_status_labels=[], approval_status_data=[],
-            program_chart_labels=[], program_chart_data=[],
-            year_chart_labels=[], year_chart_data=[],
-            reg_chart_labels=[], reg_chart_data=[]
+            program_chart_labels=[], program_chart_data=[]
         )
 
-# --- Keep all other routes (admin_students, admin_edit_student, etc.) exactly as they were ---
-# (admin_students function)
+# --- All other routes (admin_students, admin_edit_student, etc.) remain exactly as you provided ---
+
 @admin_bp.route('/students')
 @admin_required
 def admin_students():
@@ -128,7 +83,7 @@ def admin_students():
         filter_program = request.args.get('filter_program', '')
         filter_section = request.args.get('filter_section', '')
         filter_year_level = request.args.get('filter_year_level', '') 
-        filter_major = request.args.get('filter_major', '')       
+        filter_major = request.args.get('filter_major', '') 
         
         # Get sorting parameters
         sort_by = request.args.get('sort_by', 'last_name')
@@ -155,10 +110,10 @@ def admin_students():
             query = query.eq('program', filter_program)
         if filter_section:
             query = query.eq('section', filter_section)
-        if filter_year_level:                                         
-            query = query.eq('year_level', filter_year_level)         
-        if filter_major:                                              
-            query = query.eq('major', filter_major)                   
+        if filter_year_level: 
+            query = query.eq('year_level', filter_year_level) 
+        if filter_major: 
+            query = query.eq('major', filter_major) 
 
         # Apply dynamic sorting
         query = query.order(sort_by, desc=is_desc)
@@ -173,20 +128,20 @@ def admin_students():
         programs_res = supabase.table("profiles").select("program").execute()
         sections_res = supabase.table("profiles").select("section").execute()
         years_res = supabase.table("profiles").select("year_level").execute()
-        majors_res = supabase.table("profiles").select("major").execute()     
+        majors_res = supabase.table("profiles").select("major").execute() 
         
         programs = sorted(list(set(p['program'] for p in programs_res.data if p.get('program'))))
         sections = sorted(list(set(s['section'] for s in sections_res.data if s.get('section'))))
         all_years = sorted(list(set(y['year_level'] for y in years_res.data if y.get('year_level'))), key=lambda x: (x or "Z")[0])
-        all_majors = sorted(list(set(m['major'] for m in majors_res.data if m.get('major'))))      
+        all_majors = sorted(list(set(m['major'] for m in majors_res.data if m.get('major')))) 
 
         return render_template(
             'students.html', 
             students=students,
             programs=programs,
             sections=sections,
-            all_years=all_years,      
-            all_majors=all_majors,    
+            all_years=all_years, 
+            all_majors=all_majors, 
             search_name=search_name,
             filter_program=filter_program,
             filter_section=filter_section,
@@ -202,7 +157,7 @@ def admin_students():
                                all_years=[], all_majors=[],
                                current_sort_by='last_name',
                                current_sort_order='asc'
-                              )
+                             )
 
 
 # (admin_edit_student function)
@@ -392,7 +347,7 @@ def admin_archive():
             if filter_major == 'None':
                  pass 
             else:
-                query = query.ilike('group_name', f'%{filter_major}%') 
+                 query = query.ilike('group_name', f'%{filter_major}%') 
         
         archives_res = query.order("created_at", desc=True).execute()
         archives = archives_res.data
@@ -402,8 +357,8 @@ def admin_archive():
                 utc_time = datetime.fromisoformat(archive['created_at'].replace('Z', '+00:00'))
                 archive['created_at_display'] = utc_time.strftime('%Y-%m-%d %I:%M %p') 
             except Exception as parse_e:
-                 print(f"Error parsing date {archive.get('created_at')}: {parse_e}")
-                 archive['created_at_display'] = str(archive.get('created_at', ''))
+                print(f"Error parsing date {archive.get('created_at')}: {parse_e}")
+                archive['created_at_display'] = str(archive.get('created_at', ''))
 
         all_options_res = supabase.table("archived_groups").select("academic_year, semester, group_name").execute()
         all_data = all_options_res.data
@@ -544,7 +499,7 @@ def admin_print_preview():
             full_name = f"{last_name}, {first_name} {middle_name}".strip()
             if full_name == ',': full_name = "Name Missing"
                 
-            course_parts = [p.get('program', 'N/A'), f"{p.get('year_level', 'N/A')}{p.get('section', 'N/A')}"]
+            course_parts = [p.get('program', 'N/A'), f"{p.get('year_level', 'N/A')} {p.get('section', 'N/A')}"]
             if p.get('major'):
                 course_parts.append(p.get('major'))
             course = " - ".join(filter(None, course_parts)).strip() 

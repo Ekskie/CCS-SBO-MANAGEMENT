@@ -146,27 +146,21 @@ def settings():
     # This just renders the HTML fragment, which is loaded by profile.html's JS
     return render_template('settings.html')
 
-@core_bp.route('/index')
-@login_required
-def index():
-    # This just renders the HTML fragment, which is loaded by profile.html's JS
-    return render_template('index.html')
-
 @core_bp.route('/change_password', methods=['POST'])
 @login_required
 def change_password():
     """Handles the change password form submission from the settings page."""
     current_password = request.form.get('current_password')
     new_password = request.form.get('new_password')
-    confirm_password = request.form.get('confirm_password')
+    confirm_password = request.form.get('confirm_new_password')
 
     if not all([current_password, new_password, confirm_password]):
         flash("Please fill out all password fields.", "error")
-        return redirect(url_for('core.profile')) # Redirects back, JS should open settings
+        return redirect(url_for('core.settings')) # Redirects back, JS should open settings
 
     if new_password != confirm_password:
         flash("New passwords do not match.", "error")
-        return redirect(url_for('core.profile'))
+        return redirect(url_for('core.settings'))
 
     try:
         # 1. Verify the user's current password by trying to sign in
@@ -194,5 +188,4 @@ def change_password():
             flash(f"An error occurred: {str(e)}", "error")
 
     # Redirect back to the profile page. 
-    return redirect(url_for('core.profile'))
-
+    return redirect(url_for('core.settings'))

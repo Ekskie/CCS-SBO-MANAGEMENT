@@ -1,327 +1,164 @@
 {% extends "admin/base.html" %}
 
 {% block title %}Admin Dashboard{% endblock %}
-{% block page_title %}Dashboard{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
 
 {% block content %}
+<div class="space-y-8">
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-    
-    <div class="bg-white rounded-lg shadow p-6 flex items-center justify-between">
-        <div>
-            <div class="text-sm font-medium text-gray-500 uppercase">Total Students</div>
-            <div class="text-3xl font-bold text-gray-900">{{ student_count }}</div>
-        </div>
-        <div class="p-3 bg-blue-100 text-blue-600 rounded-full">
-            <i class="fas fa-users fa-2x"></i>
-        </div>
-    </div>
 
-    <div class="bg-white rounded-lg shadow p-6 flex items-center justify-between">
-        <div>
-            <div class="text-sm font-medium text-gray-500 uppercase">Unique Programs</div>
-            <div class="text-3xl font-bold text-gray-900">{{ program_count }}</div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-white rounded-lg shadow-md p-6 flex items-center justify-between">
+            <div>
+                <span class="text-sm font-medium text-gray-500">Total Students</span>
+                <span class="text-3xl font-bold text-gray-900 block">{{ student_count }}</span>
+            </div>
+            <i class="fas fa-users fa-3x text-blue-500"></i>
         </div>
-        <div class="p-3 bg-green-100 text-green-600 rounded-full">
-            <i class="fas fa-book fa-2x"></i>
+        <div class="bg-white rounded-lg shadow-md p-6 flex items-center justify-between">
+            <div>
+                <span class="text-sm font-medium text-gray-500">Unique Programs</span>
+                <span class="text-3xl font-bold text-gray-900 block">{{ program_count }}</span>
+            </div>
+            <i class="fas fa-graduation-cap fa-3x text-indigo-500"></i>
         </div>
-    </div>
-
-    <div class="bg-white rounded-lg shadow p-6 flex items-center justify-between">
-        <div>
-            <div class="text-sm font-medium text-gray-500 uppercase">Pending Items</div>
-            <div class="text-3xl font-bold text-gray-900">{{ pending_count }}</div> 
+        <div class="bg-white rounded-lg shadow-md p-6 flex items-center justify-between">
+            <div>
+                <span class="text-sm font-medium text-gray-500">Pending Approval</span>
+                <span class="text-3xl font-bold text-gray-900 block">{{ pending_count }}</span>
+            </div>
+            <i class="fas fa-hourglass-half fa-3x text-yellow-500"></i>
         </div>
-        <div class="p-3 bg-yellow-100 text-yellow-600 rounded-full">
-            <i class="fas fa-bell fa-2x"></i>
-        </div>
-    </div>
-</div>
-
-<div class="mb-8">
-    <h3 class="text-xl font-semibold text-gray-800 mb-4">Quick Links</h3>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        <a href="{{ url_for('admin.admin_students') }}" 
-           class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center text-center text-gray-700 hover:text-blue-600 hover:shadow-lg transition duration-300">
-            <i class="fas fa-users fa-3x mb-3"></i>
-            <span class="font-semibold">Manage Students</span>
-        </a>
-        
-        <a href="{{ url_for('admin.admin_printing') }}" 
-           class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center text-center text-gray-700 hover:text-green-600 hover:shadow-lg transition duration-300">
-            <i class="fas fa-print fa-3x mb-3"></i>
-            <span class="font-semibold">Printing Station</span>
-        </a>
-        
-        <a href="{{ url_for('admin.admin_archive') }}" 
-           class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center text-center text-gray-700 hover:text-gray-900 hover:shadow-lg transition duration-300">
-            <i class="fas fa-archive fa-3x mb-3"></i>
-            <span class="font-semibold">View Archive</span>
-        </a>
-
-        <a href="{{ url_for('core.profile') }}" 
-           class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center text-center text-gray-700 hover:text-indigo-600 hover:shadow-lg transition duration-300">
-            <i class="fas fa-user-circle fa-3x mb-3"></i>
-            <span class="font-semibold">Back to Profile</span>
-        </a>
-    </div>
-</div>
-
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="p-6 border-b border-gray-200">
-            <h3 class="text-xl font-semibold text-gray-800">Upload Status (Total Items)</h3>
-        </div>
-        <div class="p-6">
-            <canvas id="approvalStatusChart"></canvas>
+        <div class="bg-white rounded-lg shadow-md p-6 flex items-center justify-between">
+            <div>
+                <span class="text-sm font-medium text-gray-500">Fully Approved</span>
+                <span class="text-3xl font-bold text-gray-900 block">{{ approved_count }}</span>
+            </div>
+            <i class="fas fa-user-check fa-3x text-green-500"></i>
         </div>
     </div>
     
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <div class="p-6 border-b border-gray-200">
-            <h3 class="text-xl font-semibold text-gray-800">Students by Program</h3>
+            <h3 class="text-xl font-semibold text-gray-800">Pending Approvals</h3>
+            <p class="text-sm text-gray-500">Students needing picture or signature review.</p>
         </div>
-        <div class="p-6">
-            <canvas id="programChart"></canvas>
-        </div>
-    </div>
-    
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="p-6 border-b border-gray-200">
-            <h3 class="text-xl font-semibold text-gray-800">Students by Year Level</h3>
-        </div>
-        <div class="p-6">
-            <canvas id="yearLevelChart"></canvas>
-        </div>
-    </div>
-    
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="p-6 border-b border-gray-200">
-            <h3 class="text-xl font-semibold text-gray-800">New Registrations Over Time</h3>
-        </div>
-        <div class="p-6">
-            <canvas id="registrationsChart"></canvas>
-        </div>
-    </div>
-
-</div>
-<div class="bg-white rounded-lg shadow-md overflow-hidden">
-    <div class="p-6 border-b border-gray-200">
-        <h3 class="text-xl font-semibold text-gray-800">Pending Approvals</h3>
-        <p class="text-sm text-gray-500">Students who require approval for their 1x1 Picture or Signature.</p>
-    </div>
-    
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Program</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Picture Status</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Signature Status</th>
-                    <th scope="col" class="relative px-6 py-3"><span class="sr-only">Review</span></th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                
-                {% macro status_badge(status) %}
-                    <span class="font-bold px-3 py-1 rounded-full text-xs
-                            {% if status == 'approved' %} bg-green-100 text-green-800
-                            {% elif status == 'pending' %} bg-yellow-100 text-yellow-800
-                            {% elif status == 'disapproved' %} bg-red-100 text-red-800
-                            {% else %} bg-gray-100 text-gray-800 {% endif %}">
-                            {{ status | capitalize }}
-                    </span>
-                {% endmacro %}
-
-                {% if pending_students %}
+        {% if pending_students %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Picture Status</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Signature Status</th>
+                        <th scope="col" class="relative px-6 py-3"><span class="sr-only">Review</span></th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
                     {% for student in pending_students %}
                     <tr>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">{{ student.first_name }} {{ student.last_name }}</div>
-                            <div class="text-sm text-gray-500">{{ student.email }}</div>
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    <img class="h-10 w-10 rounded-full" src="{{ student.picture_url or url_for('static', filename='image/default_pfp.png') }}" alt="Student Picture">
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ student.first_name }} {{ student.last_name }}</div>
+                                    <div class="text-sm text-gray-500">{{ student.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ student.student_id }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="font-bold px-3 py-1 rounded-full text-xs
+                                {% if student.picture_status == 'approved' %} bg-green-100 text-green-800
+                                {% elif student.picture_status == 'pending' %} bg-yellow-100 text-yellow-800
+                                {% else %} bg-red-100 text-red-800 {% endif %}">
+                                {{ student.picture_status | capitalize }}
+                            </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">{{ student.program }}</div>
-                            <div class="text-sm text-gray-500">{{ student.year_level }} - {{ student.section }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            {{ status_badge(student.picture_status) }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                             {{ status_badge(student.signature_status) }}
+                            <span class="font-bold px-3 py-1 rounded-full text-xs
+                                {% if student.signature_status == 'approved' %} bg-green-100 text-green-800
+                                {% elif student.signature_status == 'pending' %} bg-yellow-100 text-yellow-800
+                                {% else %} bg-red-100 text-red-800 {% endif %}">
+                                {{ student.signature_status | capitalize }}
+                            </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <a href="{{ url_for('admin.admin_review_student', student_id=student.id) }}" 
-                               class="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition text-xs">
+                            <a href="{{ url_for('admin.admin_review_student', student_id=student.id) }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition text-xs">
                                 Review
                             </a>
                         </td>
                     </tr>
                     {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="5" class="px-6 py-12 text-center text-gray-500">
-                            <i class="fas fa-check-circle fa-3x text-green-500 mb-4"></i>
-                            <h4 class="text-lg font-medium">All Caught Up!</h4>
-                            <p>There are no pending approvals.</p>
-                        </td>
-                    </tr>
-                {% endif %}
                 </tbody>
-        </table>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-6 text-center">
+            <i class="fas fa-check-circle fa-3x text-green-500 mb-4"></i>
+            <h4 class="text-lg font-medium text-gray-700">All Caught Up!</h4>
+            <p class="text-gray-500">There are no pending approvals at this time.</p>
+        </div>
+        {% endif %}
     </div>
+
+    <div class_=("grid grid-cols-1 gap-6")>
+        <div class="bg-white rounded-lg shadow-md p-6 max-w-xl mx-auto w-full">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Students by Program</h3>
+            <div class="h-64 md:h-80">
+                <canvas id="programChart"></canvas>
+            </div>
+        </div>
+    </div>
+
 </div>
 {% endblock %}
 
-
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         
-        // --- Data from Flask ---
-        const approvalLabels = {{ approval_status_labels|tojson }};
-        const approvalData = {{ approval_status_data|tojson }};
-        
-        const programLabels = {{ program_chart_labels|tojson }};
-        const programData = {{ program_chart_data|tojson }};
-        
-        const yearLabels = {{ year_chart_labels|tojson }};
-        const yearData = {{ year_chart_data|tojson }};
-        
-        const regLabels = {{ reg_chart_labels|tojson }};
-        const regData = {{ reg_chart_data|tojson }};
+        // --- Program Chart (Donut) ---
+        {% if program_chart_labels %}
+        const programCtx = document.getElementById('programChart').getContext('2d');
+        new Chart(programCtx, {
+            type: 'doughnut', // <-- Changed to doughnut
+            data: {
+                labels: {{ program_chart_labels | safe }},
+                datasets: [{
+                    label: 'Students',
+                    data: {{ program_chart_data | safe }},
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.8)', // Blue
+                        'rgba(255, 206, 86, 0.8)', // Yellow
+                        'rgba(75, 192, 192, 0.8)', // Green
+                        'rgba(153, 102, 255, 0.8)', // Purple
+                        'rgba(255, 159, 64, 0.8)'  // Orange
+                    ],
+                    borderColor: [
+                        'rgba(255, 255, 255, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+        {% endif %}
 
-        // --- Chart 1: Approval Status Pie ---
-        const ctxApproval = document.getElementById('approvalStatusChart');
-        if (ctxApproval && approvalData.length > 0) {
-            new Chart(ctxApproval, {
-                type: 'pie', // Changed to 'pie'
-                data: {
-                    labels: approvalLabels,
-                    datasets: [{
-                        label: 'Upload Statuses',
-                        data: approvalData,
-                        backgroundColor: [
-                            'rgba(251, 191, 36, 0.7)', // Yellow-400
-                            'rgba(239, 68, 68, 0.7)',  // Red-500
-                            'rgba(52, 211, 153, 0.7)'  // Green-400
-                        ],
-                        borderColor: [
-                            'rgba(251, 191, 36, 1)',
-                            'rgba(239, 68, 68, 1)',
-                            'rgba(52, 211, 153, 1)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        }
-                    }
-                }
-            });
-        }
+        // --- All other chart scripts have been removed ---
         
-        // --- Chart 2: Program Pie ---
-        const ctxProgram = document.getElementById('programChart');
-        if (ctxProgram && programData.length > 0) {
-            new Chart(ctxProgram, {
-                type: 'pie', // Changed to 'pie'
-                data: {
-                    labels: programLabels,
-                    datasets: [{
-                        label: 'Students by Program',
-                        data: programData,
-                        backgroundColor: [
-                            'rgba(59, 130, 246, 0.7)', // Blue-500
-                            'rgba(16, 185, 129, 0.7)', // Green-500
-                            'rgba(234, 179, 8, 0.7)',  // Yellow-500
-                            'rgba(139, 92, 246, 0.7)'  // Violet-500
-                        ],
-                        borderColor: [
-                            'rgba(59, 130, 246, 1)',
-                            'rgba(16, 185, 129, 1)',
-                            'rgba(234, 179, 8, 1)',
-                            'rgba(139, 92, 246, 1)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        }
-                    }
-                }
-            });
-        }
-        
-        // --- Chart 3: Year Level Bar ---
-        const ctxYear = document.getElementById('yearLevelChart');
-        if (ctxYear && yearData.length > 0) {
-            new Chart(ctxYear, {
-                type: 'bar',
-                data: {
-                    labels: yearLabels,
-                    datasets: [{
-                        label: 'Number of Students',
-                        data: yearData,
-                        backgroundColor: 'rgba(234, 179, 8, 0.6)', // Yellow-500
-                        borderColor: 'rgba(234, 179, 8, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { stepSize: 1, precision: 0 }
-                        }
-                    },
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-        
-        // --- Chart 4: Registrations Line ---
-        const ctxReg = document.getElementById('registrationsChart');
-        if (ctxReg && regData.length > 0) {
-            new Chart(ctxReg, {
-                type: 'line',
-                data: {
-                    labels: regLabels,
-                    datasets: [{
-                        label: 'New Registrations',
-                        data: regData,
-                        fill: true,
-                        backgroundColor: 'rgba(16, 185, 129, 0.2)', // Green-500
-                        borderColor: 'rgba(16, 185, 129, 1)',
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { stepSize: 1, precision: 0 }
-                        }
-                    },
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
     });
 </script>
 {% endblock %}
