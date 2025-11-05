@@ -15,61 +15,23 @@ admin_bp = Blueprint('admin', __name__,
 @admin_required
 def admin_dashboard():
     try:
-        # --- MODIFICATION: Fetch all data for charts in one go ---
-        all_profiles_res = supabase.table("profiles").select("program, picture_status, signature_status").execute()
-        all_profiles = all_profiles_res.data
-        
-        student_count = len(all_profiles)
-        approved_count = 0 # For stats card
-        
-        # --- Chart 1: Approval Status Pie (REMOVED) ---
-
-        # --- Chart 2: Program Pie Chart (Data is Kept) ---
-        program_list = [p['program'] for p in all_profiles if p.get('program')]
-        program_counts_dict = Counter(program_list)
-        program_count = len(program_counts_dict) # This is the "Unique Programs" stat
-        program_chart_labels = list(program_counts_dict.keys())
-        program_chart_data = list(program_counts_dict.values())
-        
-        # --- Chart 3: Year Level Bar Chart (REMOVED) ---
-        
-        # --- Chart 4: Registrations Line Chart (REMOVED) ---
-
-        # --- Calculate Approved Count for Stats Card ---
-        for p in all_profiles:
-            if p.get('picture_status') == 'approved' and p.get('signature_status') == 'approved':
-                approved_count += 1
-                
-        # --- Fetch Pending Approvals (for table) ---
-        pending_query = supabase.table("profiles").select("*", count='exact').or_("picture_status.eq.pending,signature_status.eq.pending")
-        pending_res = pending_query.order("last_name", desc=False).execute()
-        pending_students = pending_res.data
-        pending_count = pending_res.count
-        # --- END ---
-        
+        # --- MODIFICATION ---
+        # We no longer fetch data here. We pass the Supabase credentials
+        # to the template so the JavaScript client can connect in real-time.
+        # All data fetching (stats, charts, table) will be done by JavaScript.
         return render_template(
-            'dashboard.html', 
-            student_count=student_count, 
-            program_count=program_count,
-            pending_count=pending_count,
-            approved_count=approved_count, # <-- Pass new approved count
-            pending_students=pending_students,
-            
-            # Pass only program chart data
-            program_chart_labels=program_chart_labels,
-            program_chart_data=program_chart_data
+            'dashboard.html',
+            supabase_url=Config.SUPABASE_URL,
+            supabase_key=Config.SUPABASE_KEY # <-- Corrected from SUPABASE_ANON_KEY
         )
+        # --- END MODIFICATION ---
+
     except Exception as e:
         flash(f"Error loading dashboard: {str(e)}", "error")
         return render_template(
-            'dashboard.html', 
-            student_count=0, 
-            program_count=0,
-            pending_count=0,
-            approved_count=0,
-            pending_students=[],
-            # Default empty values
-            program_chart_labels=[], program_chart_data=[]
+            'dashboard.html',
+            supabase_url=None,
+            supabase_key=None
         )
 
 # --- All other routes (admin_students, admin_edit_student, etc.) remain exactly as you provided ---
@@ -153,10 +115,10 @@ def admin_students():
     except Exception as e:
         flash(f"Error fetching students: {str(e)}", "error")
         return render_template('students.html', 
-                               students=[], programs=[], sections=[], 
-                               all_years=[], all_majors=[],
-                               current_sort_by='last_name',
-                               current_sort_order='asc'
+                                students=[], programs=[], sections=[], 
+                                all_years=[], all_majors=[],
+                                current_sort_by='last_name',
+                                current_sort_order='asc'
                              )
 
 

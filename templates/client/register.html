@@ -48,7 +48,7 @@
     <div class="flex flex-col items-center justify-start min-h-full w-full p-6 py-12"
         style="background-color: rgb(0, 0, 0, 0.6);">
 
-        <a href="{{ url_for('core.index') }}">
+        <a href="{{ url_for('auth.home') }}">
             <img src="{{ url_for('static', filename='image/lspu.png') }}" alt="LSPU Logo" class="w-24 md:w-28 mb-4">
         </a>
         {% with messages = get_flashed_messages() %}
