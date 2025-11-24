@@ -61,6 +61,7 @@ def update_profile():
     update_data = {
         "first_name": request.form.get('first_name', user['first_name']),
         "middle_name": request.form.get('middle_name', user['middle_name']),
+        "suffix_name": request.form.get('suffix_name', user.get('suffix_name')),
         "last_name": request.form.get('last_name', user['last_name']),
         "program": program, # Use the program variable
         "semester": request.form.get('semester', user['semester']),

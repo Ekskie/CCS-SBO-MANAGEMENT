@@ -25,7 +25,7 @@
         }
     </script>
 
-    <style>
+    <style type="text/tailwindcss">
         input[type="file"]::file-selector-button {
             @apply px-4 py-2 bg-gray-600 text-gray-200 border-none rounded-md font-medium text-sm hover:bg-gray-700 cursor-pointer transition;
         }
@@ -102,9 +102,8 @@
 
                 {% macro form_input(name, placeholder, type='text', required=True, pattern=None, title=None) %}
                 <div>
-                    <label for="{{ name }}" class="block text-sm font-medium text-gray-200 mb-1">{{ placeholder
-                        }}</label>
-                    <input type="{{ type }}" name="{{ name }}" id="{{ name }}" placeholder="{{ placeholder }}" {% if
+                    <label for="{{ name }}" class="block text-sm font-medium text-gray-200 mb-1">{{ placeholder|safe }}</label>
+                    <input type="{{ type }}" name="{{ name }}" id="{{ name }}" placeholder="{{ placeholder|striptags }}" {% if
                         required %}required{% endif %} {% if pattern %}pattern="{{ pattern }}" {% endif %} {% if title
                         %}title="{{ title }}" {% endif %}
                         class="w-full px-4 py-3 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition invalid:border-red-500 invalid:ring-red-500">
@@ -143,17 +142,17 @@
                                     class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-200"
                                     onclick="togglePasswordVisibility('password', this)">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                                    </svg>
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.5" stroke="currentColor" class="w-5 h-5" style="display: none;">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.243 4.243L12 12" />
-                                    </svg>
+                                    stroke-width="1.5" stroke="currentColor" class="w-5 h-5" >
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.243 4.243L12 12" />
+                                </svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="w-5 h-5" style="display: none;">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                </svg>
                                 </button>
                             </div>
                         </div>
@@ -171,14 +170,14 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                         stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                         <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                            d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.243 4.243L12 12" />
                                     </svg>
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                         stroke-width="1.5" stroke="currentColor" class="w-5 h-5" style="display: none;">
                                         <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.243 4.243L12 12" />
+                                            d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                     </svg>
                                 </button>
                             </div>
@@ -195,8 +194,10 @@
                 <fieldset id="form-step-2" class="space-y-4" style="display: none;">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {{ form_input('first_name', 'First Name') }}
-                        {{ form_input('middle_name', 'Middle Name', required=False) }}
+                        {{ form_input('middle_name', 'Middle Name <span class="text-[8px] text-gray-500">(Leave Blank if None)</span>', required=False) }}
                         {{ form_input('last_name', 'Last Name') }}
+                        {{ form_input('suffix_name', 'Suffix Name', required=False) }}
+
                     </div>
                     
                     <div class="flex justify-between pt-4">

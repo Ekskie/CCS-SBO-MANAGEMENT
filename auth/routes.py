@@ -97,6 +97,7 @@ def register():
 
         first_name = request.form.get("first_name")
         middle_name = request.form.get("middle_name")
+        suffix_name = request.form.get("suffix_name")
         last_name = request.form.get("last_name")
         student_id = request.form.get("student_id")
         program = request.form.get("program")
@@ -213,6 +214,7 @@ def register():
                     "student_id": student_id,
                     "first_name": first_name,
                     "middle_name": middle_name,
+                    "suffix_name": suffix_name,
                     "last_name": last_name,
                     "program": program,
                     "semester": semester,
@@ -271,33 +273,56 @@ def forgot_password():
             return render_template('forgot_password.html')
             
         try:
-            # Check if email exists in profiles (user-friendly feedback)
+            # Check if email exists
             profile_res = supabase.table("profiles").select("email").eq("email", email).execute()
             if not profile_res.data:
                 flash("No account is registered with that email address.")
                 return render_template('forgot_password.html')
 
-            # --- THIS IS THE FIX ---
-            # The 'redirect_to' argument is NOT used in the Python client.
-            # This must be configured in your Supabase project's
-            # Authentication > URL Configuration settings.
-            supabase.auth.reset_password_for_email(email=email)
-            # --- END OF FIX ---
+            # 1. STORE EMAIL & SEND FLAG IN SESSION
+            session['reset_email'] = email
+            session['email_just_sent'] = True  # <--- NEW: Flag to start timer on next page
+
+            # Send reset email
+            supabase.auth.reset_password_for_email(
+                email,
+                { "redirect_to": url_for("auth.login", _external=True) }
+            )
             
-            # Don't flash a message here, just send them to the confirmation page
             return redirect(url_for('auth.check_email'))
             
         except Exception as e:
             flash(f"An error occurred: {str(e)}")
             return render_template('forgot_password.html')
             
-    # GET request
     return render_template('forgot_password.html')
 
-@auth_bp.route('/check_email')
+@auth_bp.route('/check_email', methods=['GET', 'POST'])
 def check_email():
-    # This is just a simple page to tell the user to check their email
-    return render_template('check_email.html')
+    email = session.get('reset_email')
+    
+    # Check if we should auto-start the timer (pop removes it from session so it doesn't trigger on refresh)
+    auto_start = session.pop('email_just_sent', False) 
+    
+    if not email:
+        flash("Session expired. Please try resetting your password again.")
+        return redirect(url_for('auth.forgot_password'))
+
+    if request.method == 'POST':
+        try:
+            supabase.auth.reset_password_for_email(
+                email,
+                { "redirect_to": url_for("auth.login", _external=True) }
+            )
+            flash('Email resent successfully! Please check your inbox.')
+            # If they manually resend, we also want to restart the timer (handled by JS, but we can enforce logic here too)
+            auto_start = True 
+            
+        except Exception as e:
+            flash(f"Error resending email: {str(e)}")
+
+    # Pass auto_start to the template
+    return render_template('check_email.html', email=email, auto_start=auto_start)
 
 @auth_bp.route('/logout')
 def logout():
