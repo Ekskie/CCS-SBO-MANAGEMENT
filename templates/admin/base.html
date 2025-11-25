@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="shortcut icon" href="/static/image/lspu.png" type="image/x-icon">
 
     <script>
         tailwind.config = {
@@ -91,6 +92,13 @@
                          {% endif %}">
                     <i class="fas fa-archive w-6 text-center mr-3"></i>
                     <span class="font-medium">Archive</span>
+                </a>
+                 <!-- NEW: Activity Logs Link -->
+                <a href="{{ url_for('admin.activity_logs') }}"
+                    class="flex items-center px-4 py-3 rounded-lg transition duration-200 nav-link
+                    {% if request.endpoint == 'admin.activity_logs' %}  bg-blue-600 text-white {% else %} hover:bg-gray-700 hover:text-white {% endif %}">
+                    <i class="fas fa-history w-6 text-center mr-3"></i>
+                    Activity Logs
                 </a>
             </nav>
 

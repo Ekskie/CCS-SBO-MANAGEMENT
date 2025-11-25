@@ -10,6 +10,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Times+New+Roman&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="/static/image/lspu.png" type="image/x-icon">
+        
 </head>
 
 <body>
@@ -86,16 +88,16 @@
         <footer>
             <div class="advisers">
                 <div class="adviser-col">
-                    <p class="signature-name">MERVIN JOMMEL T. DE JESUS</p>
-                    <p class="signature-title">Organization Adviser</p>
+                    <p class="signature-name">{{ adviser1.name }}</p>
+                    <p class="signature-title">{{ adviser1.title }}</p>
                     <!-- AUTOMATED DATE -->
-                    <p class="signature-date">Date: <span class="fill-in-date">{{ generation_date }}</span></p>
+                    <p class="signature-date">Date: <span class="fill-in-date">{{ adviser1.date }}</span></p>
                 </div>
                 <div class="adviser-col">
-                    <p class="signature-name">LOUIE JEROME L. ROLDAN</p>
-                    <p class="signature-title">Organization Adviser</p>
+                    <p class="signature-name">{{ adviser2.name }}</p>
+                    <p class="signature-title">{{ adviser2.title }}</p>
                     <!-- AUTOMATED DATE -->
-                    <p class="signature-date">Date: <span class="fill-in-date">{{ generation_date }}</span></p>
+                    <p class="signature-date">Date: <span class="fill-in-date">{{ adviser2.date }}</span></p>
                 </div>
             </div>
 
@@ -103,21 +105,21 @@
                 <div class="approval-block">
                     <p></p>
                     <p class="approval-label dean">Noted:</p>
-                    <p class="signature-name no-border dean">FRANCIS F. BALAHADIA, DIT</p>
-                    <p class="signature-title dean">Dean/Assoc. Dean of College</p>
+                    <p class="signature-name no-border dean">{{ dean.name }}</p>
+                    <p class="signature-title dean">{{ dean.title }}</p>
                 </div>
                 <div class="approval-block">
                     <p></p>
                     <p class="approval-label">Recommending Approval:</p>
-                    <p class="signature-name no-border">NIÑO EMMANUEL ALDI L. ASTOVEZA</p>
-                    <p class="signature-title">Head, Student Organization and Activities Unit</p>
+                    <p class="signature-name no-border">{{ head.name }}</p>
+                    <p class="signature-title">{{ head.title }}</p>
                 </div>
 
                 <div class="approval-block">
                     <p></p>
                     <p class="approval-label">Approved / Disapproved:</p>
-                    <p class="signature-name no-border">JEANFEL J. CASIÑO</p>
-                    <p class="signature-title">Director/Chairperson, Office of Student Affairs and Services</p>
+                    <p class="signature-name no-border">{{ director.name }}</p>
+                    <p class="signature-title">{{ director.title }}</p>
                 </div>
             </div>
             <div class="doc-info">
@@ -185,14 +187,14 @@
             <footer>
                 <div class="advisers">
                     <div class="adviser-col">
-                        <p class="signature-name">MERVIN JOMMEL T. DE JESUS</p>
-                        <p class="signature-title">Organization Adviser</p>
-                        <p class="signature-date">Date: <span class="fill-in-date">{{ generation_date }}</span></p>
+                        <p class="signature-name">{{ adviser1.name }}</p>
+                        <p class="signature-title">{{ adviser1.title }}</p>
+                        <p class="signature-date">Date: <span class="fill-in-date">{{ adviser1.date }}</span></p>
                     </div>
                     <div class="adviser-col">
-                        <p class="signature-name">LOUIE JEROME L. ROLDAN</p>
-                        <p class="signature-title">Organization Adviser</p>
-                        <p class="signature-date">Date: <span class="fill-in-date">{{ generation_date }}</span></p>
+                        <p class="signature-name">{{ adviser2.name }}</p>
+                        <p class="signature-title">{{ adviser2.title }}</p>
+                        <p class="signature-date">Date: <span class="fill-in-date">{{ adviser2.date }}</span></p>
                     </div>
                 </div>
 
@@ -200,21 +202,21 @@
                     <div class="approval-block">
                         <p></p>
                         <p class="approval-label dean">Noted:</p>
-                        <p class="signature-name no-border dean">FRANCIS F. BALAHADIA, DIT</p>
-                        <p class="signature-title dean">Dean/Assoc. Dean of College</p>
+                        <p class="signature-name no-border dean">{{ dean.name }}</p>
+                        <p class="signature-title dean">{{ dean.title }}</p>
                     </div>
                     <div class="approval-block">
                         <p></p>
                         <p class="approval-label">Recommending Approval:</p>
-                        <p class="signature-name no-border">NIÑO EMMANUEL ALDI L. ASTOVEZA</p>
-                        <p class="signature-title">Head, Student Organization and Activities Unit</p>
+                        <p class="signature-name no-border">{{ head.name }}</p>
+                        <p class="signature-title">{{ head.title }}</p>
                     </div>
 
                     <div class="approval-block">
                         <p></p>
                         <p class="approval-label">Approved / Disapproved:</p>
-                        <p class="signature-name no-border">JEANFEL J. CASIÑO</p>
-                        <p class="signature-title">Director/Chairperson, Office of Student Affairs and Services</p>
+                        <p class="signature-name no-border">{{ director.name }}</p>
+                        <p class="signature-title">{{ director.title }}</p>
                     </div>
                 </div>
                 <div class="doc-info">
@@ -294,4 +296,3 @@
 </body>
 
 </html>
-

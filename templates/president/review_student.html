@@ -16,7 +16,8 @@
     </div>
 
     <div class="mb-6">
-        <h2 class="text-3xl font-bold text-gray-800">{{ student.first_name }} {{ student.last_name }}</h2>
+        {# Added Suffix Name Logic #}
+        <h2 class="text-3xl font-bold text-gray-800">{{ student.first_name }} {{student.middle_name}} {{ student.last_name }} {% if student.suffix_name %}{{ student.suffix_name }}{% endif %}</h2>
         <p class="text-lg text-gray-500">{{ student.student_id }}</p>
     </div>
 
@@ -95,7 +96,7 @@
             </div>
 
         </div> {% if student.picture_status != 'approved' or student.signature_status != 'approved' %}
-        <div class_a="mt-8 bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="mt-8 bg-white rounded-lg shadow-md overflow-hidden">
             <div class="p-6 border-b border-gray-200">
                 <h3 class="text-xl font-semibold text-gray-800">Disapproval Reason</h3>
                 <p class="text-sm text-gray-500">Required if you are disapproving an item.</p>

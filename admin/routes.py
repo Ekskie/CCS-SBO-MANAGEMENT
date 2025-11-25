@@ -10,21 +10,43 @@ from config import Config # <-- Import Config class
 admin_bp = Blueprint('admin', __name__,
                      template_folder='../templates/admin')
 
+# Helper function to log activity
+def log_activity(action, target_user_id=None, target_user_name=None, details=None):
+    try:
+        admin_id = session.get('user_id')
+        if not admin_id:
+            return # Should not happen due to admin_required, but safety first
+
+        # Fetch admin name
+        admin_res = supabase.table("profiles").select("first_name, last_name, email").eq("id", admin_id).single().execute()
+        admin_name = "Unknown Admin"
+        if admin_res.data:
+            admin_name = f"{admin_res.data.get('first_name', '')} {admin_res.data.get('last_name', '')}".strip()
+            if not admin_name:
+                admin_name = admin_res.data.get('email', 'Unknown Admin')
+
+        log_data = {
+            "admin_id": admin_id,
+            "admin_name": admin_name,
+            "action": action,
+            "target_user_id": target_user_id,
+            "target_user_name": target_user_name,
+            "details": details
+        }
+        supabase.table("activity_logs").insert(log_data).execute()
+    except Exception as e:
+        print(f"Failed to log activity: {e}")
+
 @admin_bp.route('/')
 @admin_bp.route('/dashboard')
 @admin_required
 def admin_dashboard():
     try:
-        # --- MODIFICATION ---
-        # We no longer fetch data here. We pass the Supabase credentials
-        # to the template so the JavaScript client can connect in real-time.
-        # All data fetching (stats, charts, table) will be done by JavaScript.
         return render_template(
             'dashboard.html',
             supabase_url=Config.SUPABASE_URL,
-            supabase_key=Config.SUPABASE_KEY # <-- Corrected from SUPABASE_ANON_KEY
+            supabase_key=Config.SUPABASE_KEY 
         )
-        # --- END MODIFICATION ---
 
     except Exception as e:
         flash(f"Error loading dashboard: {str(e)}", "error")
@@ -34,24 +56,19 @@ def admin_dashboard():
             supabase_key=None
         )
 
-# --- All other routes (admin_students, admin_edit_student, etc.) remain exactly as you provided ---
-
 @admin_bp.route('/students')
 @admin_required
 def admin_students():
     try:
-        # Get filters
         search_name = request.args.get('search_name', '')
         filter_program = request.args.get('filter_program', '')
         filter_section = request.args.get('filter_section', '')
         filter_year_level = request.args.get('filter_year_level', '') 
         filter_major = request.args.get('filter_major', '') 
         
-        # Get sorting parameters
         sort_by = request.args.get('sort_by', 'last_name')
         sort_order = request.args.get('sort_order', 'asc')
 
-        # Validate sort_by to prevent arbitrary column sorting
         allowed_sorts = [
             'last_name', 'student_id', 'program', 
             'account_type', 'picture_status', 'signature_status'
@@ -59,13 +76,10 @@ def admin_students():
         if sort_by not in allowed_sorts:
             sort_by = 'last_name'
         
-        # Determine sort direction
         is_desc = (sort_order == 'desc')
 
-        # Base query
         query = supabase.table("profiles").select("*")
 
-        # Apply filters
         if search_name:
             query = query.or_(f"first_name.ilike.%{search_name}%,last_name.ilike.%{search_name}%,middle_name.ilike.%{search_name}%,student_id.ilike.%{search_name}%,email.ilike.%{search_name}%")
         if filter_program:
@@ -77,16 +91,13 @@ def admin_students():
         if filter_major: 
             query = query.eq('major', filter_major) 
 
-        # Apply dynamic sorting
         query = query.order(sort_by, desc=is_desc)
         if sort_by != 'last_name':
              query = query.order('last_name', desc=False) 
 
-        # Execute query
         response = query.execute()
         students = response.data
 
-        # Get filter options for dropdowns
         programs_res = supabase.table("profiles").select("program").execute()
         sections_res = supabase.table("profiles").select("section").execute()
         years_res = supabase.table("profiles").select("year_level").execute()
@@ -122,7 +133,6 @@ def admin_students():
                              )
 
 
-# (admin_edit_student function)
 @admin_bp.route('/edit_student/<student_id>', methods=['GET', 'POST'])
 @admin_required
 def admin_edit_student(student_id):
@@ -155,10 +165,14 @@ def admin_edit_student(student_id):
             else: 
                  major = None
 
+            first_name = request.form.get('first_name')
+            last_name = request.form.get('last_name')
+
             update_data = {
-                "first_name": request.form.get('first_name'),
+                "first_name": first_name,
                 "middle_name": request.form.get('middle_name'),
-                "last_name": request.form.get('last_name'),
+                "last_name": last_name,
+                "suffix_name": request.form.get('suffix_name'),
                 "program": program,
                 "semester": request.form.get('semester'),
                 "year_level": year_level,
@@ -217,6 +231,10 @@ def admin_edit_student(student_id):
                 update_data["disapproval_reason"] = None
 
             supabase.table("profiles").update(update_data).eq("id", student_id).execute()
+            
+            # Log activity
+            log_activity("Update Student", target_user_id=student_id, target_user_name=f"{first_name} {last_name}", details="Updated student profile details via admin edit.")
+
             flash('Student profile updated successfully.')
             return redirect(url_for('admin.admin_students'))
 
@@ -225,7 +243,6 @@ def admin_edit_student(student_id):
             student_data = supabase.table("profiles").select("*").eq("id", student_id).single().execute().data
             return render_template('edit_student.html', student=student_data)
 
-    # GET request
     try:
         response = supabase.table("profiles").select("*").eq("id", student_id).single().execute()
         if not response.data:
@@ -237,12 +254,11 @@ def admin_edit_student(student_id):
         flash(f"Error fetching profile: {str(e)}", "error")
         return redirect(url_for('admin.admin_students'))
 
-# (admin_delete_student function)
 @admin_bp.route('/delete_student/<student_id>', methods=['POST'])
 @admin_required
 def admin_delete_student(student_id):
     try:
-        profile_res = supabase.table("profiles").select("id, student_id, picture_url, signature_url").eq("id", student_id).single().execute()
+        profile_res = supabase.table("profiles").select("id, first_name, last_name, student_id, picture_url, signature_url").eq("id", student_id).single().execute()
         
         if not profile_res.data:
             flash("Student not found.", "error")
@@ -250,6 +266,7 @@ def admin_delete_student(student_id):
         
         profile = profile_res.data
         auth_user_id = profile['id']
+        student_name = f"{profile.get('first_name')} {profile.get('last_name')}"
 
         try:
             files_to_remove_pic = []
@@ -272,6 +289,11 @@ def admin_delete_student(student_id):
             print(f"Warning: Failed to delete storage files for {student_id}: {str(e)}")
             flash(f"Profile deleted, but failed to delete storage files: {str(e)}", "warning") 
 
+        # Log activity BEFORE deleting the profile, as we need the name/ID.
+        # Note: Foreign key on target_user_id might fail if set to RESTRICT. 
+        # If ON DELETE SET NULL is used, the ID remains but name is good to keep in text.
+        log_activity("Delete Student", target_user_id=auth_user_id, target_user_name=student_name, details=f"Deleted student {profile.get('student_id')}.")
+
         supabase.table("profiles").delete().eq("id", auth_user_id).execute()
         
         try:
@@ -287,7 +309,6 @@ def admin_delete_student(student_id):
         
     return redirect(url_for('admin.admin_students'))
 
-# (admin_archive function)
 @admin_bp.route('/archive')
 @admin_required
 def admin_archive():
@@ -357,7 +378,6 @@ def admin_archive():
         flash(f"Error loading archive: {str(e)}", "error")
         return render_template('archive.html', archives=[], all_academic_years=[], all_semesters=[], all_programs=[], all_majors=[], current_ay='', current_semester='', current_program='', current_major='')
 
-# (admin_printing function)
 @admin_bp.route('/printing')
 @admin_required
 def admin_printing():
@@ -423,7 +443,6 @@ def admin_printing():
         flash(f"Error fetching groups: {str(e)}", "error")
         return render_template('printing.html', groups=[], error=str(e), all_programs=[], all_years=[], all_sections=[], all_semesters=[])
 
-# (admin_print_preview function)
 @admin_bp.route('/print_preview')
 @admin_required
 def admin_print_preview():
@@ -432,6 +451,25 @@ def admin_print_preview():
     section = request.args.get('section')
     major = request.args.get('major')
     semester = request.args.get('semester') 
+    
+    # --- NEW: Get Signatory Params with Defaults ---
+    adviser1_name = request.args.get('adviser1_name', 'MERVIN JOMMEL T. DE JESUS')
+    adviser1_title = request.args.get('adviser1_title', 'Organization Adviser')
+    adviser1_date = request.args.get('adviser1_date', 'November 25, 2025')
+    
+    adviser2_name = request.args.get('adviser2_name', 'LOUIE JEROME L. ROLDAN')
+    adviser2_title = request.args.get('adviser2_title', 'Organization Adviser')
+    adviser2_date = request.args.get('adviser2_date', 'November 25, 2025')
+    
+    dean_name = request.args.get('dean_name', 'FRANCIS F. BALAHADIA, DIT')
+    dean_title = request.args.get('dean_title', 'Dean/Assoc. Dean of College')
+    
+    head_name = request.args.get('head_name', 'NIÑO EMMANUEL ALDI L. ASTOVEZA')
+    head_title = request.args.get('head_title', 'Head, Student Organization and Activities Unit')
+    
+    director_name = request.args.get('director_name', 'JEANFEL J. CASIÑO')
+    director_title = request.args.get('director_title', 'Director/Chairperson, Office of Student Affairs and Services')
+    # -----------------------------------------------
 
     if not all([program, year_level, section, semester]):
         flash("Error: Missing required group information (Program, Year, Section, Semester).", "error")
@@ -457,8 +495,16 @@ def admin_print_preview():
             last_name = p.get('last_name', '')
             first_name = p.get('first_name', '')
             middle_name = p.get('middle_name', '')
+            suffix_name = p.get('suffix_name', '')
             
-            full_name = f"{last_name}, {first_name} {middle_name}".strip()
+            full_name_parts = [last_name]
+            if suffix_name:
+                full_name_parts.append(suffix_name)
+            
+            full_name_str = " ".join(full_name_parts) + ","
+            full_name = f"{full_name_str} {first_name} {middle_name}".strip()
+            
+            full_name = " ".join(full_name.split())
             if full_name == ',': full_name = "Name Missing"
                 
             course_parts = [p.get('program', 'N/A'), f"{p.get('year_level', 'N/A')} {p.get('section', 'N/A')}"]
@@ -486,12 +532,21 @@ def admin_print_preview():
             academic_year = f"AY {current_year_num - 1}-{current_year_num}"
         generation_date = today.strftime("%B %d, %Y") 
 
+        # Log activity: Preview Generated
+        log_activity("Generate Print Preview", details=f"Generated preview for {program} {year_level}-{section}.")
+
         return render_template(
             './print_template.html',
             members=sorted_members, 
             semester_display=semester_display,
             academic_year=academic_year,
-            generation_date=generation_date
+            generation_date=generation_date,
+            # --- Pass Signatory Data ---
+            adviser1={'name': adviser1_name, 'title': adviser1_title, 'date': adviser1_date},
+            adviser2={'name': adviser2_name, 'title': adviser2_title, 'date': adviser2_date},
+            dean={'name': dean_name, 'title': dean_title},
+            head={'name': head_name, 'title': head_title},
+            director={'name': director_name, 'title': director_title}
         )
     
     except Exception as e:
@@ -499,7 +554,6 @@ def admin_print_preview():
         flash(f"Error generating print preview: {str(e)}", "error")
         return redirect(url_for('admin.admin_printing'))
 
-# (admin_archive_group function)
 @admin_bp.route('/archive_group', methods=['POST'])
 @admin_required
 def admin_archive_group():
@@ -510,6 +564,33 @@ def admin_archive_group():
         major = request.form.get('major')
         semester = request.form.get('semester')
         academic_year_form = request.form.get('academic_year') 
+
+        # --- NEW: Get Signatories from Form (submitted via Modal now) ---
+        signatories = {
+            "adviser1": {
+                "name": request.form.get('adviser1_name'),
+                "title": request.form.get('adviser1_title'),
+                "date": request.form.get('adviser1_date')
+            },
+            "adviser2": {
+                "name": request.form.get('adviser2_name'),
+                "title": request.form.get('adviser2_title'),
+                "date": request.form.get('adviser2_date')
+            },
+            "dean": {
+                "name": request.form.get('dean_name'),
+                "title": request.form.get('dean_title')
+            },
+            "head": {
+                "name": request.form.get('head_name'),
+                "title": request.form.get('head_title')
+            },
+            "director": {
+                "name": request.form.get('director_name'),
+                "title": request.form.get('director_title')
+            }
+        }
+        # ------------------------------------------------------------------
 
         if not academic_year_form:
             flash("Academic Year is required to create an archive.", "error")
@@ -541,7 +622,16 @@ def admin_archive_group():
             last_name = p.get('last_name', '')
             first_name = p.get('first_name', '')
             middle_name = p.get('middle_name', '')
-            full_name = f"{last_name}, {first_name} {middle_name}".strip()
+            suffix_name = p.get('suffix_name', '')
+
+            full_name_parts = [last_name]
+            if suffix_name:
+                full_name_parts.append(suffix_name)
+            
+            full_name_str = " ".join(full_name_parts) + ","
+            full_name = f"{full_name_str} {first_name} {middle_name}".strip()
+            
+            full_name = " ".join(full_name.split())
             if full_name == ',': full_name = "Name Missing"
                 
             course_parts = [p.get('program', 'N/A'), f"{p.get('year_level', 'N/A')}{p.get('section', 'N/A')}"]
@@ -573,11 +663,15 @@ def admin_archive_group():
             "semester": semester,
             "group_name": group_name,
             "student_data": sorted_members,
-            "generation_date": generation_date
+            "generation_date": generation_date,
+            "signatories": signatories # <--- Save Signatories to DB
         }
         
         supabase_admin.table("archived_groups").insert(insert_data).execute()
         
+        # Log activity
+        log_activity("Archive Group", details=f"Archived group {group_name} for AY {academic_year_form}.")
+
         flash(f"Successfully archived group '{group_name}' for {academic_year_form}.", "success")
 
     except Exception as e:
@@ -587,7 +681,6 @@ def admin_archive_group():
     return redirect(url_for('admin.admin_printing'))
 
 
-# (admin_archive_preview function)
 @admin_bp.route('/archive_preview/<archive_id>')
 @admin_required
 def admin_archive_preview(archive_id):
@@ -605,24 +698,65 @@ def admin_archive_preview(archive_id):
         academic_year = archive.get('academic_year', 'N/A')
         generation_date = archive.get('generation_date', 'N/A')
 
+        # --- Retrieve Signatories from Archive ---
+        signatories = archive.get('signatories', {})
+        
+        # Defaults in case archive is old or empty
+        default_date = generation_date
+        
+        adviser1 = signatories.get('adviser1', {
+            'name': 'MERVIN JOMMEL T. DE JESUS', 'title': 'Organization Adviser', 'date': default_date
+        })
+        adviser2 = signatories.get('adviser2', {
+            'name': 'LOUIE JEROME L. ROLDAN', 'title': 'Organization Adviser', 'date': default_date
+        })
+        dean = signatories.get('dean', {
+            'name': 'FRANCIS F. BALAHADIA, DIT', 'title': 'Dean/Assoc. Dean of College'
+        })
+        head = signatories.get('head', {
+            'name': 'NIÑO EMMANUEL ALDI L. ASTOVEZA', 'title': 'Head, Student Organization and Activities Unit'
+        })
+        director = signatories.get('director', {
+            'name': 'JEANFEL J. CASIÑO', 'title': 'Director/Chairperson, Office of Student Affairs and Services'
+        })
+        # -----------------------------------------
+
+        # Log activity (optional for view actions, but good for tracking access)
+        # log_activity("View Archive", details=f"Viewed archive preview for {archive.get('group_name')}.")
+
         return render_template(
             './print_template.html',
             members=sorted_members,
             semester_display=semester_display,
             academic_year=academic_year,
-            generation_date=generation_date
+            generation_date=generation_date,
+            # --- Pass Signatories ---
+            adviser1=adviser1,
+            adviser2=adviser2,
+            dean=dean,
+            head=head,
+            director=director
         )
     except Exception as e:
         print(f"Error loading archive preview {archive_id}: {str(e)}") 
         flash(f"Error loading archive preview: {str(e)}", "error")
         return redirect(url_for('admin.admin_archive'))
 
-# (admin_delete_archive function)
 @admin_bp.route('/delete_archive/<archive_id>', methods=['POST'])
 @admin_required
 def admin_delete_archive(archive_id):
     try:
+        # Fetch archive details first for logging
+        archive_res = supabase.table("archived_groups").select("group_name, academic_year").eq("id", archive_id).single().execute()
+        archive_details = "Unknown Archive"
+        if archive_res.data:
+            archive_details = f"{archive_res.data.get('group_name')} ({archive_res.data.get('academic_year')})"
+
         supabase.table("archived_groups").delete().eq("id", archive_id).execute()
+        
+        # Log activity
+        log_activity("Delete Archive", details=f"Deleted archive: {archive_details}.")
+
         flash("Archive deleted successfully.", "success")
     except Exception as e:
         print(f"Error deleting archive {archive_id}: {str(e)}")
@@ -630,7 +764,6 @@ def admin_delete_archive(archive_id):
     return redirect(url_for('admin.admin_archive'))
 
 
-# (admin_review_student function)
 @admin_bp.route('/review_student/<student_id>', methods=['GET', 'POST'])
 @admin_required
 def admin_review_student(student_id):
@@ -680,6 +813,11 @@ def admin_review_student(student_id):
 
             if update_data: 
                  supabase.table("profiles").update(update_data).eq("id", student_id).execute()
+                 
+                 # Log activity
+                 student_name = f"{student.get('first_name')} {student.get('last_name')}"
+                 log_activity("Review Student", target_user_id=student_id, target_user_name=student_name, details=f"Updated student status: {action}.")
+
                  flash("Student status updated.", "success")
             else:
                  flash("No changes detected.", "info") 
@@ -690,5 +828,29 @@ def admin_review_student(student_id):
             flash(f"Error updating student status: {str(e)}", "error")
             return render_template('review_student.html', student=student)
 
-    # GET request
     return render_template('review_student.html', student=student)
+
+
+@admin_bp.route('/activity_logs')
+@admin_required
+def activity_logs():
+    try:
+        # Fetch logs ordered by most recent first
+        response = supabase.table("activity_logs").select("*").order("created_at", desc=True).limit(50).execute()
+        logs = response.data
+
+        # Format dates for display
+        for log in logs:
+            try:
+                if log.get('created_at'):
+                    dt = datetime.fromisoformat(log['created_at'].replace('Z', '+00:00'))
+                    log['created_at_display'] = dt.strftime('%b %d, %Y %I:%M %p')
+                else:
+                    log['created_at_display'] = 'N/A'
+            except Exception as e:
+                log['created_at_display'] = str(log.get('created_at'))
+
+        return render_template('activity_logs.html', logs=logs)
+    except Exception as e:
+        flash(f"Error fetching activity logs: {str(e)}", "error")
+        return render_template('activity_logs.html', logs=[])

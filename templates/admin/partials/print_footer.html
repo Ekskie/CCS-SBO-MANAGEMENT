@@ -1,0 +1,32 @@
+<div class="mt-auto pt-4 text-xs font-serif">
+    <div class="grid grid-cols-2 gap-8 mb-6">
+        <div>
+            <div class="font-bold uppercase border-b border-black inline-block min-w-[200px] mb-1">{{ adviser1.name }}</div>
+            <div>{{ adviser1.title }}</div>
+            <div class="italic">Date: {{ adviser1.date }}</div>
+        </div>
+        <div>
+            <div class="font-bold uppercase border-b border-black inline-block min-w-[200px] mb-1">{{ adviser2.name }}</div>
+            <div>{{ adviser2.title }}</div>
+            <div class="italic">Date: {{ adviser2.date }}</div>
+        </div>
+    </div>
+
+    <div class="mb-6">
+        <div class="mb-4">Noted:</div>
+        <div class="font-bold uppercase border-b border-black inline-block min-w-[200px] mb-1">{{ dean.name }}</div>
+        <div>{{ dean.title }}</div>
+    </div>
+
+    <div class="mb-6">
+        <div class="mb-4">Recommending Approval:</div>
+        <div class="font-bold uppercase border-b border-black inline-block min-w-[200px] mb-1">{{ head.name }}</div>
+        <div>{{ head.title }}</div>
+    </div>
+
+    <div>
+        <div class="mb-4">Approved / Disapproved:</div>
+        <div class="font-bold uppercase border-b border-black inline-block min-w-[200px] mb-1">{{ director.name }}</div>
+        <div>{{ director.title }}</div>
+    </div>
+</div>

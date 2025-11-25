@@ -1,15 +1,22 @@
 {% extends "admin/base.html" %}
 
 {% block title %}Manage Students{% endblock %}
-{% block page_title %}Student List{% endblock %}
+{% block page_title %}Manage Students{% endblock %}
 
 {% block content %}
 <div class="bg-white rounded-lg shadow-md overflow-hidden">
     
+    <!-- Filters & Search Section (Restored Layout) -->
     <div class="p-6 border-b border-gray-200">
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">All Registered Students ({{ students|length }})</h3>
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold text-gray-800">All Registered Students ({{ students|length }})</h3>
+        </div>
         
         <form method="GET" action="{{ url_for('admin.admin_students') }}">
+            <!-- Hidden inputs to preserve sort when filtering -->
+            <input type="hidden" name="sort_by" value="{{ current_sort_by }}">
+            <input type="hidden" name="sort_order" value="{{ current_sort_order }}">
+
             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 
                 {% macro form_select(name, label, selected_val, options) %}
@@ -25,81 +32,72 @@
                 </div>
                 {% endmacro %}
 
+                <!-- Search Input -->
                 <div class="xl:col-span-2">
-                    <label for="search_name" class="block text-sm font-medium text-gray-700 mb-1">Student Name</label>
-                    <input type="text" name="search_name" id="search_name" value="{{ search_name or '' }}" 
-                           placeholder="Search by name, email, or ID..." 
-                           class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    <label for="search_name" class="block text-sm font-medium text-gray-700 mb-1">Student Name/ID</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <input type="text" name="search_name" id="search_name" value="{{ search_name or '' }}" 
+                               placeholder="Search by name, email, or ID..." 
+                               class="w-full pl-10 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    </div>
                 </div>
                 
+                <!-- Filter Dropdowns using Macro -->
                 {{ form_select('filter_program', 'Program', filter_program, programs) }}
                 {{ form_select('filter_year_level', 'Year Level', filter_year_level, all_years) }}
                 {{ form_select('filter_section', 'Section', filter_section, sections) }}
                 {{ form_select('filter_major', 'Major', filter_major, all_majors) }}
             </div>
             
-            <div class="flex items-center gap-2 mt-4">
-                <button type="submit" 
-                        class="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
-                    Filter
-                </button>
+            <!-- Filter Buttons -->
+            <div class="flex items-center gap-2 mt-4 justify-end">
                 <a href="{{ url_for('admin.admin_students') }}" 
-                   class="px-5 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition">
-                   Reset
+                   class="px-5 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition border border-gray-300">
+                    Reset
                 </a>
+                <button type="submit" 
+                        class="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition shadow-sm">
+                    Apply Filters
+                </button>
             </div>
         </form>
     </div>
 
+    <!-- Student Table -->
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
-            
             <thead class="bg-gray-50">
                 <tr>
-                    {% macro sort_link(column_key, display_name) %}
-                        {% set new_order = 'asc' %}
-                        {% if current_sort_by == column_key and current_sort_order == 'asc' %}
-                            {% set new_order = 'desc' %}
-                        {% endif %}
-                        
-                        <a href="{{ url_for('admin.admin_students', 
-                                    search_name=search_name, 
-                                    filter_program=filter_program, 
-                                    filter_year_level=filter_year_level, 
-                                    filter_section=filter_section, 
-                                    filter_major=filter_major,
-                                    sort_by=column_key, 
-                                    sort_order=new_order) }}" 
-                           class="inline-flex items-center group">
-                            {{ display_name }}
-                            
-                            <span class="fas fa-sort text-gray-300 ml-1.5 group-hover:text-gray-500 
-                                   {% if current_sort_by == column_key %}hidden{% endif %}"></span>
-                                   
-                            {% if current_sort_by == column_key %}
-                                <span class="fas fa-sort-{{ 'up' if current_sort_order == 'asc' else 'down' }} text-gray-800 ml-1.5"></span>
-                            {% endif %}
+                    {% macro sort_link(col_name, label) %}
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider group cursor-pointer hover:bg-gray-100 transition">
+                        <a href="{{ url_for('admin.admin_students', sort_by=col_name, sort_order='desc' if current_sort_by == col_name and current_sort_order == 'asc' else 'asc', search_name=search_name, filter_program=filter_program, filter_section=filter_section, filter_year_level=filter_year_level, filter_major=filter_major) }}" class="flex items-center space-x-1">
+                            <span>{{ label }}</span>
+                            <span class="text-gray-400">
+                                {% if current_sort_by == col_name %}
+                                    {% if current_sort_order == 'asc' %}
+                                        <svg class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg>
+                                    {% else %}
+                                        <svg class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                    {% endif %}
+                                {% else %}
+                                    <svg class="h-4 w-4 opacity-0 group-hover:opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
+                                {% endif %}
+                            </span>
                         </a>
+                    </th>
                     {% endmacro %}
 
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {{ sort_link('last_name', 'Name') }}
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {{ sort_link('student_id', 'Student ID') }}
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {{ sort_link('program', 'Program & Section') }}
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {{ sort_link('account_type', 'Role') }}
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {{ sort_link('picture_status', 'Pic Status') }}
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {{ sort_link('signature_status', 'Sig Status') }}
-                    </th>
+                    {{ sort_link('student_id', 'Student ID') }}
+                    {{ sort_link('last_name', 'Full Name') }}
+                    {{ sort_link('program', 'Info') }}
+                    {{ sort_link('account_type', 'Role') }}
+                    {{ sort_link('picture_status', 'Picture') }}
+                    {{ sort_link('signature_status', 'Signature') }}
                     <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                     </th>
@@ -107,6 +105,7 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 
+                {# Status Badge Macro #}
                 {% macro status_badge(status, color_map) %}
                     <span class="font-bold px-3 py-1 rounded-full text-xs
                             {% if status == 'approved' %} {{ color_map.approved }}
@@ -121,75 +120,113 @@
 
                 {% if students %}
                     {% for student in students %}
-                    <tr>
+                    <tr class="hover:bg-gray-50 transition duration-150">
+                        <!-- Student ID -->
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-bold text-gray-900 font-mono">{{ student.student_id }}</div>
+                        </td>
+
+                        <!-- Name & Email -->
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 h-10 w-10">
-                                    <img class="h-10 w-10 rounded-full object-cover" 
-                                         src="{{ student.picture_url or 'https://placehold.co/40x40/e2e8f0/718096?text=N/A' }}" 
-                                         alt="Avatar">
+                                    {% if student.picture_url %}
+                                        <img class="h-10 w-10 rounded-full object-cover border border-gray-200" src="{{ student.picture_url }}" alt="">
+                                    {% else %}
+                                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-gray-500">
+                                            <span class="text-xs font-medium leading-none text-white">{{ student.first_name[0] }}{{ student.last_name[0] }}</span>
+                                        </span>
+                                    {% endif %}
                                 </div>
                                 <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">{{ student.last_name }}, {{ student.first_name }}</div>
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {# SUFFIX LOGIC INCLUDED HERE #}
+                                        {{ student.last_name }} {% if student.suffix_name %}{{ student.suffix_name }}{% endif %}, {{ student.first_name }} {{ student.middle_name }}
+                                    </div>
                                     <div class="text-sm text-gray-500">{{ student.email }}</div>
                                 </div>
                             </div>
                         </td>
+
+                        <!-- Academic Info -->
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">{{ student.student_id }}</div>
+                            <div class="text-sm text-gray-900 font-medium">{{ student.program }}</div>
+                            <div class="text-xs text-gray-500">
+                                {{ student.year_level }} - {{ student.section }}
+                                {% if student.major %} | {{ student.major }} {% endif %}
+                            </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">{{ student.program }}</div>
-                            <div class="text-sm text-gray-500">{{ student.year_level }} - {{ student.section }} {% if student.major %}({{ student.major }}){% endif %}</div>
-                        </td>
+
+                        <!-- Role -->
                         <td class="px-6 py-4 whitespace-nowrap">
                             {{ status_badge(student.account_type, 
-                                color_map={'admin': 'bg-red-100 text-red-800', 
-                                           'president': 'bg-blue-100 text-blue-800', 
-                                           'default': 'bg-green-100 text-green-800'}) }}
+                                color_map={'admin': 'bg-purple-100 text-purple-800', 
+                                            'president': 'bg-blue-100 text-blue-800', 
+                                            'default': 'bg-gray-100 text-gray-800'}) }}
                         </td>
+
+                        <!-- Picture Status -->
                         <td class="px-6 py-4 whitespace-nowrap">
                             {{ status_badge(student.picture_status, 
                                 color_map={'approved': 'bg-green-100 text-green-800', 
-                                           'pending': 'bg-yellow-100 text-yellow-800', 
-                                           'disapproved': 'bg-red-100 text-red-800'}) }}
+                                            'pending': 'bg-yellow-100 text-yellow-800', 
+                                            'disapproved': 'bg-red-100 text-red-800'}) }}
                         </td>
+
+                        <!-- Signature Status -->
                         <td class="px-6 py-4 whitespace-nowrap">
                             {{ status_badge(student.signature_status, 
                                 color_map={'approved': 'bg-green-100 text-green-800', 
-                                           'pending': 'bg-yellow-100 text-yellow-800', 
-                                           'disapproved': 'bg-red-100 text-red-800'}) }}
+                                            'pending': 'bg-yellow-100 text-yellow-800', 
+                                            'disapproved': 'bg-red-100 text-red-800'}) }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                            <a href="{{ url_for('admin.admin_review_student', student_id=student.id) }}" 
-                               class="px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition text-xs font-semibold">
-                                Review
-                            </a>
-                            <a href="{{ url_for('admin.admin_edit_student', student_id=student.id) }}" 
-                               class="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition text-xs font-semibold">
-                                Edit
-                            </a>
-                            <button type="button" onclick="openDeleteModal('{{ student.id }}', '{{ student.first_name }} {{ student.last_name }}')" 
-                               class="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition text-xs font-semibold">
-                                Delete
-                            </button>
+
+                        <!-- Actions (ICONS RESTORED) -->
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex justify-end items-center gap-3">
+                                <a href="{{ url_for('admin.admin_review_student', student_id=student.id) }}" 
+                                   class="text-indigo-600 hover:text-indigo-900 transition" title="Review">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                                </a>
+                                
+                                <a href="{{ url_for('admin.admin_edit_student', student_id=student.id) }}" 
+                                   class="text-blue-600 hover:text-blue-900 transition" title="Edit">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                </a>
+
+                                <button type="button" onclick="openDeleteModal('{{ student.id }}', '{{ student.first_name }} {{ student.last_name }}')" 
+                                   class="text-red-600 hover:text-red-900 transition" title="Delete">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
                 {% else %}
                     <tr>
                         <td colspan="7" class="px-6 py-12 text-center text-gray-500">
-                            <i class="fas fa-search fa-3x text-gray-400 mb-4"></i>
-                            <h4 class="text-lg font-medium">No Students Found</h4>
-                            <p>No students match your current search and filter criteria.</p>
+                            <div class="flex flex-col items-center justify-center">
+                                <svg class="h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                                <h4 class="text-lg font-medium text-gray-900">No Students Found</h4>
+                                <p class="text-sm text-gray-500 mt-1">Try adjusting your search or filters.</p>
+                            </div>
                         </td>
                     </tr>
                 {% endif %}
             </tbody>
         </table>
     </div>
+    
+    <div class="px-6 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+         <span class="text-xs text-gray-500">
+            Showing {{ students|length }} record(s)
+         </span>
+    </div>
 </div>
 
+<!-- Delete Modal (Unchanged) -->
 <div id="deleteModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
@@ -199,7 +236,10 @@
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
                     <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <i class="fas fa-exclamation-triangle h-6 w-6 text-red-600"></i>
+                        <!-- Icon -->
+                        <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
                     </div>
                     <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                         <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Delete Student</h3>
@@ -215,12 +255,10 @@
             <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                 <form id="deleteForm" method="POST" action="" onsubmit="handleDeleteSubmit()">
                     <button type="submit" id="delete-button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-75 disabled:cursor-not-allowed">
-                        
                         <svg id="delete-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" style="display: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        
                         <span id="delete-button-text">Delete Student</span>
                     </button>
                 </form>
@@ -242,7 +280,7 @@
         if (deleteButton) {
             deleteButton.disabled = false;
             if (spinner) spinner.style.display = 'none';
-            if (buttonText) buttonText.style.display = 'inline'; // Or 'block' if it was
+            if (buttonText) buttonText.style.display = 'inline'; 
         }
 
         document.getElementById('deleteStudentName').innerText = student_name;
@@ -276,7 +314,6 @@
             if (spinner) spinner.style.display = 'block';
             if (buttonText) buttonText.style.display = 'none';
         }
-        // The form will now submit
     }
 </script>
 {% endblock %}

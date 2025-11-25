@@ -61,10 +61,11 @@
 
             <fieldset class="space-y-4">
                 <legend class="text-lg font-semibold text-gray-700 border-b pb-2 w-full mb-2">Personal Information</legend>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4"> {# Changed to 4 columns #}
                     {{ form_input('first_name', 'First Name', student.first_name) }}
                     {{ form_input('middle_name', 'Middle Name', student.middle_name, required=False) }}
                     {{ form_input('last_name', 'Last Name', student.last_name) }}
+                    {{ form_input('suffix_name', 'Suffix', student.suffix_name, required=False) }}
                 </div>
             </fieldset>
 

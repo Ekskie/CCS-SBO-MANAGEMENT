@@ -86,7 +86,9 @@
                         </div>
                     {% endmacro %}
 
-                    {{ profile_row('Full Name', profile.first_name ~ ' ' ~ profile.middle_name ~ ' ' ~ profile.last_name) }}
+                    {# Updated to include suffix_name #}
+                    {{ profile_row('Full Name', profile.first_name ~ ' ' ~ (profile.middle_name ~ ' ' if profile.middle_name else '') ~ profile.last_name ~ (' ' ~ profile.suffix_name if profile.suffix_name else '')) }}
+                    
                     {{ profile_row('Student ID', profile.student_id) }}
                     {{ profile_row('Email', profile.email) }}
                     {{ profile_row('Program', profile.program) }}
@@ -179,10 +181,12 @@
 
             <div class="p-6 space-y-4">
                 <h4 class="text-lg font-semibold text-gray-700 border-b pb-2">Personal Information</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {# Changed grid to 4 columns to include Suffix #}
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {{ form_input('first_name', 'First Name', profile.first_name) }}
                     {{ form_input('middle_name', 'Middle Name', profile.middle_name, required=False) }}
                     {{ form_input('last_name', 'Last Name', profile.last_name) }}
+                    {{ form_input('suffix_name', 'Suffix', profile.suffix_name, required=False) }}
                 </div>
             </div>
 

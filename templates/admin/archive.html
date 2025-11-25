@@ -1,26 +1,22 @@
 {% extends "admin/base.html" %}
 
 {% block title %}Archive{% endblock %}
-{% block page_title %}Printing Archive{% endblock %}
+{% block page_title %}Archive{% endblock %}
 
 {% block content %}
 <div class="bg-white rounded-lg shadow-md overflow-hidden">
     
-    <!-- 1. Header -->
     <div class="p-6 border-b border-gray-200">
-        <h3 class="text-xl font-semibold text-gray-800">Archived Student Groups</h3>
-        <p class="text-sm text-gray-600 mt-1">This is a history of all snapshots saved from the "Printing Station" page.</p>
-    </div>
-
-    <!-- 2. Filter Form -->
-    <form method="GET" action="{{ url_for('admin.admin_archive') }}" class="p-6 bg-gray-50 border-b border-gray-200">
-        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            
-            <!-- Helper Macro for Form Selects -->
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold text-gray-800">Archived Groups</h3>
+        </div>
+        
+        <!-- Filter Form -->
+        <form method="GET" action="{{ url_for('admin.admin_archive') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
             {% macro form_select(name, label, selected_val, options) %}
             <div>
                 <label for="{{ name }}" class="block text-sm font-medium text-gray-700 mb-1">{{ label }}</label>
-                <select name="{{ name }}" id="{{ name }}" 
+                <select name="{{ name }}" id="{{ name }}" onchange="this.form.submit()"
                         class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                     <option value="">All</option>
                     {% for option in options %}
@@ -30,82 +26,68 @@
             </div>
             {% endmacro %}
 
-            <!-- Filters -->
             {{ form_select('filter_ay', 'Academic Year', current_ay, all_academic_years) }}
             {{ form_select('filter_semester', 'Semester', current_semester, all_semesters) }}
             {{ form_select('filter_program', 'Program', current_program, all_programs) }}
             {{ form_select('filter_major', 'Major', current_major, all_majors) }}
-            
-            <!-- Buttons -->
-            <div class="flex items-end space-x-2 md:col-span-2">
-                <button type="submit" 
-                        class="w-full md:w-auto px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
-                    Filter
-                </button>
-                <a href="{{ url_for('admin.admin_archive') }}" 
-                   class="w-full md:w-auto px-5 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition text-center">
-                   Clear
-                </a>
-            </div>
-        </div>
-    </form>
+        </form>
+    </div>
 
-    <!-- 3. Archived Groups List Table -->
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Group</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Archived On</th>
-                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Group Name
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Term
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date Archived
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                    </th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 {% if archives %}
                     {% for archive in archives %}
-                    <tr>
+                    <tr class="hover:bg-gray-50 transition">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-gray-900">{{ archive.group_name }}</div>
-                            <div class="text-sm text-gray-500">{{ archive.academic_year }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">{{ archive.semester }} Semester</div>
-                            <div class="text-sm text-gray-500">{{ archive.student_data | length }} students</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">{{ archive.generation_date }}</div>
-                            <div class="text-sm text-gray-500">Created: {{ archive.created_at[:10] }}</div> {# Shorten timestamp #}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div class="flex justify-end items-center gap-4">
-                                <!-- View/Print Link -->
-                                <a href="{{ url_for('admin.admin_archive_preview', archive_id=archive.id) }}" 
-                                   target="_blank" 
-                                   class="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition text-xs font-semibold inline-flex items-center"
-                                   title="View/Print Archive">
-                                    <i class="fas fa-print mr-2"></i>
-                                    View
-                                </a>
-                                <!-- Delete Form -->
-                                <form method="POST" action="{{ url_for('admin.admin_delete_archive', archive_id=archive.id) }}" 
-                                      onsubmit="return confirm('Are you sure you want to delete this archive? This cannot be undone.');">
-                                    <button type="submit" 
-                                            class="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition text-xs font-semibold"
-                                            title="Delete Archive">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
+                            <div class="text-xs text-gray-500">
+                                {{ archive.student_data|length }} Students
                             </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ archive.academic_year }}</div>
+                            <div class="text-xs text-gray-500">{{ archive.semester }} Sem</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ archive.created_at_display }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end gap-2">
+                            <a href="{{ url_for('admin.admin_archive_preview', archive_id=archive.id) }}" target="_blank" 
+                               class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded transition">
+                                <i class="fas fa-eye mr-1"></i> View
+                            </a>
+                            
+                            <form action="{{ url_for('admin.admin_delete_archive', archive_id=archive.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this archive?');" class="inline">
+                                <button type="submit" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded transition">
+                                    <i class="fas fa-trash-alt mr-1"></i> Delete
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     {% endfor %}
                 {% else %}
                     <tr>
                         <td colspan="4" class="px-6 py-12 text-center text-gray-500">
-                           <i class="fas fa-search fa-3x text-gray-400 mb-4"></i>
-                           <h4 class="text-lg font-medium">No Archives Found</h4>
-                           <p>No archives match your current filter criteria.</p>
+                            <i class="fas fa-archive fa-3x text-gray-400 mb-4"></i>
+                            <h4 class="text-lg font-medium">No Archives Found</h4>
+                            <p>Archives will appear here once you create them from the Printing Station.</p>
                         </td>
                     </tr>
                 {% endif %}

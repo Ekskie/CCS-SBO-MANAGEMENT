@@ -2,9 +2,9 @@ import os
 import io
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from extensions import supabase, supabase_admin
-from config import Config # <-- Import Config class
+from config import Config
 from utils import check_transparency
-import re # Import re for regex operations
+import re
 
 auth_bp = Blueprint('auth', __name__,
                     template_folder='../templates/client',
@@ -13,7 +13,7 @@ auth_bp = Blueprint('auth', __name__,
 @auth_bp.route('/')
 def home():
     if 'user_id' in session:
-        return redirect(url_for('core.profile')) # Corrected to core.profile
+        return redirect(url_for('core.profile'))
     return render_template('./index.html')
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -27,7 +27,6 @@ def login():
             return render_template('login.html')
 
         try:
-            # Fetch the user's profile to get email AND role info
             profile_response = supabase.table("profiles").select("*").eq("student_id", student_id).single().execute()
 
             if not profile_response.data:
@@ -47,12 +46,10 @@ def login():
                     flash('Please verify your email address before logging in.')
                     return render_template('login.html')
                     
-                # Store user info in session
                 session['user_id'] = auth_response.user.id
                 session['email'] = email
                 session['student_id'] = student_id
                 
-                # NEW: Store role and class info
                 session['account_type'] = profile.get('account_type')
                 session['program'] = profile.get('program')
                 session['year_level'] = profile.get('year_level')
@@ -62,7 +59,6 @@ def login():
                 if profile.get('account_type') == 'admin':
                     return redirect(url_for('admin.admin_dashboard'))
                 elif profile.get('account_type') == 'president':
-                     # Presidents go to their dashboard first
                     return redirect(url_for('president.president_dashboard'))
                 else:
                     return redirect(url_for('core.profile'))
@@ -70,7 +66,7 @@ def login():
                 flash('Invalid Student ID or password.')
                 
         except Exception as e:
-            print(f"Login error: {e}") # For debugging
+            print(f"Login error: {e}")
             flash(f"Invalid Student ID or password.")
 
     return render_template('login.html')
@@ -116,48 +112,41 @@ def register():
         if not picture_file or not picture_file.filename:
             flash("1x1 Picture is required.")
             return render_template("register.html")
-        # Read picture bytes early for validation
+        
         picture_bytes = picture_file.read()
         
-        # --- New File Size Validation ---
-        if len(picture_bytes) > Config.MAX_FILE_SIZE: # <-- Use Config.MAX_FILE_SIZE
+        if len(picture_bytes) > Config.MAX_FILE_SIZE:
             flash(f"Picture file size must be less than {Config.MAX_FILE_SIZE // 1024 // 1024}MB.")
             return render_template("register.html")
 
         if not signature_file or not signature_file.filename:
             flash("Signature is required.")
             return render_template("register.html")
-        # Read signature bytes early for validation
+        
         signature_bytes = signature_file.read()
 
-        # --- New File Size Validation ---
-        if len(signature_bytes) > Config.MAX_FILE_SIZE: # <-- Use Config.MAX_FILE_SIZE
+        if len(signature_bytes) > Config.MAX_FILE_SIZE:
             flash(f"Signature file size must be less than {Config.MAX_FILE_SIZE // 1024 // 1024}MB.")
             return render_template("register.html")
 
-        # --- New Signature Validation Logic ---
-        # 1. Check if it's a real PNG
         if not signature_bytes.startswith(b'\x89PNG\r\n\x1a\n'):
             flash("Signature must be a valid PNG file.")
             return render_template("register.html")
 
-        # 2. Check for transparency
         signature_stream = io.BytesIO(signature_bytes)
         if not check_transparency(signature_stream):
             flash("Signature PNG must have a transparent background.")
             return render_template("register.html")
-        # --- End of New Validation Logic ---
             
-        # --- Major Validation (from user update) ---
         if year_level in ("3rd Year", "4th Year"):
-            if program in ("BSIT", "BSCS"): # Only require for BSIT/BSCS
+            if program in ("BSIT", "BSCS"):
                 if not major:
                     flash(f"Major is required for 3rd and 4th year {program} students.")
                     return render_template("register.html")
             else:
-                 major = None # Set major to None (NULL) for BSIS
+                 major = None
         else:
-            major = None # Set major to None (NULL) for 1st/2nd year
+            major = None
             
         try:
             # Step 1: Check if student ID already exists
@@ -166,6 +155,13 @@ def register():
                 flash("This Student ID is already registered.")
                 return render_template("register.html")
             
+            # --- NEW CHECK: Check if Email already exists ---
+            existing_email = supabase.table("profiles").select("email").eq("email", email).execute()
+            if existing_email.data:
+                flash("This Email Address is already registered.")
+                return render_template("register.html")
+            # ------------------------------------------------
+
             # Step 2: Create Auth User
             auth_response = supabase.auth.sign_up({
                 "email": email,
@@ -183,7 +179,6 @@ def register():
                 try:
                     pic_ext = os.path.splitext(picture_file.filename)[1]
                     pic_file_name = f"{student_id}_picture{pic_ext}"
-                    # We already read the bytes, so just pass them
                     supabase.storage.from_("pictures").upload(
                         pic_file_name, 
                         picture_bytes, 
@@ -193,7 +188,6 @@ def register():
 
                     sig_ext = os.path.splitext(signature_file.filename)[1]
                     sig_file_name = f"{student_id}_signature{sig_ext}"
-                    # We already read the bytes, so just pass them
                     supabase.storage.from_("signatures").upload(
                         sig_file_name, 
                         signature_bytes, 
@@ -202,7 +196,6 @@ def register():
                     signature_url = supabase.storage.from_("signatures").get_public_url(sig_file_name)
                     
                 except Exception as upload_error:
-                    # If upload fails, we must delete the auth user to let them try again
                     supabase_admin.auth.admin.delete_user(user_id)
                     flash(f"File upload failed: {str(upload_error)}. Please try registering again.")
                     return render_template("register.html")
@@ -223,7 +216,6 @@ def register():
                     "major": major,
                     "picture_url": picture_url,
                     "signature_url": signature_url,
-                    # NEW: Set defaults for new accounts
                     "account_type": "student",
                     "picture_status": "pending",
                     "signature_status": "pending",
@@ -233,7 +225,6 @@ def register():
                 insert_response = supabase.table("profiles").insert(profile_data).execute()
 
                 if not (insert_response.data and len(insert_response.data) > 0):
-                    # If profile insert fails, delete auth user and files
                     supabase_admin.auth.admin.delete_user(user_id)
                     supabase.storage.from_("pictures").remove([pic_file_name])
                     supabase.storage.from_("signatures").remove([sig_file_name])
@@ -258,11 +249,7 @@ def register():
 
 @auth_bp.route("/auth_callback")
 def auth_callback():
-    # This is the page the user lands on after clicking the verification link
-    # It redirects them to the login page with a success flag
     return redirect(url_for('auth.login', registered='success'))
-
-# --- NEW: Forgot Password Routes ---
 
 @auth_bp.route('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
@@ -273,17 +260,14 @@ def forgot_password():
             return render_template('forgot_password.html')
             
         try:
-            # Check if email exists
             profile_res = supabase.table("profiles").select("email").eq("email", email).execute()
             if not profile_res.data:
                 flash("No account is registered with that email address.")
                 return render_template('forgot_password.html')
 
-            # 1. STORE EMAIL & SEND FLAG IN SESSION
             session['reset_email'] = email
-            session['email_just_sent'] = True  # <--- NEW: Flag to start timer on next page
+            session['email_just_sent'] = True
 
-            # Send reset email
             supabase.auth.reset_password_for_email(
                 email,
                 { "redirect_to": url_for("auth.login", _external=True) }
@@ -300,8 +284,6 @@ def forgot_password():
 @auth_bp.route('/check_email', methods=['GET', 'POST'])
 def check_email():
     email = session.get('reset_email')
-    
-    # Check if we should auto-start the timer (pop removes it from session so it doesn't trigger on refresh)
     auto_start = session.pop('email_just_sent', False) 
     
     if not email:
@@ -315,13 +297,11 @@ def check_email():
                 { "redirect_to": url_for("auth.login", _external=True) }
             )
             flash('Email resent successfully! Please check your inbox.')
-            # If they manually resend, we also want to restart the timer (handled by JS, but we can enforce logic here too)
             auto_start = True 
             
         except Exception as e:
             flash(f"Error resending email: {str(e)}")
 
-    # Pass auto_start to the template
     return render_template('check_email.html', email=email, auto_start=auto_start)
 
 @auth_bp.route('/logout')
@@ -330,4 +310,3 @@ def logout():
     supabase.auth.sign_out()
     flash('You have been logged out.')
     return redirect(url_for('auth.login'))
-

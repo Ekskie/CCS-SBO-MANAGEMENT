@@ -50,7 +50,8 @@
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-gray-900">
-                                    {{ student.first_name }} {{ student.last_name }}
+                                    {# UPDATED: Suffix Logic #}
+                                    {{ student.last_name }} {% if student.suffix_name %}{{ student.suffix_name }}{% endif %}, {{ student.first_name }} {{ student.middle_name }}
                                 </div>
                                 <div class="text-sm text-gray-500">{{ student.email }}</div>
                             </td>
