@@ -74,9 +74,9 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     
                     {{ form_select('program', 'Program', student.program,
-                                   options=[{'value': 'BSIT', 'text': 'BSIT'},
-                                            {'value': 'BSIS', 'text': 'BSIS'},
-                                            {'value': 'BSCS', 'text': 'BSCS'}],
+                                   options=[{'value': 'BSIT', 'text': 'BSIT (Bachelor of Science in Information Technology)'},
+                                            {'value': 'BSIS', 'text': 'BSIS (Bachelor of Science in Information Systems)'},
+                                            {'value': 'BSCS', 'text': 'BSCS (Bachelor of Science in Computer Science)'}],
                                    id='program', onchange='adminToggleMajor()') }}
                     
                     {{ form_select('semester', 'Semester', student.semester,
