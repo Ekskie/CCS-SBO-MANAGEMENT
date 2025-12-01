@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Team | Student Organization Management System</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="shortcut icon" href="/static/image/lspu.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+
+<body class="h-full font-sans text-white bg-cover bg-center attachment-fixed"
+    style="background-image: url('/static/image/background.jpg');">
+
+    <div
+        class="flex flex-col items-center min-h-full w-full bg-black bg-opacity-70 backdrop-blur-sm p-6 overflow-y-auto">
+
+        <div class="w-full max-w-6xl flex justify-between items-center mb-10 pt-4">
+            <a href="/about"
+                class="px-5 py-2 border border-gray-400 text-gray-300 rounded-full hover:bg-white hover:text-black transition duration-300 text-sm font-medium">
+                &larr; Back to About
+            </a>
+            <div class="flex flex-col items-center">
+                <img src="{{ url_for('static', filename='/image/lspu.png') }}" alt="LSPU Logo"
+                    class="w-16 drop-shadow-lg mb-2">
+                <h1 class="text-3xl md:text-4xl font-bold text-blue-400">Meet the Developers</h1>
+                <p class="text-gray-400 text-sm mt-1">BSIT 4C AMG B</p>
+            </div>
+            <div class="w-24"></div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-6xl w-full pb-20">
+
+            <div
+                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
+                <img src="/static/image/Team/Lead Developer.jpg" alt="Member Name" class="w-full h-64 object-cover">
+                <div class="p-4 text-center">
+                    <h3 class="text-xl font-bold text-white">Dennrick Agustin</h3>
+                    <p class="text-blue-400 text-sm font-medium">Lead Developer/Full-Stack Developer</p>
+                </div>
+            </div>
+            <div
+                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
+                <img src="/static/image/Team/Jake.jpg" alt="Member Name" class="w-full h-64 object-cover">
+                <div class="p-4 text-center">
+                    <h3 class="text-xl font-bold text-white">Jake Martin Roca</h3>
+                    <p class="text-blue-400 text-sm font-medium">UI Designer/Document Manager</p>
+                </div>
+            </div>
+            <div
+                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
+                <img src="/static/image/Team/Annie.jpg" alt="Member Name" class="w-full h-64 object-cover">
+                <div class="p-4 text-center">
+                    <h3 class="text-xl font-bold text-white">Annie Claire Obispo</h3>
+                    <p class="text-blue-400 text-sm font-medium">Documentation Specialist</p>
+                </div>
+            </div>
+            <div
+                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
+                <img src="/static/image/Team/Lefrey.jfif" alt="Member Name" class="w-full h-64 object-cover">
+                <div class="p-4 text-center">
+                    <h3 class="text-xl font-bold text-white">Le Frey Urriza</h3>
+                    <p class="text-blue-400 text-sm font-medium">UI Designer</p>
+                </div>
+            </div>
+            <div
+                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
+                <img src="/static/image/Team/Ralph.jpg" alt="Member Name" class="w-full h-64 object-cover">
+                <div class="p-4 text-center">
+                    <h3 class="text-xl font-bold text-white">Ralph Vener Esmillo</h3>
+                    <p class="text-blue-400 text-sm font-medium">Freeloader</p>
+                </div>
+            </div> 
+            
+            <div
+                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
+                <img src="/static/image/Team/Abulencia.jpg" alt="Member Name" class="w-full h-64 object-cover">
+                <div class="p-4 text-center">
+                    <h3 class="text-xl font-bold text-white">John Vincent Abulencia</h3>
+                    <p class="text-blue-400 text-sm font-medium">Passive Member</p>
+                </div>
+            </div>
+            <div
+                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
+                <img src="/static/image/Team/adao.jpg" alt="Member Name" class="w-full h-64 object-cover">
+                <div class="p-4 text-center">
+                    <h3 class="text-xl font-bold text-white">Jose Mari Adao</h3>
+                    <p class="text-blue-400 text-sm font-medium">Passive Member</p>
+                </div>
+            </div>
+            <div
+                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
+                <img src="/static/image/Team/En.jpg" alt="Member Name" class="w-full h-64 object-cover">
+                <div class="p-4 text-center">
+                    <h3 class="text-xl font-bold text-white">Enrique Edquitao</h3>
+                    <p class="text-blue-400 text-sm font-medium">Passive Member</p>
+                </div>
+            </div>
+            <div
+                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
+                <img src="/static/image/Team/Eric.jpg" alt="Member Name" class="w-full h-64 object-cover">
+                <div class="p-4 text-center">
+                    <h3 class="text-xl font-bold text-white">Eric Montealegre</h3>
+                    <p class="text-blue-400 text-sm font-medium">Passive Member</p>
+                </div>
+            </div>
+            <div
+                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
+                <img src="/static/image/Team/jad.jpg" alt="Member Name" class="w-full h-64 object-cover">
+                <div class="p-4 text-center">
+                    <h3 class="text-xl font-bold text-white">Jad Garcia</h3>
+                    <p class="text-blue-400 text-sm font-medium">Passive Member</p>
+                </div>
+            </div>
+            <div
+                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
+                <img src="/static/image/Team/Kurt.jpg" alt="Member Name" class="w-full h-64 object-cover">
+                <div class="p-4 text-center">
+                    <h3 class="text-xl font-bold text-white">Kurt Borebor</h3>
+                    <p class="text-blue-400 text-sm font-medium">Passive Member</p>
+                </div>
+            </div>
+            <div
+                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
+                <img src="/static/image/Team/Lloyd.jfif" alt="Member Name" class="w-full h-64 object-cover">
+                <div class="p-4 text-center">
+                    <h3 class="text-xl font-bold text-white">John Lloyd Caballes</h3>
+                    <p class="text-blue-400 text-sm font-medium">Passive Member</p>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-auto py-6 text-sm text-gray-500">
+            © 2025 Laguna State Polytechnic University
+        </footer>
+    </div>
+
+</body>
+
+</html>

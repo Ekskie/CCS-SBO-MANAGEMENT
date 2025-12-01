@@ -16,6 +16,14 @@ def home():
         return redirect(url_for('core.profile'))
     return render_template('./index.html')
 
+@auth_bp.route('/about')
+def about():
+    return render_template('./about.html')
+
+@auth_bp.route('/team')
+def team():
+    return render_template('./team.html')
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -49,7 +57,8 @@ def login():
                 session['user_id'] = auth_response.user.id
                 session['email'] = email
                 session['student_id'] = student_id
-                
+                session['full_name'] = profile.get('first_name') + ' ' + profile.get('last_name')
+
                 session['account_type'] = profile.get('account_type')
                 session['program'] = profile.get('program')
                 session['year_level'] = profile.get('year_level')
