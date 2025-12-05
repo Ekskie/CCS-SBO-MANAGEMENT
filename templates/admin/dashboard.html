@@ -6,6 +6,31 @@
 {% block content %}
 <div class="space-y-8">
 
+    <!-- Global Actions -->
+    <div class="flex justify-end gap-3">
+        <form action="{{ url_for('admin.lock_all_students') }}" method="POST" onsubmit="return confirm('Are you sure you want to LOCK all student accounts? Students will not be able to edit their profiles.');">
+            <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none focus:border-red-900 focus:ring ring-red-300 disabled:opacity-25 transition ease-in-out duration-150">
+                <i class="fas fa-lock mr-2"></i> Lock All Accounts
+            </button>
+        </form>
+        <form action="{{ url_for('admin.unlock_all_students') }}" method="POST" onsubmit="return confirm('Are you sure you want to UNLOCK all student accounts? This will allow all students to edit their profiles.');">
+            <button type="submit" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:ring ring-green-300 disabled:opacity-25 transition ease-in-out duration-150">
+                <i class="fas fa-unlock mr-2"></i> Unlock All Accounts
+            </button>
+        </form>
+    </div>
+
+    <!-- Notification Area -->
+    <div id="notification-area" class="hidden mb-6">
+        <!-- Newest notification injected here -->
+    </div>
+    
+    <div id="view-all-notifs-btn-area" class="hidden mb-6 text-right">
+        <button onclick="openNotifModal()" class="text-sm text-blue-600 hover:text-blue-800 font-medium underline focus:outline-none">
+            View All Notifications
+        </button>
+    </div>
+
     <!-- Stat Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div class="bg-white rounded-lg shadow-md p-6 flex items-center justify-between">
@@ -41,12 +66,39 @@
             <i class="fas fa-user-check fa-3x text-green-500"></i>
         </div>
     </div>
+
+    <!-- NEW: Pending Reviews by Class Section -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-800">Pending Reviews by Class</h3>
+            <p class="text-sm text-gray-500">Classes with verified students waiting for approval.</p>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pending Students</th>
+                        <th class="px-6 py-3 relative"><span class="sr-only">View</span></th>
+                    </tr>
+                </thead>
+                <tbody id="pending_sections_tbody" class="bg-white divide-y divide-gray-200">
+                    <!-- Loading state -->
+                    <tr>
+                        <td colspan="3" class="px-6 py-4 text-center text-gray-500">
+                            <i class="fas fa-spinner fa-spin"></i> Loading classes...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
     
     <!-- Pending Approvals Table -->
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <div class="p-6 border-b border-gray-200">
-            <h3 class="text-xl font-semibold text-gray-800">Pending Approvals</h3>
-            <p class="text-sm text-gray-500">Students needing picture or signature review.</p>
+            <h3 class="text-xl font-semibold text-gray-800">Recent Pending Approvals</h3>
+            <p class="text-sm text-gray-500">Individual verified students needing review (Showing recent 10).</p>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
@@ -90,32 +142,41 @@
     </div>
 
 </div>
+
+<!-- Notification Modal -->
+<div id="notifModal" class="fixed z-50 inset-0 overflow-y-auto hidden items-center justify-center p-4 bg-black bg-opacity-50">
+    <div class="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-lg">
+            <h3 class="text-lg font-bold text-gray-800">All Notifications</h3>
+            <button onclick="closeNotifModal()" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+        </div>
+        <div class="p-4 overflow-y-auto flex-1" id="modal-notif-list">
+            <!-- All notifications will be injected here -->
+            <p class="text-center text-gray-500 py-4">Loading...</p>
+        </div>
+        <div class="p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg text-right">
+            <button onclick="closeNotifModal()" class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Import Supabase JS Client -->
+<!-- Import Supabase JS Client with Pinned Version -->
 <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/+esm'
 
     // Get credentials from Flask
     const SUPABASE_URL = '{{ supabase_url | safe }}';
     const SUPABASE_KEY = '{{ supabase_key | safe }}';
 
-    if (!SUPABASE_URL || !SUPABASE_KEY) {
-        console.error("Supabase URL or Key not found. Make sure they are passed from Flask.");
-        document.getElementById('pending_tbody').innerHTML = `
-            <tr>
-                <td colspan="5" class="px-6 py-10 text-center text-red-600">
-                    <i class="fas fa-exclamation-triangle fa-2x"></i>
-                    <p class="mt-2 font-bold">Configuration Error</p>
-                    <p class="text-sm">Could not connect to real-time service.</p>
-                </td>
-            </tr>`;
-    }
-
-    // Initialize clients
-    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    // --- Define Functions BEFORE Initialization ---
 
     // --- Chart.js Setup ---
     const programChartCtx = document.getElementById('programChart').getContext('2d');
@@ -192,6 +253,70 @@
         document.getElementById('approved_count').textContent = approvedCount;
     }
 
+    // --- Render Pending Sections Table ---
+    function renderPendingSections(pendingStudents) {
+        const tbody = document.getElementById('pending_sections_tbody');
+        tbody.innerHTML = '';
+
+        const groups = {};
+
+        pendingStudents.forEach(s => {
+            const prog = s.program || 'N/A';
+            const year = s.year_level || 'N/A';
+            const sect = s.section || 'N/A';
+            const major = s.major || '';
+            
+            const key = `${prog}|${year}|${sect}|${major}`;
+            
+            if (!groups[key]) {
+                groups[key] = {
+                    program: prog,
+                    year: year,
+                    section: sect,
+                    major: major,
+                    count: 0
+                };
+            }
+            groups[key].count++;
+        });
+
+        const sortedKeys = Object.keys(groups).sort();
+
+        if (sortedKeys.length === 0) {
+             tbody.innerHTML = `<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">No classes with pending reviews.</td></tr>`;
+             return;
+        }
+
+        sortedKeys.forEach(key => {
+            const g = groups[key];
+            const className = `${g.program} ${g.year} ${g.section} ${g.major ? '(' + g.major + ')' : ''}`;
+            
+            // Construct URL for filtering on students page
+            let url = `{{ url_for('admin.admin_students') }}?filter_program=${encodeURIComponent(g.program)}&filter_year_level=${encodeURIComponent(g.year)}&filter_section=${encodeURIComponent(g.section)}`;
+            
+            if(g.major) {
+                url += `&filter_major=${encodeURIComponent(g.major)}`;
+            }
+
+            const row = `
+                <tr class="hover:bg-gray-50 cursor-pointer transition duration-150 ease-in-out" onclick="window.location.href='${url}'">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        ${className}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                            ${g.count} Student${g.count !== 1 ? 's' : ''}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <a href="${url}" class="text-indigo-600 hover:text-indigo-900 font-semibold" onclick="event.stopPropagation()">View Class <i class="fas fa-arrow-right ml-1"></i></a>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
     // --- Pending Table Rendering ---
     function renderPendingTable(pendingStudents) {
         const tbody = document.getElementById('pending_tbody');
@@ -205,7 +330,10 @@
 
         allCaughtUpMsg.classList.add('hidden');
 
-        pendingStudents.forEach(student => {
+        // Limit to recent 10
+        const recentPending = pendingStudents.slice(0, 10);
+
+        recentPending.forEach(student => {
             const defaultPfp = "{{ url_for('static', filename='image/default_pfp.png') }}";
             const reviewUrl = `{{ url_for('admin.admin_review_student', student_id='STUDENT_ID_PLACEHOLDER') }}`.replace('STUDENT_ID_PLACEHOLDER', student.id);
 
@@ -217,8 +345,8 @@
                                          student.signature_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                                          'bg-red-100 text-red-800';
             
-            const pictureStatusText = student.picture_status.charAt(0).toUpperCase() + student.picture_status.slice(1);
-            const signatureStatusText = student.signature_status.charAt(0).toUpperCase() + student.signature_status.slice(1);
+            const pictureStatusText = (student.picture_status || 'N/A').charAt(0).toUpperCase() + (student.picture_status || '').slice(1);
+            const signatureStatusText = (student.signature_status || 'N/A').charAt(0).toUpperCase() + (student.signature_status || '').slice(1);
 
             const row = `
                 <tr>
@@ -255,28 +383,175 @@
         });
     }
 
-    // --- Main Data Fetch Function ---
-    async function fetchAllData() {
+    // --- NEW: Notification Logic ---
+    window.fetchNotifications = async function(supabaseClient) {
+        const notificationArea = document.getElementById('notification-area');
+        const viewAllBtn = document.getElementById('view-all-notifs-btn-area');
         try {
-            // Fetch all profiles for stats and chart
-            const { data: allProfiles, error: profilesError } = await supabase
+            // Fetch ONE most recent UNREAD "Class Review Complete" log
+            const { data: logs, error } = await supabaseClient
+                .from('activity_logs')
+                .select('*')
+                .eq('action', 'Class Review Complete')
+                .is('is_read', false) // Filter only unread (false or null, need to handle null if default not set)
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+            if (error) throw error;
+
+            if (logs && logs.length > 0) {
+                notificationArea.innerHTML = '';
+                notificationArea.classList.remove('hidden');
+                viewAllBtn.classList.remove('hidden');
+
+                const log = logs[0];
+                const date = new Date(log.created_at).toLocaleString();
+                const html = `
+                    <div class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 mb-3 rounded-r shadow-sm flex justify-between items-start animate-fade-in-down">
+                        <div>
+                            <p class="font-bold">
+                                <i class="fas fa-bell mr-2"></i> Class Ready for Review
+                            </p>
+                            <p class="text-sm mt-1">${log.details}</p>
+                            <p class="text-xs text-blue-400 mt-2">${date}</p>
+                        </div>
+                        <button onclick="dismissNotification('${log.id}', this)" class="text-blue-400 hover:text-blue-600 focus:outline-none" title="Mark as read">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+                notificationArea.innerHTML = html;
+            } else {
+                notificationArea.classList.add('hidden');
+                // Keep 'View All' visible if desired, or toggle based on history. 
+                // Let's keep it visible so they can always check history.
+                viewAllBtn.classList.remove('hidden'); 
+            }
+
+        } catch (err) {
+            console.error("Error fetching notifications:", err);
+            // Fallback for is_read query if column doesn't exist (handle locally or show error)
+            // If is_read doesn't exist, it might error.
+        }
+    }
+
+    // Function to dismiss and mark as read
+    window.dismissNotification = async function(logId, btnElement) {
+        // Remove from UI immediately
+        const notifDiv = btnElement.parentElement;
+        notifDiv.remove();
+        
+        // Hide container if empty
+        const notificationArea = document.getElementById('notification-area');
+        if(notificationArea.children.length === 0) {
+            notificationArea.classList.add('hidden');
+        }
+
+        // Call backend to update DB
+        try {
+            const response = await fetch(`/admin/mark_notification_read/${logId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                console.error("Failed to mark notification as read");
+            } else {
+                console.log("Notification marked as read");
+            }
+        } catch (error) {
+            console.error("Error calling mark_read API:", error);
+        }
+    }
+
+    // Modal Logic
+    window.openNotifModal = async function() {
+        const modal = document.getElementById('notifModal');
+        const list = document.getElementById('modal-notif-list');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        list.innerHTML = '<p class="text-center text-gray-500 py-4"><i class="fas fa-spinner fa-spin"></i> Loading...</p>';
+
+        try {
+            // Fetch ALL relevant notifications history
+            const { data: logs, error } = await window.supabaseClient
+                .from('activity_logs')
+                .select('*')
+                .eq('action', 'Class Review Complete')
+                .order('created_at', { ascending: false })
+                .limit(20);
+
+            if (error) throw error;
+
+            if (logs && logs.length > 0) {
+                list.innerHTML = '';
+                logs.forEach(log => {
+                    const date = new Date(log.created_at).toLocaleString();
+                    const isRead = log.is_read ? true : false;
+                    const bgClass = isRead ? 'bg-white' : 'bg-blue-50 border-l-4 border-blue-500';
+                    const textClass = isRead ? 'text-gray-600' : 'text-blue-800 font-medium';
+
+                    const item = `
+                        <div class="p-4 mb-3 rounded shadow-sm border border-gray-200 ${bgClass}">
+                            <p class="${textClass} text-sm">${log.details}</p>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-xs text-gray-400">${date}</span>
+                                ${!isRead ? `<span class="text-xs text-blue-500 font-bold">NEW</span>` : `<span class="text-xs text-gray-400">Read</span>`}
+                            </div>
+                        </div>
+                    `;
+                    list.innerHTML += item;
+                });
+            } else {
+                list.innerHTML = '<p class="text-center text-gray-500 py-4">No notification history.</p>';
+            }
+
+        } catch (err) {
+            console.error("Error loading history:", err);
+            list.innerHTML = '<p class="text-center text-red-500 py-4">Error loading history.</p>';
+        }
+    }
+
+    window.closeNotifModal = function() {
+        const modal = document.getElementById('notifModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        // Refresh the main dashboard notif just in case
+        if(window.supabaseClient) window.fetchNotifications(window.supabaseClient);
+    }
+
+
+    // --- Main Data Fetch Function ---
+    async function fetchAllData(supabaseClient) {
+        if (!supabaseClient) return;
+        try {
+            // Fetch all profiles for stats and chart (Filtered by verified email)
+            const { data: allProfiles, error: profilesError } = await supabaseClient
                 .from('profiles')
-                .select('program, picture_status, signature_status');
+                .select('program, picture_status, signature_status')
+                .eq('email_verified', true);
             
             if (profilesError) throw profilesError;
 
-            // Fetch pending students for table
-            const { data: pendingStudents, error: pendingError } = await supabase
+            // Fetch pending students for table (Filtered by verified email)
+            // Added order by program/year/section to group nicely if looking at raw list
+            const { data: pendingStudents, error: pendingError } = await supabaseClient
                 .from('profiles')
                 .select('*')
+                .eq('email_verified', true)
                 .or('picture_status.eq.pending,signature_status.eq.pending')
-                .order('last_name', { ascending: true });
+                .order('program', { ascending: true })
+                .order('year_level', { ascending: true })
+                .order('section', { ascending: true });
 
             if (pendingError) throw pendingError;
 
             // Render all components
             renderStats(allProfiles);
             renderProgramChart(allProfiles);
+            renderPendingSections(pendingStudents); // Render the new sections table
             renderPendingTable(pendingStudents);
 
         } catch (error) {
@@ -293,36 +568,79 @@
     }
 
     // --- Realtime Setup ---
-    function setupRealtimeListener() {
-        const channel = supabase.channel('public:profiles');
+    function setupRealtimeListener(supabaseClient) {
+        if (!supabaseClient) return;
+        const channel = supabaseClient.channel('dashboard-updates');
         
+        // Listen for profile changes
         channel
             .on('postgres_changes', 
                 { event: '*', schema: 'public', table: 'profiles' }, 
                 (payload) => {
-                    console.log('Change detected!', payload);
-                    // Re-fetch all data to update stats, chart, and table
-                    fetchAllData();
+                    console.log('Profile change detected!', payload);
+                    fetchAllData(supabaseClient);
+                }
+            )
+            // Listen for new activity logs (notifications)
+            .on('postgres_changes', 
+                { event: 'INSERT', schema: 'public', table: 'activity_logs', filter: "action=eq.Class Review Complete" }, 
+                (payload) => {
+                    console.log('New notification!', payload);
+                    window.fetchNotifications(supabaseClient);
                 }
             )
             .subscribe((status) => {
                 if (status === 'SUBSCRIBED') {
                     console.log('Real-time channel connected.');
-                } else if (status === 'CHANNEL_ERROR') {
-                    console.error('Real-time channel error.');
-                } else if (status === 'TIMED_OUT') {
-                    console.warn('Real-time connection timed out.');
                 }
             });
     }
 
-    // --- Initial Load ---
-    document.addEventListener('DOMContentLoaded', () => {
-        if (SUPABASE_URL && SUPABASE_KEY) {
-            fetchAllData(); // Fetch initial data on page load
-            setupRealtimeListener(); // Start listening for changes
+    // --- INITIALIZATION ---
+    // Strict check to ensure keys are valid before initializing
+    if (!SUPABASE_URL || SUPABASE_URL === 'None' || !SUPABASE_KEY || SUPABASE_KEY === 'None') {
+        console.error("Supabase credentials are missing or invalid.");
+        document.getElementById('pending_tbody').innerHTML = `
+            <tr>
+                <td colspan="5" class="px-6 py-10 text-center text-red-600">
+                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    <p class="mt-2 font-bold">Configuration Error</p>
+                    <p class="text-sm">Supabase keys not found. Check your .env or Vercel config.</p>
+                </td>
+            </tr>`;
+        document.getElementById('pending_sections_tbody').innerHTML = `<tr><td colspan="3" class="text-center text-red-500 p-4">Config Error</td></tr>`;
+    } else {
+        // Initialize client only if keys exist
+        try {
+            const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log("Supabase client initialized successfully.");
+            
+            // Attach supabase to window for modal functions
+            window.supabaseClient = supabase;
+
+            // Start data fetch
+            fetchAllData(supabase);
+            window.fetchNotifications(supabase); // NEW: Fetch notifications
+            setupRealtimeListener(supabase);
+        } catch (err) {
+            console.error("Failed to initialize Supabase client:", err);
         }
-    });
+    }
 
 </script>
+<style>
+    @keyframes fadeInDown {
+        0% {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .animate-fade-in-down {
+        animation: fadeInDown 0.5s ease-out;
+    }
+</style>
 {% endblock %}

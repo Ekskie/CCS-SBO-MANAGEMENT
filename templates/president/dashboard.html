@@ -1,159 +1,161 @@
 {% extends "president/base.html" %}
 
-{% block president_content %}
+{% block title %}President Dashboard{% endblock %}
+{% block page_title %}President Dashboard{% endblock %}
+
+{% block content %}
 <div class="space-y-8">
 
-    <div class="bg-white rounded-lg shadow-md">
-        <div class="p-6 border-b border-gray-200">
+    <!-- Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
             <div class="flex justify-between items-center">
                 <div>
-                    <h3 class="text-xl font-semibold text-gray-800">Class List: {{ class_name }}</h3>
-                    <p class="text-sm text-gray-500">View and manage the students in your class.</p>
+                    <span class="text-sm font-medium text-gray-500">Class</span>
+                    <span class="text-xl font-bold text-gray-900 block mt-1">{{ class_name }}</span>
                 </div>
-
-                <!-- 🔧 FIXED: increased size + allow overflow for tooltip -->
-                <div class="h-24 w-24 flex-shrink-0 relative z-10 overflow-visible">
-                    <canvas id="classStatusChart"></canvas>
+                <i class="fas fa-users fa-2x text-blue-200"></i>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+            <div class="flex justify-between items-center">
+                <div>
+                    <span class="text-sm font-medium text-gray-500">Fully Approved</span>
+                    <span class="text-2xl font-bold text-gray-900 block mt-1">{{ fully_approved_count }}</span>
                 </div>
+                <i class="fas fa-check-circle fa-2x text-green-200"></i>
             </div>
         </div>
 
-        <div class="p-6">
-            {% if classmates %}
-            <div class="overflow-x-auto rounded-lg border border-gray-200">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Name
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Student ID
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Picture Status
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Signature Status
-                            </th>
-                            <th scope="col" class="relative px-6 py-3">
-                                <span class="sr-only">Review</span>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
+            <div class="flex justify-between items-center">
+                <div>
+                    <span class="text-sm font-medium text-gray-500">Pending Review</span>
+                    <span class="text-2xl font-bold text-gray-900 block mt-1">{{ pending_review_count }}</span>
+                </div>
+                <i class="fas fa-hourglass-half fa-2x text-yellow-200"></i>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500">
+            <div class="flex justify-between items-center">
+                <div>
+                    <span class="text-sm font-medium text-gray-500">Disapproved</span>
+                    <span class="text-2xl font-bold text-gray-900 block mt-1">{{ disapproved_count }}</span>
+                </div>
+                <i class="fas fa-times-circle fa-2x text-red-200"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notify Admin Section -->
+    <div class="bg-white rounded-lg shadow-md p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-800">Class Review Status</h3>
+            <p class="text-sm text-gray-500">Once you have reviewed all pending submissions and all students are approved, notify the admin to proceed with final checking.</p>
+        </div>
+        
+        {% set all_approved = (pending_review_count == 0 and disapproved_count == 0 and classmates|length > 0) %}
+        
+        <form action="{{ url_for('president.notify_admin') }}" method="POST" 
+              {% if all_approved %} onsubmit="return confirm('Are you sure you want to notify the admin? This indicates all reviews are complete.');" {% endif %}>
+            
+            <div class="flex flex-col items-end">
+                <button type="submit" 
+                        {% if not all_approved %} disabled {% endif %}
+                        class="inline-flex items-center px-6 py-3 font-medium rounded-lg shadow transition duration-200 ease-in-out
+                               {% if all_approved %}
+                                   bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer
+                               {% else %}
+                                   bg-gray-300 text-gray-500 cursor-not-allowed
+                               {% endif %}">
+                    <i class="fas fa-bell mr-2"></i>
+                    Notify Admin Ready
+                </button>
+                {% if not all_approved %}
+                    <p class="text-xs text-red-500 mt-2 font-medium">
+                        <i class="fas fa-exclamation-circle mr-1"></i>
+                        All students must be fully approved first.
+                    </p>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Classmates List -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-xl font-semibold text-gray-800">Classmates</h3>
+            <span class="bg-gray-100 text-gray-600 py-1 px-3 rounded-full text-xs font-medium">Total: {{ classmates|length }}</span>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Picture</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Signature</th>
+                        <th scope="col" class="relative px-6 py-3"><span class="sr-only">Action</span></th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% if classmates %}
                         {% for student in classmates %}
+                            <!-- Only show verified students -->
+                            {% if student.email_verified %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <img class="h-10 w-10 rounded-full object-cover" 
+                                                 src="{{ student.picture_url or 'https://ui-avatars.com/api/?name=' + student.first_name + '+' + student.last_name }}" 
+                                                 alt="">
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">{{ student.first_name }} {{ student.last_name }}</div>
+                                            <div class="text-sm text-gray-500">{{ student.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ student.student_id }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if student.picture_status == 'approved' %} bg-green-100 text-green-800 
+                                        {% elif student.picture_status == 'pending' %} bg-yellow-100 text-yellow-800 
+                                        {% else %} bg-red-100 text-red-800 {% endif %}">
+                                        {{ student.picture_status | capitalize }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if student.signature_status == 'approved' %} bg-green-100 text-green-800 
+                                        {% elif student.signature_status == 'pending' %} bg-yellow-100 text-yellow-800 
+                                        {% else %} bg-red-100 text-red-800 {% endif %}">
+                                        {{ student.signature_status | capitalize }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <a href="{{ url_for('president.president_review_student', student_id=student.id) }}" class="text-indigo-600 hover:text-indigo-900">Review</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
                         <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">
-                                    {# UPDATED: Suffix Logic #}
-                                    {{ student.last_name }} {% if student.suffix_name %}{{ student.suffix_name }}{% endif %}, {{ student.first_name }} {{ student.middle_name }}
-                                </div>
-                                <div class="text-sm text-gray-500">{{ student.email }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">{{ student.student_id }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="font-bold px-3 py-1 rounded-full text-xs
-                                    {% if student.picture_status == 'approved' %} bg-green-100 text-green-800
-                                    {% elif student.picture_status == 'pending' %} bg-yellow-100 text-yellow-800
-                                    {% else %} bg-red-100 text-red-800 {% endif %}">
-                                    {{ student.picture_status | capitalize }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="font-bold px-3 py-1 rounded-full text-xs
-                                    {% if student.signature_status == 'approved' %} bg-green-100 text-green-800
-                                    {% elif student.signature_status == 'pending' %} bg-yellow-100 text-yellow-800
-                                    {% else %} bg-red-100 text-red-800 {% endif %}">
-                                    {{ student.signature_status | capitalize }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="{{ url_for('president.president_review_student', student_id=student.id) }}"
-                                    class="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition text-xs">
-                                    Review
-                                </a>
+                            <td colspan="5" class="px-6 py-10 text-center text-gray-500">
+                                No classmates found in this section.
                             </td>
                         </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="text-center py-12">
-                <i class="fas fa-users fa-3x text-gray-400 mb-4"></i>
-                <h4 class="text-lg font-medium text-gray-700">No Classmates Found</h4>
-                <p class="text-gray-500">There are no other students found in your registered class.</p>
-            </div>
-            {% endif %}
+                    {% endif %}
+                </tbody>
+            </table>
         </div>
     </div>
 
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const total = {{ fully_approved_count + disapproved_count + pending_review_count }};
-        
-        if (total > 0) {
-            const ctx = document.getElementById('classStatusChart').getContext('2d');
-            const data = {
-                labels: [
-                    'Fully Approved',
-                    'Disapproved',
-                    'Pending Review'
-                ],
-                datasets: [{
-                    label: 'Classmate Status',
-                    data: [
-                        {{ fully_approved_count }},
-                        {{ disapproved_count }},
-                        {{ pending_review_count }}
-                    ],
-                    backgroundColor: [
-                        '#10B981', // Green
-                        '#EF4444', // Red
-                        '#F59E0B'  // Amber
-                    ],
-                    borderColor: '#ffffff',
-                    borderWidth: 2,
-                    hoverOffset: 6
-                }]
-            };
-    
-            const config = {
-                type: 'doughnut',
-                data: data,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '70%',
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            enabled: true,
-                            bodyFont: { size: 8 },
-                            titleFont: { size: 10 },
-                            padding: 10
-                        }
-                    },
-                    layout: {
-                        padding: 10
-                    }
-                }
-            };
-            
-            new Chart(ctx, config);
-        }
-    });
-</script>
 {% endblock %}

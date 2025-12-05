@@ -22,7 +22,8 @@
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <!-- 1x1 Picture Card -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-full">
                 <div class="p-6 border-b border-gray-200 flex justify-between items-center">
                     <h3 class="text-xl font-semibold text-gray-800">1x1 Picture Review</h3>
                     <span class="font-bold px-3 py-1 rounded-full text-sm
@@ -33,15 +34,23 @@
                     </span>
                 </div>
                 
-                <div class="p-6 text-center">
-                    <div class="w-48 h-48 mx-auto border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
+                <div class="p-6 text-center flex-grow">
+                    <div class="w-48 h-48 mx-auto border-2 border-dashed border-gray-300 rounded-lg overflow-hidden relative group">
                         <img src="{{ student.picture_url or 'https://placehold.co/150x150/e2e8f0/718096?text=No+Image' }}" 
                              alt="Profile picture"
                              class="w-full h-full object-cover cursor-pointer hover:opacity-80 transition clickable-img">
                     </div>
                 </div>
 
-                <div class="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-4">
+                <!-- Picture Reason Input -->
+                <div class="px-6 pb-2">
+                    <label for="picture_disapproval_reason" class="block text-sm font-medium text-gray-700 mb-1">Reason for Disapproval (Picture)</label>
+                    <textarea name="picture_disapproval_reason" id="picture_disapproval_reason" rows="2" 
+                              placeholder="e.g., 'Background is not white', 'Face not clear'"
+                              class="w-full p-2 bg-gray-50 border border-gray-300 rounded text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ student.picture_disapproval_reason or '' }}</textarea>
+                </div>
+
+                <div class="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-4 mt-auto">
                     <button type="submit" name="action" value="disapprove_picture" 
                             class="px-5 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">
                         Disapprove
@@ -53,7 +62,8 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <!-- Signature Card -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-full">
                 <div class="p-6 border-b border-gray-200 flex justify-between items-center">
                     <h3 class="text-xl font-semibold text-gray-800">Signature Review</h3>
                     <span class="font-bold px-3 py-1 rounded-full text-sm
@@ -64,15 +74,23 @@
                     </span>
                 </div>
                 
-                <div class="p-6 text-center">
-                    <div class="w-full h-48 p-4 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden bg-gray-50 flex justify-center items-center">
+                <div class="p-6 text-center flex-grow">
+                    <div class="w-full h-48 p-4 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden bg-gray-50 flex justify-center items-center relative group">
                         <img src="{{ student.signature_url or 'https://placehold.co/300x150/e2e8f0/718096?text=No+Signature' }}" 
                              alt="Signature"
                              class="w-full h-full object-contain cursor-pointer hover:opacity-80 transition clickable-img">
                     </div>
                 </div>
 
-                <div class="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-4">
+                <!-- Signature Reason Input -->
+                <div class="px-6 pb-2">
+                    <label for="signature_disapproval_reason" class="block text-sm font-medium text-gray-700 mb-1">Reason for Disapproval (Signature)</label>
+                    <textarea name="signature_disapproval_reason" id="signature_disapproval_reason" rows="2" 
+                              placeholder="e.g., 'Not transparent', 'Too blurry'"
+                              class="w-full p-2 bg-gray-50 border border-gray-300 rounded text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ student.signature_disapproval_reason or '' }}</textarea>
+                </div>
+
+                <div class="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-4 mt-auto">
                     <button type="submit" name="action" value="disapprove_signature" 
                             class="px-5 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition">
                         Disapprove
@@ -84,21 +102,7 @@
                 </div>
             </div>
 
-        </div> <div class="mt-8 bg-white rounded-lg shadow-md overflow-hidden">
-            <div class="p-6 border-b border-gray-200">
-                <h3 class="text-xl font-semibold text-gray-800">Disapproval Reason</h3>
-                <p class="text-sm text-gray-500">Required if you are disapproving an item.</p>
-            </div>
-            <div class="p-6">
-                <label for="disapproval_reason" class="sr-only">Disapproval Reason</label>
-                <textarea name="disapproval_reason" id="disapproval_reason" rows="4" 
-                          placeholder="e.g., 'Picture is not 1x1' or 'Signature has a white background'"
-                          class="w-full p-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                ></textarea>
-                <p class="text-xs text-gray-500 mt-2 italic">This reason will be shown to the student. Admin's reason will overwrite any existing reason.</p>
-            </div>
-        </div>
-
+        </div> 
     </form>
 </div>
 
@@ -117,12 +121,11 @@
         var modalImg = document.getElementById('modalImage');
         var closeBtn = document.getElementById('modalClose');
 
-        document.querySelectorAll('.clickable-img').forEach(function(div) {
-            div.onclick = function() {
-                var img = div.querySelector('img');
-                if (img) {
+        document.querySelectorAll('.clickable-img').forEach(function(imgElement) {
+            imgElement.onclick = function() {
+                if (imgElement) {
                     modal.style.display = 'flex';
-                    modalImg.src = img.src;
+                    modalImg.src = imgElement.src;
                 }
             }
         });
@@ -132,7 +135,6 @@
         }
         
         modal.onclick = function(e) {
-            // Close if clicking on the background overlay
             if (e.target === modal) {
                 modal.style.display = 'none';
             }

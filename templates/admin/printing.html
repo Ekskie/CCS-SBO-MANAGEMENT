@@ -4,368 +4,255 @@
 {% block page_title %}Printing Station{% endblock %}
 
 {% block content %}
-<div class="space-y-8">
+<div>
+    <!-- Controls -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <form method="GET" action="{{ url_for('admin.admin_printing') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            
+            <!-- Program Filter -->
+            <select name="program" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900" onchange="this.form.submit()">
+                <option value="">Select Program</option>
+                {% for prog in all_programs %}
+                    <option value="{{ prog }}" {% if current_program == prog %}selected{% endif %}>{{ prog }}</option>
+                {% endfor %}
+            </select>
 
-    <!-- Header Section -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 transition-all hover:shadow-md">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
-            <div>
-                <h3 class="text-3xl font-bold text-gray-900 tracking-tight">Manage Print Groups</h3>
-                <p class="text-gray-500 text-sm mt-2 font-medium">Filter, archive, and generate print previews for student lists.</p>
-            </div>
-        </div>
-        
-        <!-- Filter Form -->
-        <form method="GET" action="{{ url_for('admin.admin_printing') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {% macro form_select(name, label, selected_val, options) %}
-            <div class="relative group">
-                <label for="{{ name }}" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1 group-hover:text-blue-600 transition-colors">{{ label }}</label>
-                <div class="relative">
-                    <select name="{{ name }}" id="{{ name }}" onchange="this.form.submit()"
-                            class="block w-full pl-4 pr-10 py-3 text-sm font-medium border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent rounded-lg bg-gray-50 hover:bg-white transition duration-200 ease-in-out shadow-sm appearance-none cursor-pointer text-gray-700">
-                        <option value="" class="text-gray-400">All {{ label }}s</option>
-                        {% for option in options %}
-                            <option value="{{ option }}" {% if option == selected_val %}selected{% endif %} class="text-gray-900">{{ option }}</option>
-                        {% endfor %}
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 group-hover:text-blue-500 transition-colors">
-                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-            {% endmacro %}
+            <!-- Year Level Filter -->
+            <select name="year_level" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900" onchange="this.form.submit()">
+                <option value="">Select Year</option>
+                {% for year in all_years %}
+                    <option value="{{ year }}" {% if current_year == year %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
 
-            {{ form_select('program', 'Program', current_program, all_programs) }}
-            {{ form_select('year_level', 'Year Level', current_year, all_years) }}
-            {{ form_select('section', 'Section', current_section, all_sections) }}
-            {{ form_select('semester', 'Semester', current_semester, all_semesters) }}
+            <!-- Section Filter -->
+            <select name="section" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900" onchange="this.form.submit()">
+                <option value="">Select Section</option>
+                {% for sec in all_sections %}
+                    <option value="{{ sec }}" {% if current_section == sec %}selected{% endif %}>Section {{ sec }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Semester Filter -->
+            <select name="semester" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900" onchange="this.form.submit()">
+                <option value="">Select Semester</option>
+                {% for sem in all_semesters %}
+                    <option value="{{ sem }}" {% if current_semester == sem %}selected{% endif %}>{{ sem }} Semester</option>
+                {% endfor %}
+            </select>
+
+            <a href="{{ url_for('admin.admin_printing') }}" class="flex items-center justify-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium">
+                Reset
+            </a>
         </form>
     </div>
 
-    <!-- Results Table -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-100">
-                <thead>
-                    <tr class="bg-gray-50 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                        <th scope="col" class="px-8 py-5">Group Information</th>
-                        <th scope="col" class="px-8 py-5 text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-100">
-                    {% if groups %}
-                        {% for group in groups %}
-                        <tr class="hover:bg-blue-50/40 transition duration-200 ease-in-out group">
-                            <td class="px-8 py-5 whitespace-nowrap">
-                                <div class="flex flex-col">
-                                    <span class="text-lg font-bold text-gray-800 group-hover:text-blue-700 transition-colors">
-                                        {{ group[0] }} {{ group[1] }} - {{ group[2] }}
-                                    </span>
-                                    <div class="flex items-center mt-2 space-x-3">
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">
-                                            {{ group[4] }} Sem
-                                        </span>
-                                        {% if group[3] != 'None' %}
-                                        <span class="text-gray-300 text-xs">&bull;</span>
-                                        <span class="text-sm text-gray-600 font-medium bg-gray-100 px-2 py-0.5 rounded-md border border-gray-200">
-                                            Major in {{ group[3] }}
-                                        </span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-8 py-5 whitespace-nowrap text-right text-sm font-medium">
-                                <div class="flex justify-end items-center gap-4">
-                                    <!-- Modern "Manage" Button to Open Modal -->
-                                    <button type="button" 
-                                            onclick="openPrintModal('{{ group[0] }}', '{{ group[1] }}', '{{ group[2] }}', '{{ group[3] }}', '{{ group[4] }}')"
-                                            class="inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                                        Manage & Print
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="2" class="px-6 py-24 text-center">
-                                <div class="flex flex-col items-center justify-center max-w-md mx-auto">
-                                    <div class="bg-gray-50 p-6 rounded-full mb-6 border border-gray-100 shadow-inner">
-                                        <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                        </svg>
-                                    </div>
-                                    <h4 class="text-xl font-bold text-gray-900 mb-2">No Groups Found</h4>
-                                    <p class="text-gray-500 leading-relaxed">We couldn't find any student groups matching your current filters. Try adjusting the program, year, or section above to see results.</p>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
+    <!-- Groups Grid -->
+    {% if groups %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for group in groups %}
+                {% set program, year, section, major, semester = group %}
+                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-200">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold text-gray-800">{{ program }}</h3>
+                            <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">{{ semester }} Sem</span>
+                        </div>
+                        
+                        <p class="text-gray-600 mb-1"><span class="font-medium">Year & Section:</span> {{ year }} - {{ section }}</p>
+                        {% if major != 'None' %}
+                            <p class="text-gray-600 mb-4"><span class="font-medium">Major:</span> {{ major }}</p>
+                        {% else %}
+                            <p class="text-gray-600 mb-4"><span class="font-medium">Major:</span> N/A</p>
+                        {% endif %}
+
+                        <div class="flex gap-2 mt-4">
+                            <!-- Preview Button -->
+                            <a href="{{ url_for('admin.admin_print_preview', program=program, year_level=year, section=section, major=major, semester=semester) }}" 
+                               target="_blank"
+                               class="flex-1 text-center px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
+                                Preview
+                            </a>
+                            
+                            <!-- Generate Archive Button (Triggers Modal) -->
+                            <button onclick="openArchiveModal('{{ program }}', '{{ year }}', '{{ section }}', '{{ major }}', '{{ semester }}')"
+                                    class="flex-1 text-center px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition">
+                                Archive
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
         </div>
-        {% if groups %}
-        <div class="bg-gray-50 px-8 py-4 border-t border-gray-200 flex items-center justify-between">
-            <span class="text-xs text-gray-500 font-bold uppercase tracking-wide">Showing {{ groups|length }} group(s)</span>
+    {% else %}
+        <div class="bg-white rounded-lg shadow-md p-10 text-center">
+            <i class="fas fa-folder-open fa-3x text-gray-300 mb-4"></i>
+            <p class="text-xl font-medium text-gray-600">No groups found.</p>
+            <p class="text-gray-500">Try adjusting your filters to see student groups.</p>
         </div>
-        {% endif %}
+    {% endif %}
+
+</div>
+
+<!-- Global Settings Modal (Triggered by button at top) -->
+<div id="settingsModal" class="fixed z-50 inset-0 overflow-y-auto hidden items-center justify-center p-4 bg-black bg-opacity-50">
+    <div class="relative bg-white rounded-lg shadow-xl w-full max-w-4xl">
+        <form action="{{ url_for('admin.admin_save_print_settings') }}" method="POST">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-lg">
+                <h3 class="text-xl font-bold text-gray-800">Global Print Settings</h3>
+                <button type="button" onclick="closeSettingsModal()" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Academic Year -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Academic Year Label</label>
+                    <input type="text" name="academic_year" value="{{ print_settings.academic_year or 'AY 2025-2026' }}" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                </div>
+
+                <!-- Signatories -->
+                <div>
+                    <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Adviser 1</h4>
+                    <input type="text" name="adviser1_name" value="{{ print_settings.adviser1_name or '' }}" placeholder="Name" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="adviser1_title" value="{{ print_settings.adviser1_title or '' }}" placeholder="Title" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="adviser1_date" value="{{ print_settings.adviser1_date or '' }}" placeholder="Date" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Adviser 2</h4>
+                    <input type="text" name="adviser2_name" value="{{ print_settings.adviser2_name or '' }}" placeholder="Name" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="adviser2_title" value="{{ print_settings.adviser2_title or '' }}" placeholder="Title" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="adviser2_date" value="{{ print_settings.adviser2_date or '' }}" placeholder="Date" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Dean</h4>
+                    <input type="text" name="dean_name" value="{{ print_settings.dean_name or '' }}" placeholder="Name" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="dean_title" value="{{ print_settings.dean_title or '' }}" placeholder="Title" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Head (Student Org)</h4>
+                    <input type="text" name="head_name" value="{{ print_settings.head_name or '' }}" placeholder="Name" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="head_title" value="{{ print_settings.head_title or '' }}" placeholder="Title" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                </div>
+                <div class="md:col-span-2">
+                    <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Director (OSAS)</h4>
+                    <input type="text" name="director_name" value="{{ print_settings.director_name or '' }}" placeholder="Name" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="director_title" value="{{ print_settings.director_title or '' }}" placeholder="Title" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-gray-200 bg-gray-50 rounded-b-lg text-right">
+                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
+                    Save Global Defaults
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
-<!-- Signatory Edit Modal -->
-<div id="printModal" class="relative z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    
-    <!-- Background backdrop -->
-    <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity transition-all duration-300 ease-out" aria-hidden="true"></div>
+<!-- Archive Modal (Uses values, submits to Archive) -->
+<div id="archiveModal" class="fixed z-50 inset-0 overflow-y-auto hidden items-center justify-center p-4 bg-black bg-opacity-50">
+    <div class="relative bg-white rounded-lg shadow-xl w-full max-w-4xl">
+        <form action="{{ url_for('admin.admin_archive_group') }}" method="POST">
+            <!-- Hidden Fields for Group ID -->
+            <input type="hidden" name="program" id="modal_program">
+            <input type="hidden" name="year_level" id="modal_year">
+            <input type="hidden" name="section" id="modal_section">
+            <input type="hidden" name="major" id="modal_major">
+            <input type="hidden" name="semester" id="modal_semester">
 
-    <div class="fixed inset-0 z-10 overflow-y-auto">
-        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-lg">
+                <h3 class="text-xl font-bold text-gray-800">Confirm Archive Details</h3>
+                <button type="button" onclick="closeArchiveModal()" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
             
-            <!-- Modal panel -->
-            <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-4xl border border-gray-200">
-                
-                <!-- Modal Header -->
-                <div class="bg-white px-8 py-6 border-b border-gray-100 flex justify-between items-center">
-                    <div>
-                        <h3 class="text-xl font-bold text-gray-900 flex items-center gap-3" id="modal-title">
-                            <span class="flex items-center justify-center h-10 w-10 rounded-full bg-blue-100 text-blue-600">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                            </span>
-                            Edit Signatories & Report Details
-                        </h3>
-                        <p class="text-sm text-gray-500 mt-1 ml-[3.25rem]">Customize names, titles, and dates for the report footer.</p>
-                    </div>
-                    <button type="button" onclick="closePrintModal()" class="text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-full p-2 transition-colors focus:outline-none">
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 text-sm">
+                    <p class="font-bold">Note:</p>
+                    <p>These values are pre-filled from your Global Settings. Changing them here only affects this specific archive.</p>
                 </div>
 
-                <form id="printPreviewForm" method="GET" action="{{ url_for('admin.admin_print_preview') }}">
-                    <!-- Hidden inputs for group data -->
-                    <input type="hidden" name="program" id="modal_program">
-                    <input type="hidden" name="year_level" id="modal_year_level">
-                    <input type="hidden" name="section" id="modal_section">
-                    <input type="hidden" name="major" id="modal_major">
-                    <input type="hidden" name="semester" id="modal_semester">
+                <!-- Copied fields from settings modal (Pre-filled via Jinja) -->
+                <!-- Academic Year -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
+                    <input type="text" name="academic_year" value="{{ print_settings.academic_year or 'AY 2025-2026' }}" class="w-full p-2 border border-gray-300 rounded text-gray-900" required>
+                </div>
 
-                    <div class="px-8 py-8 bg-gray-50/50">
-                        
-                        <!-- Archive Info (Top Section) -->
-                        <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 flex items-center gap-4">
-                            <div class="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 flex-shrink-0">
-                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
-                            </div>
-                            <div class="flex-grow">
-                                <label class="block text-xs font-bold uppercase tracking-wide text-yellow-800 mb-1">Academic Year (Required for Archiving)</label>
-                                <input type="text" name="academic_year" placeholder="e.g., 2023-2024" 
-                                       class="w-full text-sm font-semibold border-yellow-300 rounded-lg px-3 py-2 focus:ring-yellow-500 focus:border-yellow-500 text-gray-900 bg-white placeholder-gray-400">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Adviser 1 -->
-                            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 group focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-400">
-                                <div class="flex items-center gap-3 mb-4 border-b border-gray-100 pb-3">
-                                    <div class="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">1</div>
-                                    <h4 class="font-bold text-sm text-gray-800 uppercase tracking-wide">Adviser 1</h4>
-                                </div>
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-bold mb-1.5">Full Name</label>
-                                        <input type="text" name="adviser1_name" value="MERVIN JOMMEL T. DE JESUS" class="w-full text-sm border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium bg-white transition-shadow shadow-sm placeholder-gray-400">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-bold mb-1.5">Position Title</label>
-                                        <input type="text" name="adviser1_title" value="Organization Adviser" class="w-full text-sm border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 bg-white transition-shadow shadow-sm placeholder-gray-400">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-bold mb-1.5">Date Signed</label>
-                                        <input type="text" name="adviser1_date" id="adviser1_date" class="w-full text-sm border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 bg-white transition-shadow shadow-sm placeholder-gray-400">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Adviser 2 -->
-                            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 group focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-400">
-                                <div class="flex items-center gap-3 mb-4 border-b border-gray-100 pb-3">
-                                    <div class="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">2</div>
-                                    <h4 class="font-bold text-sm text-gray-800 uppercase tracking-wide">Adviser 2</h4>
-                                </div>
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-bold mb-1.5">Full Name</label>
-                                        <input type="text" name="adviser2_name" value="LOUIE JEROME L. ROLDAN" class="w-full text-sm border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium bg-white transition-shadow shadow-sm placeholder-gray-400">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-bold mb-1.5">Position Title</label>
-                                        <input type="text" name="adviser2_title" value="Organization Adviser" class="w-full text-sm border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 bg-white transition-shadow shadow-sm placeholder-gray-400">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-bold mb-1.5">Date Signed</label>
-                                        <input type="text" name="adviser2_date" id="adviser2_date" class="w-full text-sm border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 bg-white transition-shadow shadow-sm placeholder-gray-400">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Dean -->
-                            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 group focus-within:border-indigo-400 focus-within:ring-1 focus-within:ring-indigo-400">
-                                <div class="flex items-center gap-3 mb-4 border-b border-gray-100 pb-3">
-                                    <div class="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs"><i class="fas fa-university"></i></div>
-                                    <h4 class="font-bold text-sm text-gray-800 uppercase tracking-wide">Dean / Assoc. Dean</h4>
-                                </div>
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-bold mb-1.5">Full Name</label>
-                                        <input type="text" name="dean_name" value="FRANCIS F. BALAHADIA, DIT" class="w-full text-sm border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 font-medium bg-white transition-shadow shadow-sm placeholder-gray-400">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-bold mb-1.5">Title</label>
-                                        <input type="text" name="dean_title" value="Dean/Assoc. Dean of College" class="w-full text-sm border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-700 bg-white transition-shadow shadow-sm placeholder-gray-400">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Head, Student Org -->
-                            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 group focus-within:border-indigo-400 focus-within:ring-1 focus-within:ring-indigo-400">
-                                <div class="flex items-center gap-3 mb-4 border-b border-gray-100 pb-3">
-                                    <div class="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs"><i class="fas fa-users-cog"></i></div>
-                                    <h4 class="font-bold text-sm text-gray-800 uppercase tracking-wide">Head, Student Org Unit</h4>
-                                </div>
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-bold mb-1.5">Full Name</label>
-                                        <input type="text" name="head_name" value="NIÑO EMMANUEL ALDI L. ASTOVEZA" class="w-full text-sm border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 font-medium bg-white transition-shadow shadow-sm placeholder-gray-400">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-bold mb-1.5">Title</label>
-                                        <input type="text" name="head_title" value="Head, Student Organization and Activities Unit" class="w-full text-sm border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-700 bg-white transition-shadow shadow-sm placeholder-gray-400">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Director/Chairperson -->
-                            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 md:col-span-2 group focus-within:border-green-400 focus-within:ring-1 focus-within:ring-green-400">
-                                <div class="flex items-center gap-3 mb-4 border-b border-gray-100 pb-3">
-                                    <div class="h-6 w-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold text-xs"><i class="fas fa-check-circle"></i></div>
-                                    <h4 class="font-bold text-sm text-gray-800 uppercase tracking-wide">Approval Director (OSAS)</h4>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-bold mb-1.5">Full Name</label>
-                                        <input type="text" name="director_name" value="JEANFEL J. CASIÑO" class="w-full text-sm border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500 text-gray-900 font-medium bg-white transition-shadow shadow-sm placeholder-gray-400">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 font-bold mb-1.5">Title</label>
-                                        <input type="text" name="director_title" value="Director/Chairperson, Office of Student Affairs and Services" class="w-full text-sm border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500 text-gray-700 bg-white transition-shadow shadow-sm placeholder-gray-400">
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <div class="bg-gray-100 px-8 py-6 sm:flex sm:flex-row-reverse gap-3 border-t border-gray-200 rounded-b-2xl">
-                        
-                        <!-- Preview Button -->
-                        <button type="button" onclick="submitModalForm('preview')"
-                                class="w-full inline-flex justify-center items-center rounded-xl border border-transparent shadow-lg shadow-blue-200 px-6 py-3 bg-blue-600 text-sm font-bold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:w-auto transition-all transform hover:-translate-y-0.5">
-                            <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                            Preview Template
-                        </button>
-
-                        <!-- Archive Button -->
-                        <button type="button" onclick="submitModalForm('archive')"
-                                class="w-full inline-flex justify-center items-center rounded-xl border border-transparent shadow-md shadow-yellow-100 px-6 py-3 bg-yellow-500 text-sm font-bold text-white hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 sm:w-auto transition-all transform hover:-translate-y-0.5">
-                            <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
-                            Archive Group
-                        </button>
-
-                        <button type="button" onclick="closePrintModal()" class="mt-3 w-full inline-flex justify-center items-center rounded-xl border border-gray-300 shadow-sm px-6 py-3 bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 sm:mt-0 sm:w-auto transition-colors">
-                            Cancel
-                        </button>
-                    </div>
-                </form>
+                <!-- Signatories -->
+                <div>
+                    <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Adviser 1</h4>
+                    <input type="text" name="adviser1_name" value="{{ print_settings.adviser1_name or '' }}" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="adviser1_title" value="{{ print_settings.adviser1_title or '' }}" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="adviser1_date" value="{{ print_settings.adviser1_date or '' }}" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Adviser 2</h4>
+                    <input type="text" name="adviser2_name" value="{{ print_settings.adviser2_name or '' }}" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="adviser2_title" value="{{ print_settings.adviser2_title or '' }}" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="adviser2_date" value="{{ print_settings.adviser2_date or '' }}" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Dean</h4>
+                    <input type="text" name="dean_name" value="{{ print_settings.dean_name or '' }}" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="dean_title" value="{{ print_settings.dean_title or '' }}" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Head (Student Org)</h4>
+                    <input type="text" name="head_name" value="{{ print_settings.head_name or '' }}" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="head_title" value="{{ print_settings.head_title or '' }}" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                </div>
+                <div class="md:col-span-2">
+                    <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Director (OSAS)</h4>
+                    <input type="text" name="director_name" value="{{ print_settings.director_name or '' }}" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="director_title" value="{{ print_settings.director_title or '' }}" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                </div>
             </div>
-        </div>
+
+            <div class="p-6 border-t border-gray-200 bg-gray-50 rounded-b-lg text-right">
+                <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition">
+                    Generate Archive
+                </button>
+            </div>
+        </form>
     </div>
+</div>
+
+<!-- Extra button to open settings -->
+<div class="fixed bottom-6 right-6">
+    <button onclick="openSettingsModal()" class="flex items-center justify-center w-14 h-14 bg-gray-800 text-white rounded-full shadow-lg hover:bg-gray-700 transition focus:outline-none" title="Edit Print Defaults">
+        <i class="fas fa-cog fa-lg"></i>
+    </button>
 </div>
 
 <script>
-    function openPrintModal(program, year, section, major, semester) {
+    function openArchiveModal(program, year, section, major, semester) {
         document.getElementById('modal_program').value = program;
-        document.getElementById('modal_year_level').value = year;
+        document.getElementById('modal_year').value = year;
         document.getElementById('modal_section').value = section;
         document.getElementById('modal_major').value = major;
         document.getElementById('modal_semester').value = semester;
         
-        // Set current date for signature fields
-        const today = new Date();
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        const formattedDate = today.toLocaleDateString('en-US', options);
-        
-        // Only set if value is empty or to force update? 
-        // Let's force update so it's always "today" unless manually changed by user after opening
-        const date1 = document.getElementById('adviser1_date');
-        const date2 = document.getElementById('adviser2_date');
-        
-        if(date1) date1.value = formattedDate;
-        if(date2) date2.value = formattedDate;
-
-        // Animate modal opening
-        const modal = document.getElementById('printModal');
-        modal.classList.remove('hidden');
-        // Add slight delay to allow display block to apply before opacity transition
-        setTimeout(() => {
-            modal.querySelector('div[aria-hidden="true"]').classList.add('opacity-100');
-            modal.querySelector('.transform').classList.add('opacity-100', 'translate-y-0', 'sm:scale-100');
-            modal.querySelector('.transform').classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
-        }, 10);
+        document.getElementById('archiveModal').classList.remove('hidden');
+        document.getElementById('archiveModal').classList.add('flex');
     }
 
-    function closePrintModal() {
-        const modal = document.getElementById('printModal');
-        // Animate closing
-        modal.querySelector('div[aria-hidden="true"]').classList.remove('opacity-100');
-        modal.querySelector('.transform').classList.remove('opacity-100', 'translate-y-0', 'sm:scale-100');
-        modal.querySelector('.transform').classList.add('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
-        
-        setTimeout(() => {
-            modal.classList.add('hidden');
-        }, 300);
+    function closeArchiveModal() {
+        document.getElementById('archiveModal').classList.add('hidden');
+        document.getElementById('archiveModal').classList.remove('flex');
     }
 
-    function submitModalForm(actionType) {
-        const form = document.getElementById('printPreviewForm');
-        
-        if (actionType === 'preview') {
-            form.action = "{{ url_for('admin.admin_print_preview') }}";
-            form.method = "GET";
-            form.target = "_blank"; // Open preview in new tab
-            form.submit();
-        } else if (actionType === 'archive') {
-            // Validation for Academic Year
-            const ayInput = form.querySelector('input[name="academic_year"]');
-            if (!ayInput.value.trim()) {
-                alert("Please enter an Academic Year (e.g., 2023-2024) before archiving.");
-                ayInput.focus();
-                return; // Stop submission
-            }
+    function openSettingsModal() {
+        document.getElementById('settingsModal').classList.remove('hidden');
+        document.getElementById('settingsModal').classList.add('flex');
+    }
 
-            form.action = "{{ url_for('admin.admin_archive_group') }}";
-            form.method = "POST";
-            form.target = "_self"; // Submit in current tab
-            
-            // Confirm before archiving
-            if(confirm("Are you sure you want to archive this group with the current signatories?")) {
-                form.submit();
-                closePrintModal(); // Close modal after submit
-            }
-        }
+    function closeSettingsModal() {
+        document.getElementById('settingsModal').classList.add('hidden');
+        document.getElementById('settingsModal').classList.remove('flex');
     }
 </script>
 {% endblock %}

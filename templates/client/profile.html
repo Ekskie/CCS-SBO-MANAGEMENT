@@ -27,13 +27,39 @@
         </div>
         <div class="p-6 space-y-4">
 
-            {% if profile.disapproval_reason %}
-            <div class="p-4 bg-red-100 text-red-800 rounded-lg">
-                <p class="font-bold mb-1">Disapproval Reason(s)</p>
-                <p class="text-sm">{{ profile.disapproval_reason }}</p>
-                <p class="text-sm mt-2 italic">Please update your profile information and re-upload the required files below.</p>
+            {# --- NEW: Separate Disapproval Reasons --- #}
+            {% if profile.picture_disapproval_reason %}
+            <div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-portrait mt-1"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="font-bold text-sm">1x1 Picture Disapproved Reason</p>
+                        <p class="text-sm mt-1">{{ profile.picture_disapproval_reason }}</p>
+                    </div>
+                </div>
             </div>
             {% endif %}
+
+            {% if profile.signature_disapproval_reason %}
+            <div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-file-signature mt-1"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="font-bold text-sm">Signature Disapproved Reason</p>
+                        <p class="text-sm mt-1">{{ profile.signature_disapproval_reason }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if profile.picture_disapproval_reason or profile.signature_disapproval_reason %}
+            <p class="text-sm text-gray-600 italic">Please update your information or re-upload the required files by clicking "Edit".</p>
+            {% endif %}
+            {# --- END NEW SECTION --- #}
 
             <div class="flex flex-col md:flex-row gap-4">
                 <div class="flex-1 flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
@@ -66,6 +92,7 @@
     <div class="flex flex-col lg:flex-row gap-8">
 
         <div class="w-full lg:w-2/3">
+            <!-- Content matches user provided file -->
             <div class="bg-white rounded-lg shadow-md overflow-hidden">
                 <div class="p-6 border-b border-gray-200 flex justify-between items-center">
                     <div>
@@ -86,7 +113,6 @@
                         </div>
                     {% endmacro %}
 
-                    {# Updated to include suffix_name #}
                     {{ profile_row('Full Name', profile.first_name ~ ' ' ~ (profile.middle_name ~ ' ' if profile.middle_name else '') ~ profile.last_name ~ (' ' ~ profile.suffix_name if profile.suffix_name else '')) }}
                     
                     {{ profile_row('Student ID', profile.student_id) }}
@@ -133,8 +159,8 @@
                                  {% else %}
                                      <div class="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
                                         <i class="fas fa-signature fa-2x"></i>
-                                    </div>
-                                {% endif %}
+                                     </div>
+                                 {% endif %}
                             </div>
                         </div>
                     </div>
@@ -144,7 +170,7 @@
     </div>
 </div>
 
-
+<!-- Edit Section -->
 <div id="editSection" style="display: none;">
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <form method="POST" action="{{ url_for('core.update_profile') }}" enctype="multipart/form-data">
@@ -181,7 +207,6 @@
 
             <div class="p-6 space-y-4">
                 <h4 class="text-lg font-semibold text-gray-700 border-b pb-2">Personal Information</h4>
-                {# Changed grid to 4 columns to include Suffix #}
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {{ form_input('first_name', 'First Name', profile.first_name) }}
                     {{ form_input('middle_name', 'Middle Name', profile.middle_name, required=False) }}
@@ -223,7 +248,7 @@
                     <select name="major" id="edit_major"
                             class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                         <option value="">Select Major</option>
-                        </select>
+                    </select>
                 </div>
             </div>
 
