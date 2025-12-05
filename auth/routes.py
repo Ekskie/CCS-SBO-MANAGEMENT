@@ -31,14 +31,14 @@ def login():
         password = request.form.get('password')
 
         if not student_id or not password:
-            flash('Student ID and password are required.')
+            flash('Student ID and password are required.', category="error")
             return render_template('login.html')
 
         try:
             profile_response = supabase.table("profiles").select("*").eq("student_id", student_id).single().execute()
 
             if not profile_response.data:
-                flash("Invalid Student ID or password.")
+                flash("Invalid Student ID or password.", category="error")
                 return render_template('login.html')
 
             profile = profile_response.data
@@ -72,11 +72,11 @@ def login():
                 else:
                     return redirect(url_for('core.profile'))
             else:
-                flash('Invalid Student ID or password.')
+                flash('Invalid Student ID or password.', category="error")
                 
         except Exception as e:
             print(f"Login error: {e}")
-            flash(f"Invalid Student ID or password.")
+            flash(f"Invalid Student ID or password.", category="error")
 
     return render_template('login.html')
 
@@ -161,7 +161,7 @@ def register():
             # Step 1: Check if student ID already exists
             existing_student = supabase.table("profiles").select("student_id").eq("student_id", student_id).execute()
             if existing_student.data:
-                flash("This Student ID is already registered.")
+                flash("This Student ID is already registered.", category="error")
                 return render_template("register.html")
             
             # --- NEW CHECK: Check if Email already exists ---
@@ -228,7 +228,8 @@ def register():
                     "account_type": "student",
                     "picture_status": "pending",
                     "signature_status": "pending",
-                    "disapproval_reason": None
+                    "picture_disapproval_reason": None,
+                    "signature_disapproval_reason": None
                 }
                 
                 insert_response = supabase.table("profiles").insert(profile_data).execute()
@@ -241,18 +242,18 @@ def register():
                     return render_template("register.html")
 
                 flash("Registration initiated. Please check your email to verify your account.")
-                return render_template("register.html")
+                return render_template("register.html", category="success")
             
             else:
                 flash("Registration failed. User might already exist or another error occurred.")
-                return render_template("register.html")
+                return render_template("register.html", category="error")
 
         except Exception as e:
             if "User already exists" in str(e):
                 flash("This email is already registered. Please try logging in or reset your password.")
             else:
                 flash(f"Error during registration: {str(e)}")
-            return render_template("register.html")
+            return render_template("register.html", category="error" )
 
     return render_template("register.html")
 

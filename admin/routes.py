@@ -97,7 +97,7 @@ def lock_all_students():
 @admin_required
 def unlock_all_students():
     try:
-        supabase.table("profiles").update({"is_locked": False}).neq("account_type", "admin").execute()
+        supabase.rpc("unlock_all_profiles").execute()
         
         log_activity("Global Unlock", details="Unlocked all student accounts.")
         flash("All student accounts have been unlocked.", "success")

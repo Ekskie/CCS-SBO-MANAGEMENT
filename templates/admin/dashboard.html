@@ -4,89 +4,137 @@
 {% block page_title %}Admin Dashboard{% endblock %}
 
 {% block content %}
-<div class="space-y-8">
+<div class="space-y-8 animate-fade-in-up">
 
-    <!-- Global Actions -->
-    <div class="flex justify-end gap-3">
-        <form action="{{ url_for('admin.lock_all_students') }}" method="POST" onsubmit="return confirm('Are you sure you want to LOCK all student accounts? Students will not be able to edit their profiles.');">
-            <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none focus:border-red-900 focus:ring ring-red-300 disabled:opacity-25 transition ease-in-out duration-150">
-                <i class="fas fa-lock mr-2"></i> Lock All Accounts
-            </button>
-        </form>
-        <form action="{{ url_for('admin.unlock_all_students') }}" method="POST" onsubmit="return confirm('Are you sure you want to UNLOCK all student accounts? This will allow all students to edit their profiles.');">
-            <button type="submit" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:ring ring-green-300 disabled:opacity-25 transition ease-in-out duration-150">
-                <i class="fas fa-unlock mr-2"></i> Unlock All Accounts
-            </button>
-        </form>
+    <!-- Access Control & System Status Panel -->
+    <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+        <div class="p-6 md:p-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+                
+                <!-- Status Visualizer -->
+                <div class="flex-1 w-full">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-shield-alt text-indigo-500 mr-2"></i> Student Account Access
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="bg-red-50 p-4 rounded-lg border border-red-100 text-center">
+                            <span class="block text-gray-500 text-xs uppercase tracking-wider font-semibold">Locked</span>
+                            <span id="locked_count" class="text-3xl font-extrabold text-red-600">--</span>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg border border-green-100 text-center">
+                            <span class="block text-gray-500 text-xs uppercase tracking-wider font-semibold">Active / Unlocked</span>
+                            <span id="unlocked_count" class="text-3xl font-extrabold text-green-600">--</span>
+                        </div>
+                    </div>
+                    <!-- Progress Bar Visual -->
+                    <div class="relative h-4 bg-gray-200 rounded-full overflow-hidden shadow-inner">
+                        <div id="access_progress_bar" class="absolute top-0 left-0 h-full bg-red-500 transition-all duration-1000 ease-out" style="width: 0%"></div>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                        <span>Locked %</span>
+                        <span>Unlocked %</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex-shrink-0 flex flex-col sm:flex-row gap-4 items-center justify-center border-t md:border-t-0 md:border-l border-gray-100 pt-6 md:pt-0 md:pl-8">
+                    <form action="{{ url_for('admin.lock_all_students') }}" method="POST" onsubmit="return confirm('Are you sure you want to LOCK all student accounts? Students will not be able to edit their profiles.');">
+                        <button type="submit" class="group relative inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-md transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
+                            <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                                <i class="fas fa-lock group-hover:animate-pulse"></i>
+                            </span>
+                            <span class="ml-4">Lock All Accounts</span>
+                        </button>
+                    </form>
+
+                    <form action="{{ url_for('admin.unlock_all_students') }}" method="POST" onsubmit="return confirm('Are you sure you want to UNLOCK all student accounts? This will allow all students to edit their profiles.');">
+                        <button type="submit" class="group relative inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-md transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
+                            <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                                <i class="fas fa-unlock group-hover:animate-bounce"></i>
+                            </span>
+                            <span class="ml-4">Unlock All Accounts</span>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
     </div>
 
     <!-- Notification Area -->
-    <div id="notification-area" class="hidden mb-6">
-        <!-- Newest notification injected here -->
+    <div id="notification-area" class="hidden transform transition-all duration-300 ease-in-out">
+        <!-- Notifications injected here -->
     </div>
     
     <div id="view-all-notifs-btn-area" class="hidden mb-6 text-right">
-        <button onclick="openNotifModal()" class="text-sm text-blue-600 hover:text-blue-800 font-medium underline focus:outline-none">
-            View All Notifications
+        <button onclick="openNotifModal()" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium hover:underline focus:outline-none flex items-center justify-end w-full">
+            <span>View Notification History</span>
+            <i class="fas fa-history ml-2"></i>
         </button>
     </div>
 
     <!-- Stat Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div class="bg-white rounded-lg shadow-md p-6 flex items-center justify-between">
+        <div class="bg-white rounded-xl shadow-md p-6 flex items-center justify-between border-b-4 border-blue-500 hover:shadow-lg transition-shadow duration-200">
             <div>
-                <span class="text-sm font-medium text-gray-500">Total Students</span>
-                <!-- ID added for JS targeting -->
-                <span id="student_count" class="text-3xl font-bold text-gray-900 block">...</span>
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Total Students</span>
+                <span id="student_count" class="text-3xl font-bold text-gray-800 block mt-1">...</span>
             </div>
-            <i class="fas fa-users fa-3x text-blue-500"></i>
+            <div class="p-3 bg-blue-100 rounded-full text-blue-600">
+                <i class="fas fa-users fa-2x"></i>
+            </div>
         </div>
-        <div class="bg-white rounded-lg shadow-md p-6 flex items-center justify-between">
+        <div class="bg-white rounded-xl shadow-md p-6 flex items-center justify-between border-b-4 border-indigo-500 hover:shadow-lg transition-shadow duration-200">
             <div>
-                <span class="text-sm font-medium text-gray-500">Unique Programs</span>
-                <!-- ID added for JS targeting -->
-                <span id="program_count" class="text-3xl font-bold text-gray-900 block">...</span>
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Unique Programs</span>
+                <span id="program_count" class="text-3xl font-bold text-gray-800 block mt-1">...</span>
             </div>
-            <i class="fas fa-graduation-cap fa-3x text-indigo-500"></i>
+            <div class="p-3 bg-indigo-100 rounded-full text-indigo-600">
+                <i class="fas fa-graduation-cap fa-2x"></i>
+            </div>
         </div>
-        <div class="bg-white rounded-lg shadow-md p-6 flex items-center justify-between">
+        <div class="bg-white rounded-xl shadow-md p-6 flex items-center justify-between border-b-4 border-yellow-500 hover:shadow-lg transition-shadow duration-200">
             <div>
-                <span class="text-sm font-medium text-gray-500">Pending Approval</span>
-                <!-- ID added for JS targeting -->
-                <span id="pending_count" class="text-3xl font-bold text-gray-900 block">...</span>
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Pending Approval</span>
+                <span id="pending_count" class="text-3xl font-bold text-gray-800 block mt-1">...</span>
             </div>
-            <i class="fas fa-hourglass-half fa-3x text-yellow-500"></i>
+            <div class="p-3 bg-yellow-100 rounded-full text-yellow-600">
+                <i class="fas fa-hourglass-half fa-2x"></i>
+            </div>
         </div>
-        <div class="bg-white rounded-lg shadow-md p-6 flex items-center justify-between">
+        <div class="bg-white rounded-xl shadow-md p-6 flex items-center justify-between border-b-4 border-green-500 hover:shadow-lg transition-shadow duration-200">
             <div>
-                <span class="text-sm font-medium text-gray-500">Fully Approved</span>
-                <!-- ID added for JS targeting -->
-                <span id="approved_count" class="text-3xl font-bold text-gray-900 block">...</span>
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Fully Approved</span>
+                <span id="approved_count" class="text-3xl font-bold text-gray-800 block mt-1">...</span>
             </div>
-            <i class="fas fa-user-check fa-3x text-green-500"></i>
+            <div class="p-3 bg-green-100 rounded-full text-green-600">
+                <i class="fas fa-user-check fa-2x"></i>
+            </div>
         </div>
     </div>
 
-    <!-- NEW: Pending Reviews by Class Section -->
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="p-6 border-b border-gray-200">
-            <h3 class="text-xl font-semibold text-gray-800">Pending Reviews by Class</h3>
-            <p class="text-sm text-gray-500">Classes with verified students waiting for approval.</p>
+    <!-- Pending Reviews by Class Section -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+        <div class="p-6 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+            <div>
+                <h3 class="text-lg font-bold text-gray-800">Pending Reviews by Class</h3>
+                <p class="text-sm text-gray-500 mt-1">Classes with students waiting for verification.</p>
+            </div>
+            <span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-yellow-200">Action Required</span>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pending Students</th>
-                        <th class="px-6 py-3 relative"><span class="sr-only">View</span></th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class Info</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pending Count</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                     </tr>
                 </thead>
                 <tbody id="pending_sections_tbody" class="bg-white divide-y divide-gray-200">
-                    <!-- Loading state -->
                     <tr>
                         <td colspan="3" class="px-6 py-4 text-center text-gray-500">
-                            <i class="fas fa-spinner fa-spin"></i> Loading classes...
+                            <i class="fas fa-circle-notch fa-spin text-indigo-500"></i> Loading classes...
                         </td>
                     </tr>
                 </tbody>
@@ -94,48 +142,47 @@
         </div>
     </div>
     
-    <!-- Pending Approvals Table -->
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="p-6 border-b border-gray-200">
-            <h3 class="text-xl font-semibold text-gray-800">Recent Pending Approvals</h3>
-            <p class="text-sm text-gray-500">Individual verified students needing review (Showing recent 10).</p>
+    <!-- Recent Pending Approvals Table -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+        <div class="p-6 border-b border-gray-100 bg-gray-50">
+            <h3 class="text-lg font-bold text-gray-800">Recent Individual Requests</h3>
+            <p class="text-sm text-gray-500 mt-1">Latest verified students needing review.</p>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name / Email</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Picture Status</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Signature Status</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th scope="col" class="relative px-6 py-3"><span class="sr-only">Review</span></th>
                     </tr>
                 </thead>
-                <!-- ID added for JS targeting -->
                 <tbody id="pending_tbody" class="bg-white divide-y divide-gray-200">
-                    <!-- Loading state -->
                     <tr>
-                        <td colspan="5" class="px-6 py-10 text-center text-gray-500">
-                            <i class="fas fa-spinner fa-spin fa-2x"></i>
-                            <p class="mt-2">Loading real-time data...</p>
+                        <td colspan="4" class="px-6 py-10 text-center text-gray-500">
+                            <i class="fas fa-circle-notch fa-spin fa-2x text-indigo-500"></i>
+                            <p class="mt-2">Loading data...</p>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        <!-- Placeholder for "All Caught Up" message -->
-        <div id="all_caught_up_message" class="p-6 text-center hidden">
-             <i class="fas fa-check-circle fa-3x text-green-500 mb-4"></i>
-             <h4 class="text-lg font-medium text-gray-700">All Caught Up!</h4>
-             <p class="text-gray-500">There are no pending approvals at this time.</p>
+        <!-- All Caught Up message -->
+        <div id="all_caught_up_message" class="hidden p-10 text-center bg-gray-50">
+             <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
+                <i class="fas fa-check text-green-600 fa-2x"></i>
+             </div>
+             <h4 class="text-lg font-medium text-gray-900">All Caught Up!</h4>
+             <p class="text-gray-500 mt-1">There are no pending approvals at this time.</p>
          </div>
     </div>
 
-    <!-- Chart -->
+    <!-- Charts Section -->
     <div class="grid grid-cols-1 gap-6">
-        <div class="bg-white rounded-lg shadow-md p-6 max-w-xl mx-auto w-full">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Students by Program</h3>
-            <div class="h-64 md:h-80">
+        <div class="bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto w-full border border-gray-100">
+            <h3 class="text-lg font-bold text-gray-800 mb-6 text-center">Student Distribution by Program</h3>
+            <div class="h-64 md:h-80 relative">
                 <canvas id="programChart"></canvas>
             </div>
         </div>
@@ -144,20 +191,22 @@
 </div>
 
 <!-- Notification Modal -->
-<div id="notifModal" class="fixed z-50 inset-0 overflow-y-auto hidden items-center justify-center p-4 bg-black bg-opacity-50">
-    <div class="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
-        <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-lg">
-            <h3 class="text-lg font-bold text-gray-800">All Notifications</h3>
-            <button onclick="closeNotifModal()" class="text-gray-500 hover:text-gray-700 focus:outline-none">
-                <i class="fas fa-times fa-lg"></i>
+<div id="notifModal" class="fixed z-50 inset-0 overflow-y-auto hidden items-center justify-center p-4 bg-gray-900 bg-opacity-60 backdrop-blur-sm transition-opacity">
+    <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col transform transition-transform scale-100">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-xl">
+            <div>
+                <h3 class="text-xl font-bold text-gray-800">Notification History</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Recent system alerts and updates</p>
+            </div>
+            <button onclick="closeNotifModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none p-2 hover:bg-gray-200 rounded-full transition-colors">
+                <i class="fas fa-times"></i>
             </button>
         </div>
-        <div class="p-4 overflow-y-auto flex-1" id="modal-notif-list">
-            <!-- All notifications will be injected here -->
-            <p class="text-center text-gray-500 py-4">Loading...</p>
+        <div class="p-0 overflow-y-auto flex-1 bg-gray-50" id="modal-notif-list">
+            <!-- Content injected here -->
         </div>
-        <div class="p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg text-right">
-            <button onclick="closeNotifModal()" class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition">
+        <div class="p-4 border-t border-gray-100 bg-white rounded-b-xl text-right">
+            <button onclick="closeNotifModal()" class="px-5 py-2.5 bg-gray-800 text-white text-sm font-medium rounded-lg hover:bg-gray-900 transition-colors shadow-sm">
                 Close
             </button>
         </div>
@@ -168,15 +217,12 @@
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Import Supabase JS Client with Pinned Version -->
+<!-- Import Supabase JS Client -->
 <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/+esm'
 
-    // Get credentials from Flask
     const SUPABASE_URL = '{{ supabase_url | safe }}';
     const SUPABASE_KEY = '{{ supabase_key | safe }}';
-
-    // --- Define Functions BEFORE Initialization ---
 
     // --- Chart.js Setup ---
     const programChartCtx = document.getElementById('programChart').getContext('2d');
@@ -185,7 +231,7 @@
     function renderProgramChart(profiles) {
         const programList = profiles
             .map(p => p.program)
-            .filter(p => p); // Filter out null/empty programs
+            .filter(p => p); 
         
         const programCounts = {};
         programList.forEach(program => {
@@ -208,49 +254,77 @@
                         label: 'Students',
                         data: data,
                         backgroundColor: [
-                            'rgba(54, 162, 235, 0.8)', // Blue
-                            'rgba(255, 206, 86, 0.8)', // Yellow
-                            'rgba(75, 192, 192, 0.8)', // Green
-                            'rgba(153, 102, 255, 0.8)', // Purple
-                            'rgba(255, 159, 64, 0.8)'  // Orange
+                            '#3B82F6', '#10B981', '#F59E0B', '#6366F1', '#EC4899', '#8B5CF6'
                         ],
-                        borderColor: ['rgba(255, 255, 255, 1)'],
-                        borderWidth: 2
+                        borderWidth: 0,
+                        hoverOffset: 4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'bottom' }
-                    }
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+                    },
+                    cutout: '70%'
                 }
             });
         }
     }
 
-    // --- Stats Card Rendering ---
+    // --- Stats & Lock Status Rendering ---
     function renderStats(profiles) {
         let approvedCount = 0;
         let pendingCount = 0;
+        let lockedCount = 0;
+        let unlockedCount = 0;
         const programSet = new Set();
 
         profiles.forEach(p => {
+            // Approval Stats
             if (p.picture_status === 'approved' && p.signature_status === 'approved') {
                 approvedCount++;
             }
             if (p.picture_status === 'pending' || p.signature_status === 'pending') {
                 pendingCount++;
             }
-            if(p.program) {
-                programSet.add(p.program);
+            if(p.program) programSet.add(p.program);
+
+            // Lock Status Stats - Assume 'is_locked' column exists (boolean)
+            // If undefined, treat as unlocked (false)
+            if (p.is_locked === true) {
+                lockedCount++;
+            } else {
+                unlockedCount++;
             }
         });
 
+        // Update basic stat cards
         document.getElementById('student_count').textContent = profiles.length;
         document.getElementById('program_count').textContent = programSet.size;
         document.getElementById('pending_count').textContent = pendingCount;
         document.getElementById('approved_count').textContent = approvedCount;
+
+        // Update Lock/Unlock Visuals
+        document.getElementById('locked_count').textContent = lockedCount;
+        document.getElementById('unlocked_count').textContent = unlockedCount;
+
+        const totalAccounts = profiles.length > 0 ? profiles.length : 1; // avoid divide by zero
+        const lockedPercentage = Math.round((lockedCount / totalAccounts) * 100);
+        
+        const progressBar = document.getElementById('access_progress_bar');
+        progressBar.style.width = `${lockedPercentage}%`;
+        
+        // Color coding for progress bar based on severity
+        if(lockedPercentage > 80) {
+            progressBar.classList.remove('bg-yellow-500', 'bg-blue-500');
+            progressBar.classList.add('bg-red-500');
+        } else if (lockedPercentage > 0) {
+            progressBar.classList.remove('bg-red-500', 'bg-blue-500');
+            progressBar.classList.add('bg-yellow-500');
+        } else {
+            progressBar.classList.add('bg-blue-500');
+        }
     }
 
     // --- Render Pending Sections Table ---
@@ -283,7 +357,7 @@
         const sortedKeys = Object.keys(groups).sort();
 
         if (sortedKeys.length === 0) {
-             tbody.innerHTML = `<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">No classes with pending reviews.</td></tr>`;
+             tbody.innerHTML = `<tr><td colspan="3" class="px-6 py-4 text-center text-gray-400 italic">No classes with pending reviews found.</td></tr>`;
              return;
         }
 
@@ -291,25 +365,23 @@
             const g = groups[key];
             const className = `${g.program} ${g.year} ${g.section} ${g.major ? '(' + g.major + ')' : ''}`;
             
-            // Construct URL for filtering on students page
             let url = `{{ url_for('admin.admin_students') }}?filter_program=${encodeURIComponent(g.program)}&filter_year_level=${encodeURIComponent(g.year)}&filter_section=${encodeURIComponent(g.section)}`;
-            
-            if(g.major) {
-                url += `&filter_major=${encodeURIComponent(g.major)}`;
-            }
+            if(g.major) url += `&filter_major=${encodeURIComponent(g.major)}`;
 
             const row = `
-                <tr class="hover:bg-gray-50 cursor-pointer transition duration-150 ease-in-out" onclick="window.location.href='${url}'">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <tr class="hover:bg-blue-50 cursor-pointer transition duration-150 ease-in-out group" onclick="window.location.href='${url}'">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-700 group-hover:text-blue-700">
                         ${className}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            ${g.count} Student${g.count !== 1 ? 's' : ''}
+                        <span class="px-2.5 py-0.5 inline-flex text-xs leading-4 font-bold rounded-full bg-red-100 text-red-800 border border-red-200">
+                            ${g.count} Pending
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <a href="${url}" class="text-indigo-600 hover:text-indigo-900 font-semibold" onclick="event.stopPropagation()">View Class <i class="fas fa-arrow-right ml-1"></i></a>
+                        <a href="${url}" class="text-indigo-600 hover:text-indigo-900 group-hover:translate-x-1 inline-block transition-transform" onclick="event.stopPropagation()">
+                            Review <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
                     </td>
                 </tr>
             `;
@@ -317,63 +389,56 @@
         });
     }
 
-    // --- Pending Table Rendering ---
+    // --- Render Individual Pending Table ---
     function renderPendingTable(pendingStudents) {
         const tbody = document.getElementById('pending_tbody');
         const allCaughtUpMsg = document.getElementById('all_caught_up_message');
-        tbody.innerHTML = ''; // Clear existing rows
+        tbody.innerHTML = ''; 
 
         if (pendingStudents.length === 0) {
             allCaughtUpMsg.classList.remove('hidden');
             return;
         }
-
         allCaughtUpMsg.classList.add('hidden');
 
-        // Limit to recent 10
         const recentPending = pendingStudents.slice(0, 10);
 
         recentPending.forEach(student => {
             const defaultPfp = "{{ url_for('static', filename='image/default_pfp.png') }}";
             const reviewUrl = `{{ url_for('admin.admin_review_student', student_id='STUDENT_ID_PLACEHOLDER') }}`.replace('STUDENT_ID_PLACEHOLDER', student.id);
 
-            const pictureStatusClass = student.picture_status === 'approved' ? 'bg-green-100 text-green-800' :
-                                       student.picture_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                       'bg-red-100 text-red-800';
+            // Combined status badge logic
+            const isPicPending = student.picture_status === 'pending';
+            const isSigPending = student.signature_status === 'pending';
             
-            const signatureStatusClass = student.signature_status === 'approved' ? 'bg-green-100 text-green-800' :
-                                         student.signature_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                         'bg-red-100 text-red-800';
-            
-            const pictureStatusText = (student.picture_status || 'N/A').charAt(0).toUpperCase() + (student.picture_status || '').slice(1);
-            const signatureStatusText = (student.signature_status || 'N/A').charAt(0).toUpperCase() + (student.signature_status || '').slice(1);
+            let statusBadge = '';
+            if(isPicPending && isSigPending) {
+                statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Both Pending</span>';
+            } else if (isPicPending) {
+                statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Photo Pending</span>';
+            } else {
+                statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">Sig Pending</span>';
+            }
 
             const row = `
-                <tr>
+                <tr class="hover:bg-gray-50 transition-colors">
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
                             <div class="flex-shrink-0 h-10 w-10">
-                                <img class="h-10 w-10 rounded-full" src="${student.picture_url || defaultPfp}" alt="Student Picture">
+                                <img class="h-10 w-10 rounded-full object-cover border border-gray-200" src="${student.picture_url || defaultPfp}" alt="">
                             </div>
                             <div class="ml-4">
-                                <div class="text-sm font-medium text-gray-900">${student.first_name || ''} ${student.last_name || ''}</div>
-                                <div class="text-sm text-gray-500">${student.email || ''}</div>
+                                <div class="text-sm font-medium text-gray-900">${student.first_name || 'Unknown'} ${student.last_name || ''}</div>
+                                <div class="text-xs text-gray-500">${student.email || 'No email'}</div>
                             </div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${student.student_id || ''}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">${student.student_id || 'N/A'}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="font-bold px-3 py-1 rounded-full text-xs ${pictureStatusClass}">
-                            ${pictureStatusText}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="font-bold px-3 py-1 rounded-full text-xs ${signatureStatusClass}">
-                            ${signatureStatusText}
-                        </span>
+                        ${statusBadge}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <a href="${reviewUrl}" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition text-xs">
+                        <a href="${reviewUrl}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             Review
                         </a>
                     </td>
@@ -383,17 +448,16 @@
         });
     }
 
-    // --- NEW: Notification Logic ---
+    // --- Notifications Logic ---
     window.fetchNotifications = async function(supabaseClient) {
         const notificationArea = document.getElementById('notification-area');
         const viewAllBtn = document.getElementById('view-all-notifs-btn-area');
         try {
-            // Fetch ONE most recent UNREAD "Class Review Complete" log
             const { data: logs, error } = await supabaseClient
                 .from('activity_logs')
                 .select('*')
                 .eq('action', 'Class Review Complete')
-                .is('is_read', false) // Filter only unread (false or null, need to handle null if default not set)
+                .is('is_read', false) 
                 .order('created_at', { ascending: false })
                 .limit(1);
 
@@ -405,77 +469,72 @@
                 viewAllBtn.classList.remove('hidden');
 
                 const log = logs[0];
-                const date = new Date(log.created_at).toLocaleString();
+                const date = new Date(log.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+                
+                // Enhanced Notification Card
                 const html = `
-                    <div class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 mb-3 rounded-r shadow-sm flex justify-between items-start animate-fade-in-down">
-                        <div>
-                            <p class="font-bold">
-                                <i class="fas fa-bell mr-2"></i> Class Ready for Review
-                            </p>
-                            <p class="text-sm mt-1">${log.details}</p>
-                            <p class="text-xs text-blue-400 mt-2">${date}</p>
+                    <div class="mb-6 relative overflow-hidden rounded-xl bg-white border-l-4 border-indigo-500 shadow-lg p-5 flex items-start justify-between animate-fade-in-up">
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0">
+                                <span class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-indigo-100 text-indigo-600">
+                                    <i class="fas fa-check-circle fa-lg"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-gray-900">Class Ready for Review</h4>
+                                <p class="mt-1 text-sm text-gray-600 leading-relaxed">${log.details}</p>
+                                <div class="mt-3 flex items-center text-xs text-gray-400">
+                                    <i class="far fa-clock mr-1"></i> ${date}
+                                </div>
+                            </div>
                         </div>
-                        <button onclick="dismissNotification('${log.id}', this)" class="text-blue-400 hover:text-blue-600 focus:outline-none" title="Mark as read">
-                            <i class="fas fa-times"></i>
+                        <button onclick="dismissNotification('${log.id}', this)" class="ml-4 text-gray-400 hover:text-gray-600 focus:outline-none transition-colors" title="Mark as read">
+                            <i class="fas fa-times fa-lg"></i>
                         </button>
                     </div>
                 `;
                 notificationArea.innerHTML = html;
             } else {
                 notificationArea.classList.add('hidden');
-                // Keep 'View All' visible if desired, or toggle based on history. 
-                // Let's keep it visible so they can always check history.
                 viewAllBtn.classList.remove('hidden'); 
             }
 
         } catch (err) {
             console.error("Error fetching notifications:", err);
-            // Fallback for is_read query if column doesn't exist (handle locally or show error)
-            // If is_read doesn't exist, it might error.
         }
     }
 
-    // Function to dismiss and mark as read
     window.dismissNotification = async function(logId, btnElement) {
-        // Remove from UI immediately
-        const notifDiv = btnElement.parentElement;
-        notifDiv.remove();
+        const notifDiv = btnElement.closest('.animate-fade-in-up');
+        notifDiv.classList.add('opacity-0', 'translate-x-full'); // Animate out
         
-        // Hide container if empty
-        const notificationArea = document.getElementById('notification-area');
-        if(notificationArea.children.length === 0) {
-            notificationArea.classList.add('hidden');
-        }
-
-        // Call backend to update DB
-        try {
-            const response = await fetch(`/admin/mark_notification_read/${logId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            if (!response.ok) {
-                console.error("Failed to mark notification as read");
-            } else {
-                console.log("Notification marked as read");
+        setTimeout(() => {
+            notifDiv.remove();
+            const notificationArea = document.getElementById('notification-area');
+            if(notificationArea.children.length === 0) {
+                notificationArea.classList.add('hidden');
             }
+        }, 300);
+
+        try {
+            await fetch(`/admin/mark_notification_read/${logId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
         } catch (error) {
-            console.error("Error calling mark_read API:", error);
+            console.error("Error marking read:", error);
         }
     }
 
-    // Modal Logic
     window.openNotifModal = async function() {
         const modal = document.getElementById('notifModal');
         const list = document.getElementById('modal-notif-list');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         
-        list.innerHTML = '<p class="text-center text-gray-500 py-4"><i class="fas fa-spinner fa-spin"></i> Loading...</p>';
+        list.innerHTML = '<div class="p-8 text-center"><i class="fas fa-spinner fa-spin text-indigo-500 fa-2x"></i></div>';
 
         try {
-            // Fetch ALL relevant notifications history
             const { data: logs, error } = await window.supabaseClient
                 .from('activity_logs')
                 .select('*')
@@ -490,27 +549,26 @@
                 logs.forEach(log => {
                     const date = new Date(log.created_at).toLocaleString();
                     const isRead = log.is_read ? true : false;
-                    const bgClass = isRead ? 'bg-white' : 'bg-blue-50 border-l-4 border-blue-500';
-                    const textClass = isRead ? 'text-gray-600' : 'text-blue-800 font-medium';
-
+                    
                     const item = `
-                        <div class="p-4 mb-3 rounded shadow-sm border border-gray-200 ${bgClass}">
-                            <p class="${textClass} text-sm">${log.details}</p>
-                            <div class="flex justify-between items-center mt-2">
-                                <span class="text-xs text-gray-400">${date}</span>
-                                ${!isRead ? `<span class="text-xs text-blue-500 font-bold">NEW</span>` : `<span class="text-xs text-gray-400">Read</span>`}
+                        <div class="p-4 border-b border-gray-100 hover:bg-gray-100 transition duration-150 ${isRead ? 'bg-white' : 'bg-blue-50'}">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-900">${log.details}</p>
+                                    <p class="text-xs text-gray-500 mt-1">${date}</p>
+                                </div>
+                                ${!isRead ? `<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">NEW</span>` : ''}
                             </div>
                         </div>
                     `;
                     list.innerHTML += item;
                 });
             } else {
-                list.innerHTML = '<p class="text-center text-gray-500 py-4">No notification history.</p>';
+                list.innerHTML = '<div class="p-8 text-center text-gray-500">No recent notifications.</div>';
             }
-
         } catch (err) {
             console.error("Error loading history:", err);
-            list.innerHTML = '<p class="text-center text-red-500 py-4">Error loading history.</p>';
+            list.innerHTML = '<div class="p-8 text-center text-red-500">Failed to load history.</div>';
         }
     }
 
@@ -518,25 +576,22 @@
         const modal = document.getElementById('notifModal');
         modal.classList.add('hidden');
         modal.classList.remove('flex');
-        // Refresh the main dashboard notif just in case
         if(window.supabaseClient) window.fetchNotifications(window.supabaseClient);
     }
 
-
-    // --- Main Data Fetch Function ---
+    // --- Main Data Fetch ---
     async function fetchAllData(supabaseClient) {
         if (!supabaseClient) return;
         try {
-            // Fetch all profiles for stats and chart (Filtered by verified email)
+            // Fetch all profiles (added is_locked)
             const { data: allProfiles, error: profilesError } = await supabaseClient
                 .from('profiles')
-                .select('program, picture_status, signature_status')
+                .select('program, picture_status, signature_status, is_locked') 
                 .eq('email_verified', true);
             
             if (profilesError) throw profilesError;
 
-            // Fetch pending students for table (Filtered by verified email)
-            // Added order by program/year/section to group nicely if looking at raw list
+            // Fetch pending students (added is_locked to selection implicitly via *)
             const { data: pendingStudents, error: pendingError } = await supabaseClient
                 .from('profiles')
                 .select('*')
@@ -548,22 +603,14 @@
 
             if (pendingError) throw pendingError;
 
-            // Render all components
             renderStats(allProfiles);
             renderProgramChart(allProfiles);
-            renderPendingSections(pendingStudents); // Render the new sections table
+            renderPendingSections(pendingStudents);
             renderPendingTable(pendingStudents);
 
         } catch (error) {
             console.error("Error fetching dashboard data:", error.message);
-            document.getElementById('pending_tbody').innerHTML = `
-            <tr>
-                <td colspan="5" class="px-6 py-10 text-center text-red-600">
-                    <i class="fas fa-exclamation-triangle fa-2x"></i>
-                    <p class="mt-2 font-bold">Error Loading Data</p>
-                    <p class="text-sm">${error.message}</p>
-                </td>
-            </tr>`;
+            document.getElementById('pending_tbody').innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500">Error: ${error.message}</td></tr>`;
         }
     }
 
@@ -572,75 +619,54 @@
         if (!supabaseClient) return;
         const channel = supabaseClient.channel('dashboard-updates');
         
-        // Listen for profile changes
         channel
             .on('postgres_changes', 
                 { event: '*', schema: 'public', table: 'profiles' }, 
                 (payload) => {
-                    console.log('Profile change detected!', payload);
+                    console.log('Profile update:', payload);
                     fetchAllData(supabaseClient);
                 }
             )
-            // Listen for new activity logs (notifications)
             .on('postgres_changes', 
                 { event: 'INSERT', schema: 'public', table: 'activity_logs', filter: "action=eq.Class Review Complete" }, 
                 (payload) => {
-                    console.log('New notification!', payload);
+                    console.log('Notification update:', payload);
                     window.fetchNotifications(supabaseClient);
                 }
             )
-            .subscribe((status) => {
-                if (status === 'SUBSCRIBED') {
-                    console.log('Real-time channel connected.');
-                }
-            });
+            .subscribe();
     }
 
-    // --- INITIALIZATION ---
-    // Strict check to ensure keys are valid before initializing
+    // --- INIT ---
     if (!SUPABASE_URL || SUPABASE_URL === 'None' || !SUPABASE_KEY || SUPABASE_KEY === 'None') {
-        console.error("Supabase credentials are missing or invalid.");
-        document.getElementById('pending_tbody').innerHTML = `
-            <tr>
-                <td colspan="5" class="px-6 py-10 text-center text-red-600">
-                    <i class="fas fa-exclamation-triangle fa-2x"></i>
-                    <p class="mt-2 font-bold">Configuration Error</p>
-                    <p class="text-sm">Supabase keys not found. Check your .env or Vercel config.</p>
-                </td>
-            </tr>`;
-        document.getElementById('pending_sections_tbody').innerHTML = `<tr><td colspan="3" class="text-center text-red-500 p-4">Config Error</td></tr>`;
+        console.error("Supabase config missing");
     } else {
-        // Initialize client only if keys exist
         try {
             const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-            console.log("Supabase client initialized successfully.");
-            
-            // Attach supabase to window for modal functions
             window.supabaseClient = supabase;
-
-            // Start data fetch
             fetchAllData(supabase);
-            window.fetchNotifications(supabase); // NEW: Fetch notifications
+            window.fetchNotifications(supabase); 
             setupRealtimeListener(supabase);
         } catch (err) {
-            console.error("Failed to initialize Supabase client:", err);
+            console.error("Supabase init error:", err);
         }
     }
-
 </script>
+
 <style>
-    @keyframes fadeInDown {
-        0% {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        100% {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
-    .animate-fade-in-down {
-        animation: fadeInDown 0.5s ease-out;
+    .animate-fade-in-up {
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .group:hover .group-hover\:animate-pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: .5; }
     }
 </style>
 {% endblock %}

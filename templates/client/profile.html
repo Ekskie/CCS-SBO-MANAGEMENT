@@ -1,290 +1,388 @@
 {% extends "client/base.html" %}
 
 {% block title %}My Profile{% endblock %}
-{% block page_title %}My Profile{% endblock %}
-
-{% block head %}
-<style type="text/tailwindcss">
-    input[type="file"]::file-selector-button {
-        @apply px-4 py-2 bg-gray-600 text-gray-200 border-none rounded-md font-medium text-sm hover:bg-gray-700 cursor-pointer transition;
-    }
-
-    input[type="file"] {
-         @apply text-gray-700 text-sm;
-    }
-</style>
-{% endblock %}
-
 
 {% block content %}
-
-<div id="profile-view-section">
-
-    {% if profile.picture_status != 'approved' or profile.signature_status != 'approved' %}
-    <div class="bg-white rounded-lg shadow-md mb-8">
-        <div class="p-6 border-b border-gray-200">
-            <h3 class="text-xl font-semibold text-gray-800">Profile Status</h3>
-        </div>
-        <div class="p-6 space-y-4">
-
-            {# --- NEW: Separate Disapproval Reasons --- #}
-            {% if profile.picture_disapproval_reason %}
-            <div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg">
-                <div class="flex items-start">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-portrait mt-1"></i>
-                    </div>
-                    <div class="ml-3">
-                        <p class="font-bold text-sm">1x1 Picture Disapproved Reason</p>
-                        <p class="text-sm mt-1">{{ profile.picture_disapproval_reason }}</p>
-                    </div>
-                </div>
+    <!-- Locked Account Notice -->
+    {% if profile.is_locked %}
+    <div class="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r shadow-sm">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-lock text-yellow-600 mt-1"></i>
             </div>
-            {% endif %}
-
-            {% if profile.signature_disapproval_reason %}
-            <div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg">
-                <div class="flex items-start">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-file-signature mt-1"></i>
-                    </div>
-                    <div class="ml-3">
-                        <p class="font-bold text-sm">Signature Disapproved Reason</p>
-                        <p class="text-sm mt-1">{{ profile.signature_disapproval_reason }}</p>
-                    </div>
-                </div>
+            <div class="ml-3">
+                <p class="text-sm font-bold text-yellow-800">Account Locked</p>
+                <p class="text-sm text-yellow-700 mt-1">
+                    Your account details and uploads are currently locked for review or have been finalized. 
+                    You cannot make changes at this time. If you need to correct something, please contact your Class President or the Admin.
+                </p>
             </div>
-            {% endif %}
-
-            {% if profile.picture_disapproval_reason or profile.signature_disapproval_reason %}
-            <p class="text-sm text-gray-600 italic">Please update your information or re-upload the required files by clicking "Edit".</p>
-            {% endif %}
-            {# --- END NEW SECTION --- #}
-
-            <div class="flex flex-col md:flex-row gap-4">
-                <div class="flex-1 flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
-                    <span class="font-medium text-gray-700">1x1 Picture:</span>
-                    <span class="font-bold px-3 py-1 rounded-full text-sm
-                        {% if profile.picture_status == 'approved' %} bg-green-100 text-green-800
-                        {% elif profile.picture_status == 'pending' %} bg-yellow-100 text-yellow-800
-                        {% else %} bg-red-100 text-red-800 {% endif %}">
-                        {{ profile.picture_status | capitalize }}
-                    </span>
-                </div>
-                <div class="flex-1 flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
-                    <span class="font-medium text-gray-700">Signature:</span>
-                    <span class="font-bold px-3 py-1 rounded-full text-sm
-                        {% if profile.signature_status == 'approved' %} bg-green-100 text-green-800
-                        {% elif profile.signature_status == 'pending' %} bg-yellow-100 text-yellow-800
-                        {% else %} bg-red-100 text-red-800 {% endif %}">
-                        {{ profile.signature_status | capitalize }}
-                    </span>
-                </div>
-            </div>
-
-            {% if profile.picture_status == 'pending' or profile.signature_status == 'pending' %}
-            <p class="text-sm text-gray-600 italic text-center">Your submissions are pending review by your class president.</p>
-            {% endif %}
         </div>
     </div>
     {% endif %}
 
-    <div class="flex flex-col lg:flex-row gap-8">
+    <!-- Main Profile View Section -->
+    <div id="profile-view-section" class="grid grid-cols-1 gap-6">
 
-        <div class="w-full lg:w-2/3">
-            <!-- Content matches user provided file -->
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                <div class="p-6 border-b border-gray-200 flex justify-between items-center">
-                    <div>
-                        <h3 class="text-xl font-semibold text-gray-800">Student Information</h3>
-                        <p class="text-sm text-gray-500">Your personal and academic details.</p>
+        <!-- Personal Information Card -->
+        <div class="bg-white shadow rounded-lg overflow-hidden">
+            <div class="px-4 py-5 sm:px-6 bg-gray-50 border-b border-gray-200">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Personal Information</h3>
+            </div>
+            <div class="px-4 py-5 sm:p-6">
+                <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Full Name</dt>
+                        <dd class="mt-1 text-sm text-gray-900 font-semibold">{{ profile.first_name }} {{ profile.middle_name }} {{ profile.last_name }}</dd>
                     </div>
-                    <button id="editBtn" class="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
-                        Edit
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Student ID</dt>
+                        <dd class="mt-1 text-sm text-gray-900 font-semibold">{{ profile.student_id }}</dd>
+                    </div>
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Program</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ profile.program }}</dd>
+                    </div>
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Year & Section</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ profile.year_level }} - {{ profile.section }}</dd>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <dt class="text-sm font-medium text-gray-500">Email</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ profile.email }}</dd>
+                    </div>
+                </dl>
+                
+                <!-- Edit Button (Triggers Modal) -->
+                {% if not profile.is_locked %}
+                <div class="mt-6">
+                    <button id="editBtn" class="text-sm font-medium text-blue-600 hover:text-blue-500 flex items-center transition duration-150 ease-in-out focus:outline-none">
+                        <i class="fas fa-edit mr-1"></i> Edit Personal Info
                     </button>
                 </div>
+                {% endif %}
+            </div>
+        </div>
 
-                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        <!-- Requirements Section -->
+        <div class="bg-white shadow rounded-lg overflow-hidden">
+            <div class="px-4 py-5 sm:px-6 bg-gray-50 border-b border-gray-200">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">ID Requirements</h3>
+                <p class="mt-1 text-sm text-gray-500">Upload your 1x1 picture and signature for your ID.</p>
+            </div>
+            
+            <div class="px-4 py-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <!-- 1x1 Picture Section -->
+                <div class="flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-md font-bold text-gray-800">1x1 Picture</h4>
+                        <span class="px-2 py-1 text-xs font-bold rounded-full
+                            {% if profile.picture_status == 'approved' %} bg-green-100 text-green-800
+                            {% elif profile.picture_status == 'pending' %} bg-yellow-100 text-yellow-800
+                            {% else %} bg-red-100 text-red-800 {% endif %}">
+                            {{ profile.picture_status | capitalize }}
+                        </span>
+                    </div>
 
-                    {% macro profile_row(label, value) %}
-                        <div class="py-2">
-                            <span class="block text-sm font-medium text-gray-500">{{ label }}</span>
-                            <span class="block text-lg font-medium text-gray-800">{{ value | default('N/A', true) }}</span>
-                        </div>
-                    {% endmacro %}
+                    <!-- Picture Container (Click to Open View Modal) -->
+                    <div class="w-40 h-40 mx-auto bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden mb-4 relative group cursor-pointer shadow-sm hover:shadow-md transition-all duration-200"
+                         onclick="openPictureModal()">
+                         
+                         {% if profile.picture_url %}
+                            <img src="{{ profile.picture_url }}" alt="My Picture" class="w-full h-full object-cover">
+                         {% else %}
+                            <div class="flex items-center justify-center h-full text-gray-400">
+                                <i class="fas fa-user fa-3x"></i>
+                            </div>
+                         {% endif %}
 
-                    {{ profile_row('Full Name', profile.first_name ~ ' ' ~ (profile.middle_name ~ ' ' if profile.middle_name else '') ~ profile.last_name ~ (' ' ~ profile.suffix_name if profile.suffix_name else '')) }}
+                         <!-- Overlay on Hover -->
+                         <div class="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200">
+                             <i class="fas fa-expand text-white fa-2x mb-1"></i>
+                             <span class="text-white text-xs font-semibold">View Full Screen</span>
+                         </div>
+                    </div>
                     
-                    {{ profile_row('Student ID', profile.student_id) }}
-                    {{ profile_row('Email', profile.email) }}
-                    {{ profile_row('Program', profile.program) }}
-                    {{ profile_row('Year & Section', profile.year_level ~ ' - ' ~ profile.section) }}
+                    <!-- Disapproval Notice -->
+                    {% if profile.picture_status == 'disapproved' and profile.picture_disapproval_reason %}
+                    <div class="mb-4 bg-red-50 border-l-4 border-red-400 p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-exclamation-circle text-red-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-red-700">
+                                    <span class="font-bold">Disapproved:</span> {{ profile.picture_disapproval_reason }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Status Text -->
+                    <div class="mt-auto text-center text-sm text-gray-500">
+                        {% if profile.is_locked %}
+                            <span class="text-gray-400"><i class="fas fa-lock mr-1"></i> Uploads Locked</span>
+                        {% elif profile.picture_status == 'approved' %}
+                            <span class="text-green-600 font-medium"><i class="fas fa-check-circle mr-1"></i> Picture Approved</span>
+                        {% else %}
+                             <span class="text-blue-600 cursor-pointer hover:underline" onclick="openPictureModal()">Click image to view or update</span>
+                        {% endif %}
+                    </div>
+                </div>
 
-                    {% if profile.major %}
-                        {{ profile_row('Major', profile.major) }}
+                <!-- Signature Section -->
+                <div class="flex flex-col border-t md:border-t-0 md:border-l border-gray-200 pt-6 md:pt-0 md:pl-8">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-md font-bold text-gray-800">Digital Signature</h4>
+                        <span class="px-2 py-1 text-xs font-bold rounded-full
+                            {% if profile.signature_status == 'approved' %} bg-green-100 text-green-800
+                            {% elif profile.signature_status == 'pending' %} bg-yellow-100 text-yellow-800
+                            {% else %} bg-red-100 text-red-800 {% endif %}">
+                            {{ profile.signature_status | capitalize }}
+                        </span>
+                    </div>
+
+                    <div class="w-full h-32 mx-auto bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden mb-4 relative flex items-center justify-center">
+                         {% if profile.signature_url %}
+                            <img src="{{ profile.signature_url }}" alt="My Signature" class="max-h-full max-w-full object-contain p-2">
+                         {% else %}
+                            <span class="text-gray-400 text-sm">No signature uploaded</span>
+                         {% endif %}
+                    </div>
+
+                    {% if profile.signature_status == 'disapproved' and profile.signature_disapproval_reason %}
+                    <div class="mb-4 bg-red-50 border-l-4 border-red-400 p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-exclamation-circle text-red-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-red-700">
+                                    <span class="font-bold">Disapproved:</span> {{ profile.signature_disapproval_reason }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                     {% endif %}
 
-                     {{ profile_row('Semester', profile.semester ~ ' Semester') }}
-                </div>
-            </div>
-        </div>
+                    {% if profile.signature_status != 'approved' and not profile.is_locked %}
+                    <form action="{{ url_for('core.update_profile') }}" method="POST" enctype="multipart/form-data" class="mt-auto">
+                        <input type="hidden" name="first_name" value="{{ profile.first_name }}">
+                        <input type="hidden" name="last_name" value="{{ profile.last_name }}">
+                        <input type="hidden" name="middle_name" value="{{ profile.middle_name or '' }}">
+                        <input type="hidden" name="suffix_name" value="{{ profile.suffix_name or '' }}">
+                        <input type="hidden" name="program" value="{{ profile.program }}">
+                        <input type="hidden" name="year_level" value="{{ profile.year_level }}">
+                        <input type="hidden" name="section" value="{{ profile.section }}">
+                        <input type="hidden" name="semester" value="{{ profile.semester }}">
+                        <input type="hidden" name="major" value="{{ profile.major or '' }}">
 
-        <div class="w-full lg:w-1/3">
-            <div class="bg-white rounded-lg shadow-md">
-                <div class="p-6">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Uploaded Images</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <span class="block text-sm font-medium text-gray-500 mb-2">1x1 Picture</span>
-                            <div class="aspect-square border border-gray-200 rounded-lg overflow-hidden">
-                                {% if profile.picture_url %}
-                                    <img src="{{ profile.picture_url }}" alt="1x1 Picture"
-                                         class="w-full h-full object-cover cursor-pointer hover:opacity-80 transition"
-                                         data-modal-trigger data-src="{{ profile.picture_url }}">
-                                {% else %}
-                                    <div class="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
-                                        <i class="fas fa-image fa-2x"></i>
-                                    </div>
-                                {% endif %}
-                            </div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Update Signature (PNG only)</label>
+                        <input type="file" name="signature" accept="image/png" required
+                               class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition">
+                        <button type="submit" class="mt-3 w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Upload Signature
+                        </button>
+                    </form>
+                    {% elif profile.is_locked %}
+                        <div class="mt-auto text-center text-gray-500 font-medium py-2 bg-gray-100 rounded border border-gray-200">
+                            <i class="fas fa-lock mr-1"></i> Upload Locked
                         </div>
-
-                        <div>
-                            <span class="block text-sm font-medium text-gray-500 mb-2">Signature</span>
-                            <div class="aspect-square border border-gray-200 rounded-lg overflow-hidden p-2">
-                                 {% if profile.signature_url %}
-                                    <img src="{{ profile.signature_url }}" alt="Signature"
-                                         class="w-full h-full object-contain cursor-pointer hover:opacity-80 transition"
-                                         data-modal-trigger data-src="{{ profile.signature_url }}">
-                                 {% else %}
-                                     <div class="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
-                                        <i class="fas fa-signature fa-2x"></i>
-                                     </div>
-                                 {% endif %}
-                            </div>
+                    {% else %}
+                        <div class="mt-auto text-center text-green-600 font-medium py-2">
+                            <i class="fas fa-check-circle mr-1"></i> Signature Approved
                         </div>
-                    </div>
+                    {% endif %}
                 </div>
+
             </div>
         </div>
     </div>
-</div>
 
-<!-- Edit Section -->
-<div id="editSection" style="display: none;">
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <form method="POST" action="{{ url_for('core.update_profile') }}" enctype="multipart/form-data">
 
-            <div class="p-6 border-b border-gray-200">
-                <h3 class="text-xl font-semibold text-gray-800">Edit Profile</h3>
-                <p class="text-sm text-gray-500">Update your information below.</p>
-            </div>
+    <!-- ================= MODALS ================= -->
+    <!-- MOVED INSIDE BLOCK CONTENT TO ENSURE RENDERING -->
 
-            {% macro form_input(name, label, value, type='text', required=True) %}
-            <div>
-                <label for="{{ name }}" class="block text-sm font-medium text-gray-700 mb-1">{{ label }}</label>
-                <input type="{{ type }}" name="{{ name }}" id="{{ name }}" value="{{ value | default('', true) }}"
-                       {% if required %}required{% endif %}
-                       class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-            </div>
-            {% endmacro %}
+    <!-- 1. Edit Personal Info Modal -->
+    {% if not profile.is_locked %}
+    <div id="editSection" class="relative z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- Background backdrop with blur -->
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-60 backdrop-blur-sm transition-opacity"></div>
 
-            {% macro form_select(name, label, selected_val, options, id=None, onchange=None) %}
-            <div>
-                <label for="{{ id or name }}" class="block text-sm font-medium text-gray-700 mb-1">{{ label }}</label>
-                <select name="{{ name }}" id="{{ id or name }}"
-                        {% if onchange %}onchange="{{ onchange }}"{% endif %} required
-                        class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                    <option value="">Select {{ label }}</option>
-                    {% for option in options %}
-                    <option value="{{ option.value }}" {% if option.value == selected_val %}selected{% endif %}>
-                        {{ option.text }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-            {% endmacro %}
-
-            <div class="p-6 space-y-4">
-                <h4 class="text-lg font-semibold text-gray-700 border-b pb-2">Personal Information</h4>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    {{ form_input('first_name', 'First Name', profile.first_name) }}
-                    {{ form_input('middle_name', 'Middle Name', profile.middle_name, required=False) }}
-                    {{ form_input('last_name', 'Last Name', profile.last_name) }}
-                    {{ form_input('suffix_name', 'Suffix', profile.suffix_name, required=False) }}
-                </div>
-            </div>
-
-            <div class="p-6 space-y-4 border-t border-gray-200">
-                <h4 class="text-lg font-semibold text-gray-700 border-b pb-2">Academic Information</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Modal Panel -->
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-3xl border border-gray-200">
                     
-                    {{ form_select('program', 'Program', profile.program,
-                                   options=[{'value': 'BSIT', 'text': 'BSIT (Bachelor of Science in Information Technology)'},
-                                            {'value': 'BSIS', 'text': 'BSIS (Bachelor of Science in Information Systems)'},
-                                            {'value': 'BSCS', 'text': 'BSCS (Bachelor of Science in Computer Science)'}],
-                                   id='edit_program', onchange='toggleEditMajor()') }}
+                    <form method="POST" action="{{ url_for('core.update_profile') }}" enctype="multipart/form-data">
+                        <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                            <div class="sm:flex sm:items-start">
+                                <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                                    <div class="flex justify-between items-center mb-4 border-b pb-4">
+                                        <h3 class="text-xl font-bold leading-6 text-gray-900" id="modal-title">Edit Personal Information</h3>
+                                        <button type="button" class="text-gray-400 hover:text-gray-600" onclick="closeModal('editSection')">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Form Macros -->
+                                    {% macro form_input(name, label, value, type='text', required=True) %}
+                                    <div>
+                                        <label for="{{ name }}" class="block text-sm font-medium text-gray-700 mb-1">{{ label }}</label>
+                                        <input type="{{ type }}" name="{{ name }}" id="{{ name }}" value="{{ value | default('', true) }}"
+                                            {% if required %}required{% endif %}
+                                            class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition sm:text-sm">
+                                    </div>
+                                    {% endmacro %}
 
-                    {{ form_select('semester', 'Semester', profile.semester,
-                                   options=[{'value': '1st', 'text': '1st'},
-                                            {'value': '2nd', 'text': '2nd'}]) }}
+                                    {% macro form_select(name, label, selected_val, options, id=None, onchange=None) %}
+                                    <div>
+                                        <label for="{{ id or name }}" class="block text-sm font-medium text-gray-700 mb-1">{{ label }}</label>
+                                        <select name="{{ name }}" id="{{ id or name }}"
+                                                {% if onchange %}onchange="{{ onchange }}"{% endif %} required
+                                                class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition sm:text-sm">
+                                            <option value="">Select {{ label }}</option>
+                                            {% for option in options %}
+                                            <option value="{{ option.value }}" {% if option.value == selected_val %}selected{% endif %}>
+                                                {{ option.text }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    {% endmacro %}
 
-                    {{ form_select('year_level', 'Year Level', profile.year_level,
-                                   options=[{'value': '1st Year', 'text': '1st Year'},
-                                            {'value': '2nd Year', 'text': '2nd Year'},
-                                            {'value': '3rd Year', 'text': '3rd Year'},
-                                            {'value': '4th Year', 'text': '4th Year'}],
-                                   id='edit_year_level', onchange='toggleEditMajor()') }}
+                                    <!-- Fields Container -->
+                                    <div class="space-y-6">
+                                        <div>
+                                            <h4 class="text-xs font-bold text-blue-600 uppercase tracking-wide mb-3">Identity</h4>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {{ form_input('first_name', 'First Name', profile.first_name) }}
+                                                {{ form_input('middle_name', 'Middle Name', profile.middle_name, required=False) }}
+                                                {{ form_input('last_name', 'Last Name', profile.last_name) }}
+                                                {{ form_input('suffix_name', 'Suffix', profile.suffix_name, required=False) }}
+                                            </div>
+                                        </div>
 
-                    {{ form_select('section', 'Section', profile.section,
-                                   options=[{'value': 'A', 'text': 'A'},
-                                            {'value': 'B', 'text': 'B'},
-                                            {'value': 'C', 'text': 'C'},
-                                            {'value': 'D', 'text': 'D'}]) }}
-                </div>
+                                        <div class="border-t border-gray-100 pt-4">
+                                            <h4 class="text-xs font-bold text-blue-600 uppercase tracking-wide mb-3">Academic Details</h4>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {{ form_select('program', 'Program', profile.program,
+                                                            options=[{'value': 'BSIT', 'text': 'BSIT (Bachelor of Science in Information Technology)'},
+                                                                        {'value': 'BSIS', 'text': 'BSIS (Bachelor of Science in Information Systems)'},
+                                                                        {'value': 'BSCS', 'text': 'BSCS (Bachelor of Science in Computer Science)'}],
+                                                            id='edit_program', onchange='toggleEditMajor()') }}
 
-                <div id="edit_major_wrapper" style="display: none;">
-                    <label for="edit_major" class="block text-sm font-medium text-gray-700 mb-1">Major (for 3rd/4th Year)</label>
-                    <select name="major" id="edit_major"
-                            class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                        <option value="">Select Major</option>
-                    </select>
+                                                {{ form_select('semester', 'Semester', profile.semester,
+                                                            options=[{'value': '1st', 'text': '1st'},
+                                                                        {'value': '2nd', 'text': '2nd'}]) }}
+
+                                                {{ form_select('year_level', 'Year Level', profile.year_level,
+                                                            options=[{'value': '1st Year', 'text': '1st Year'},
+                                                                        {'value': '2nd Year', 'text': '2nd Year'},
+                                                                        {'value': '3rd Year', 'text': '3rd Year'},
+                                                                        {'value': '4th Year', 'text': '4th Year'}],
+                                                            id='edit_year_level', onchange='toggleEditMajor()') }}
+
+                                                {{ form_select('section', 'Section', profile.section,
+                                                            options=[{'value': 'A', 'text': 'A'},
+                                                                        {'value': 'B', 'text': 'B'},
+                                                                        {'value': 'C', 'text': 'C'},
+                                                                        {'value': 'D', 'text': 'D'}]) }}
+                                            </div>
+
+                                            <div id="edit_major_wrapper" style="display: none;" class="mt-4">
+                                                <label for="edit_major" class="block text-sm font-medium text-gray-700 mb-1">Major (for 3rd/4th Year)</label>
+                                                <select name="major" id="edit_major"
+                                                        class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition sm:text-sm">
+                                                    <option value="">Select Major</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 rounded-b-lg">
+                            <button type="submit" class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto transition-colors">
+                                Save Changes
+                            </button>
+                            <button type="button" id="cancelBtn" onclick="closeModal('editSection')" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto transition-colors">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
-
-            <div class="p-6 space-y-4 border-t border-gray-200">
-                <h4 class="text-lg font-semibold text-gray-700 border-b pb-2">Upload Documents</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="picture" class="block text-sm font-medium text-gray-700 mb-1">1x1 Picture</label>
-                        <input type="file" name="picture" id="picture" accept="image/*"
-                               class="w-full file:mr-4 file:border-0
-                                      bg-white border border-gray-300 rounded-lg
-                                      focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
-                        <p class="text-xs text-gray-500 mt-1 italic">Max 5MB. Re-uploading will reset approval to pending.</p>
-                    </div>
-                    <div>
-                        <label for="signature" class="block text-sm font-medium text-gray-700 mb-1">Signature (Transparent PNG)</label>
-                        <input type="file" name="signature" id="signature" accept=".png"
-                               class="w-full file:mr-4 file:border-0
-                                      bg-white border border-gray-300 rounded-lg
-                                      focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
-                        <p class="text-xs text-gray-500 mt-1 italic">Max 5MB. Transparent PNG only.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-4">
-                <button type="button" id="cancelBtn" class="px-5 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition">
-                    Cancel
-                </button>
-                <button type="submit" class="px-5 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition">
-                    Save Changes
-                </button>
-            </div>
-        </form>
+        </div>
     </div>
-</div>
+    {% endif %}
+
+
+    <!-- 2. Picture Full View & Upload Modal -->
+    <div id="pictureModal" class="relative z-50 hidden" aria-labelledby="picture-modal-title" role="dialog" aria-modal="true">
+        <!-- Background backdrop with blur -->
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-80 backdrop-blur-sm transition-opacity" onclick="closeModal('pictureModal')"></div>
+
+        <!-- Modal Panel -->
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto pointer-events-none">
+            <div class="flex min-h-full items-center justify-center p-4 text-center">
+                <div class="pointer-events-auto relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:w-full sm:max-w-lg">
+                    
+                    <div class="bg-white px-4 pb-4 pt-5 sm:p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-lg font-semibold leading-6 text-gray-900" id="picture-modal-title">Profile Picture</h3>
+                            <button type="button" class="text-gray-400 hover:text-gray-600 focus:outline-none" onclick="closeModal('pictureModal')">
+                                <i class="fas fa-times fa-lg"></i>
+                            </button>
+                        </div>
+
+                        <!-- Full Image Display -->
+                        <div class="w-full aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center mb-6 border border-gray-200">
+                            {% if profile.picture_url %}
+                                <img src="{{ profile.picture_url }}" alt="Full Profile Picture" class="w-full h-full object-contain">
+                            {% else %}
+                                <div class="text-gray-400 flex flex-col items-center">
+                                    <i class="fas fa-user fa-5x mb-2"></i>
+                                    <span>No image uploaded</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Upload Logic (Inside Modal) -->
+                        {% if not profile.is_locked %}
+                        <div class="border-t border-gray-100 pt-4">
+                            <form action="{{ url_for('core.update_profile') }}" method="POST" enctype="multipart/form-data">
+                                <!-- Hidden Fields for context -->
+                                <input type="hidden" name="first_name" value="{{ profile.first_name }}">
+                                <input type="hidden" name="last_name" value="{{ profile.last_name }}">
+                                <input type="hidden" name="middle_name" value="{{ profile.middle_name or '' }}">
+                                <input type="hidden" name="suffix_name" value="{{ profile.suffix_name or '' }}">
+                                <input type="hidden" name="program" value="{{ profile.program }}">
+                                <input type="hidden" name="year_level" value="{{ profile.year_level }}">
+                                <input type="hidden" name="section" value="{{ profile.section }}">
+                                <input type="hidden" name="semester" value="{{ profile.semester }}">
+                                <input type="hidden" name="major" value="{{ profile.major or '' }}">
+
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Change Profile Picture</label>
+                                <div class="flex gap-2">
+                                    <input type="file" name="picture" accept="image/*" required
+                                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition border border-gray-300 rounded-full">
+                                    <button type="submit" class="inline-flex justify-center rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 transition-colors">
+                                        Upload
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
 
 
@@ -293,34 +391,31 @@
     document.addEventListener('DOMContentLoaded', (event) => {
         // --- Get Elements ---
         const editBtn = document.getElementById('editBtn');
-        const cancelBtn = document.getElementById('cancelBtn');
-        const profileSection = document.getElementById('profile-view-section');
         const editSection = document.getElementById('editSection');
 
         // --- Toggle Listeners ---
         if (editBtn) {
             editBtn.addEventListener('click', () => {
-                if (profileSection) profileSection.style.display = 'none';
-                if (editSection) editSection.style.display = 'block';
-            });
-        }
-
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', () => {
-                // Reset form fields if needed (optional)
-                // document.querySelector('#editSection form').reset();
-                if (profileSection) profileSection.style.display = 'block';
-                if (editSection) editSection.style.display = 'none';
+                if (editSection) editSection.classList.remove('hidden');
             });
         }
 
         // --- Major Field Logic ---
-        // Initialize major field visibility on page load
         toggleEditMajor();
     });
 
-    // --- *** NEW: Dynamic Major Logic *** ---
-    // 1. Define Major Options
+    // --- Modal Functions ---
+    function openPictureModal() {
+        const modal = document.getElementById('pictureModal');
+        if(modal) modal.classList.remove('hidden');
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if(modal) modal.classList.add('hidden');
+    }
+
+    // --- Dynamic Major Logic ---
     const majorOptions = {
         'BSIT': [
             { value: 'WMAD - A', text: 'WMAD - A' },
@@ -332,22 +427,18 @@
             { value: 'GV', text: 'GV' },
             { value: 'IS', text: 'IS' }
         ],
-        'BSIS': [] // No majors
+        'BSIS': [] 
     };
 
-    // 2. Store the student's current major from Flask
     const currentMajor = "{{ profile.major or '' }}";
 
-    // 3. Define the toggle function
     function toggleEditMajor() {
         const programEl = document.getElementById('edit_program');
         const yearEl = document.getElementById('edit_year_level');
         const majorWrapper = document.getElementById('edit_major_wrapper');
         const majorEl = document.getElementById('edit_major');
 
-        // Check if elements exist before proceeding
         if (!programEl || !yearEl || !majorWrapper || !majorEl) {
-            console.error("One or more elements for major toggle not found.");
             return; 
         }
 
@@ -358,36 +449,27 @@
         const isMajorYear = yearValue === '3rd Year' || yearValue === '4th Year';
         const hasMajors = majors.length > 0;
 
-        // Clear existing major options, keeping the placeholder
         majorEl.innerHTML = '<option value="">Select Major</option>'; 
 
         if (isMajorYear && hasMajors) {
-            // Add new options
             majors.forEach(function(major) {
                 const option = new Option(major.text, major.value);
                 majorEl.add(option);
             });
 
-            // Show and require
             majorWrapper.style.display = 'block';
             majorEl.required = true;
 
-            // Re-select the student's current major if it's in the list
-            // Check against the current value *before* trying to set it
             if (majors.some(m => m.value === currentMajor)) {
                  majorEl.value = currentMajor;
             } else {
-                 majorEl.value = ""; // Default to placeholder if currentMajor isn't valid
+                 majorEl.value = ""; 
             }
-
-
         } else {
-            // Hide and unrequire
             majorWrapper.style.display = 'none';
-            majorEl.value = ''; // Ensure value is empty when hidden
+            majorEl.value = ''; 
             majorEl.required = false;
         }
     }
-    // --- *** END OF NEW LOGIC *** ---
 </script>
 {% endblock %}

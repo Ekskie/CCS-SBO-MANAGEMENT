@@ -43,13 +43,45 @@
         </a>
 
         <div id="flash-message-container" class="w-full max-w-md mt-6">
-            {% with messages = get_flashed_messages() %}
-            {% if messages %}
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg" role="alert">
-                <p class="font-bold">Notification</p>
-                <p>{{ messages[0] }}</p>
-            </div>
-            {% endif %}
+                      <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <!-- Dynamic Color Logic -->
+                        {% if category == 'success' %}
+                            {% set bg_class = 'bg-green-50' %}
+                            {% set border_class = 'border-green-400' %}
+                            {% set text_class = 'text-green-700' %}
+                            {% set icon_class = 'text-green-400' %}
+                            {% set icon_name = 'fa-check-circle' %}
+                        {% elif category == 'error' or category == 'danger' %}
+                            {% set bg_class = 'bg-red-50' %}
+                            {% set border_class = 'border-red-400' %}
+                            {% set text_class = 'text-red-700' %}
+                            {% set icon_class = 'text-red-400' %}
+                            {% set icon_name = 'fa-exclamation-circle' %}
+                        {% else %}
+                            {% set bg_class = 'bg-blue-50' %}
+                            {% set border_class = 'border-blue-400' %}
+                            {% set text_class = 'text-blue-700' %}
+                            {% set icon_class = 'text-blue-400' %}
+                            {% set icon_name = 'fa-info-circle' %}
+                        {% endif %}
+
+                        <div class="mb-4 {{ bg_class }} border-l-4 {{ border_class }} p-4 animate-fade-in-down">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas {{ icon_name }} {{ icon_class }}"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm {{ text_class }}">
+                                        {{ message }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
             {% endwith %}
         </div>
 
