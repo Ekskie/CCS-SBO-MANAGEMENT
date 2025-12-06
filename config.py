@@ -4,9 +4,6 @@ from dotenv import load_dotenv
 load_dotenv() # Load .env file for local development
 
 class Config:
-    # --- THIS IS THE FIX ---
-    # Read the static key from environment variables.
-    # os.urandom(24) MUST NOT be used here.
     SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
     
     if not SECRET_KEY:
@@ -22,4 +19,10 @@ class Config:
 
     if not SUPABASE_URL or not SUPABASE_KEY or not SUPABASE_SERVICE_KEY:
         raise ValueError("Error: Supabase environment variables must be set.")
-
+    # Other configurations can be added here
+    # Add SMTP Settings
+    SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp-relay.brevo.com") # Default Brevo host
+    SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
+    SMTP_EMAIL = os.getenv("SMTP_EMAIL") # Your Brevo Login Email
+    SMTP_PASSWORD = os.getenv("SMTP_PASSWORD") # Your Brevo Master Password or API Key
+    SENDER_EMAIL = os.getenv("SENDER_EMAIL", "no-reply@yourdomain.com") # The 'From' address

@@ -4,7 +4,7 @@ import mimetypes
 from collections import Counter
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 from extensions import supabase, supabase_admin
-from utils import admin_required, check_transparency
+from utils import admin_required, check_transparency, send_status_email
 from datetime import datetime
 from config import Config
 
@@ -822,8 +822,15 @@ def admin_delete_archive(archive_id):
 @admin_bp.route('/review_student/<student_id>', methods=['GET', 'POST'])
 @admin_required
 def admin_review_student(student_id):
+    # --- FETCH STUDENT ---
     try:
-        student_res = supabase.table("profiles").select("*").eq("id", student_id).single().execute()
+        student_res = (
+            supabase.table("profiles")
+            .select("*")
+            .eq("id", student_id)
+            .single()
+            .execute()
+        )
         if not student_res.data:
             flash("Student not found.", "error")
             return redirect(url_for('admin.admin_students'))
@@ -831,51 +838,112 @@ def admin_review_student(student_id):
     except Exception as e:
         flash(f"Error fetching student: {str(e)}", "error")
         return redirect(url_for('admin.admin_students'))
-        
+
+    # --- PROCESS POST REQUEST ---
     if request.method == 'POST':
         try:
             action = request.form.get('action')
             update_data = {}
+            email_subject = ""
+            email_body = ""
+
+            # ============================
+            #   APPROVAL / DISAPPROVAL
+            # ============================
             if action == 'approve_picture':
-                update_data['picture_status'] = 'approved'
-                update_data['picture_disapproval_reason'] = None
-                update_data['is_locked'] = True
+                update_data = {
+                    'picture_status': 'approved',
+                    'picture_disapproval_reason': None,
+                    'is_locked': True
+                }
+                email_subject = "CCS SBO: Picture Approved"
+                email_body = (
+                    f"Hello {student.get('first_name')},\n\n"
+                    "Your profile picture has been APPROVED by the Admin."
+                )
+
             elif action == 'approve_signature':
-                update_data['signature_status'] = 'approved'
-                update_data['signature_disapproval_reason'] = None
-                update_data['is_locked'] = True
+                update_data = {
+                    'signature_status': 'approved',
+                    'signature_disapproval_reason': None,
+                    'is_locked': True
+                }
+                email_subject = "CCS SBO: Signature Approved"
+                email_body = (
+                    f"Hello {student.get('first_name')},\n\n"
+                    "Your digital signature has been APPROVED by the Admin."
+                )
+
             elif action == 'disapprove_picture':
                 reason = request.form.get('picture_disapproval_reason', '').strip()
                 if not reason:
-                    flash(f"A reason is required.", "error")
+                    flash("A reason is required.", "error")
                     return render_template('review_student.html', student=student)
-                update_data['picture_status'] = 'disapproved'
-                update_data['picture_disapproval_reason'] = reason
-                update_data['is_locked'] = False
+
+                update_data = {
+                    'picture_status': 'disapproved',
+                    'picture_disapproval_reason': reason,
+                    'is_locked': False
+                }
+                email_subject = "CCS SBO: Picture Disapproved"
+                email_body = (
+                    f"Hello {student.get('first_name')},\n\n"
+                    f"Your profile picture was DISAPPROVED.\nReason: {reason}\n\n"
+                    "Please login and update your picture."
+                )
+
             elif action == 'disapprove_signature':
                 reason = request.form.get('signature_disapproval_reason', '').strip()
                 if not reason:
-                    flash(f"A reason is required.", "error")
+                    flash("A reason is required.", "error")
                     return render_template('review_student.html', student=student)
-                update_data['signature_status'] = 'disapproved'
-                update_data['signature_disapproval_reason'] = reason
-                update_data['is_locked'] = False
+
+                update_data = {
+                    'signature_status': 'disapproved',
+                    'signature_disapproval_reason': reason,
+                    'is_locked': False
+                }
+                email_subject = "CCS SBO: Signature Disapproved"
+                email_body = (
+                    f"Hello {student.get('first_name')},\n\n"
+                    f"Your digital signature was DISAPPROVED.\nReason: {reason}\n\n"
+                    "Please login and update your signature."
+                )
+
             else:
                 flash("Invalid action.", "error")
                 return render_template('review_student.html', student=student)
 
-            if update_data: 
-                 supabase.table("profiles").update(update_data).eq("id", student_id).execute()
-                 student_name = f"{student.get('first_name')} {student.get('last_name')}"
-                 log_activity("Review Student", target_user_id=student_id, target_user_name=student_name, details=f"Updated student status: {action}.")
-                 flash("Student status updated.", "success")
+            # ============================
+            #   UPDATE DB & SEND EMAIL
+            # ============================
+            if update_data:
+                supabase.table("profiles").update(update_data).eq("id", student_id).execute()
+
+                # Send email notification
+                if student.get('email'):
+                    send_status_email(student.get('email'), email_subject, email_body)
+
+                # Log the activity
+                student_name = f"{student.get('first_name')} {student.get('last_name')}"
+                log_activity(
+                    "Review Student",
+                    target_user_id=student_id,
+                    target_user_name=student_name,
+                    details=f"Updated student status: {action}."
+                )
+
+                flash("Student status updated and email notification sent.", "success")
             else:
-                 flash("No changes detected.", "info") 
-            return redirect(url_for('admin.admin_review_student', student_id=student_id)) 
+                flash("No changes detected.", "info")
+
+            return redirect(url_for('admin.admin_review_student', student_id=student_id))
+
         except Exception as e:
             flash(f"Error updating student status: {str(e)}", "error")
             return render_template('review_student.html', student=student)
 
+    # --- DEFAULT GET REQUEST ---
     return render_template('review_student.html', student=student)
 
 @admin_bp.route('/activity_logs')
