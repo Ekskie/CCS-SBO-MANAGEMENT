@@ -314,6 +314,53 @@ def check_email():
 
     return render_template('check_email.html', email=email, auto_start=auto_start)
 
+@auth_bp.route('/resend_verification', methods=['POST'])
+def resend_verification():
+    email = request.form.get('email')
+    
+    if not email:
+        flash("Email is required.", category="error")
+        return redirect(url_for('auth.register'))
+
+    # 1. Check if the user actually exists in the 'profiles' table first
+    #    (This prevents spamming random emails)
+    try:
+        profile_res = supabase.table("profiles").select("email").eq("email", email).single().execute()
+        
+        if not profile_res.data:
+            flash("No account found with this email. Please register first.", category="error")
+            return redirect(url_for('auth.register'))
+
+        # 2. Use Supabase to resend the confirmation email
+        #    Note: Supabase's `resend` method handles checking if the user is already verified.
+        #    If verified, it might not send, or will send a "password reset" style email depending on config.
+        #    For unverified users, it sends the signup confirmation link again.
+        response = supabase.auth.resend({
+            "type": "signup",
+            "email": email,
+            "options": {
+                "email_redirect_to": url_for('auth.auth_callback', _external=True)
+            }
+        })
+        
+        # Supabase Python client doesn't always throw on rate limit, but check response if needed.
+        # Generally, if no exception, it worked.
+        
+        flash("If an unverified account exists, a new verification email has been sent.", category="success")
+
+    except Exception as e:
+        # Handle specific Supabase errors if possible (e.g., rate limits)
+        print(f"Resend verification error: {e}")
+        if "rate limit" in str(e).lower():
+             flash("Please wait a moment before requesting another email.", category="error")
+        elif "Email not found" in str(e): 
+             # Should be caught by the profile check above, but as a fallback:
+             flash("No account found with this email.", category="error")
+        else:
+             flash(f"Error sending email: {str(e)}", category="error")
+
+    return redirect(url_for('auth.register'))
+
 @auth_bp.route('/logout')
 def logout():
     session.clear()

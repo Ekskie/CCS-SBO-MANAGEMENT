@@ -13,6 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <script>
         tailwind.config = {
@@ -52,45 +53,45 @@
         <a href="{{ url_for('auth.home') }}">
             <img src="{{ url_for('static', filename='image/lspu.png') }}" alt="LSPU Logo" class="w-24 md:w-28 mb-4">
         </a>
- {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <!-- Dynamic Color Logic -->
-                        {% if category == 'success' %}
-                            {% set bg_class = 'bg-green-50' %}
-                            {% set border_class = 'border-green-400' %}
-                            {% set text_class = 'text-green-700' %}
-                            {% set icon_class = 'text-green-400' %}
-                            {% set icon_name = 'fa-check-circle' %}
-                        {% elif category == 'error' or category == 'danger' %}
-                            {% set bg_class = 'bg-red-50' %}
-                            {% set border_class = 'border-red-400' %}
-                            {% set text_class = 'text-red-700' %}
-                            {% set icon_class = 'text-red-400' %}
-                            {% set icon_name = 'fa-exclamation-circle' %}
-                        {% else %}
-                            {% set bg_class = 'bg-blue-50' %}
-                            {% set border_class = 'border-blue-400' %}
-                            {% set text_class = 'text-blue-700' %}
-                            {% set icon_class = 'text-blue-400' %}
-                            {% set icon_name = 'fa-info-circle' %}
-                        {% endif %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <!-- Dynamic Color Logic -->
+        {% if category == 'success' %}
+        {% set bg_class = 'bg-green-50' %}
+        {% set border_class = 'border-green-400' %}
+        {% set text_class = 'text-green-700' %}
+        {% set icon_class = 'text-green-400' %}
+        {% set icon_name = 'fa-check-circle' %}
+        {% elif category == 'error' or category == 'danger' %}
+        {% set bg_class = 'bg-red-50' %}
+        {% set border_class = 'border-red-400' %}
+        {% set text_class = 'text-red-700' %}
+        {% set icon_class = 'text-red-400' %}
+        {% set icon_name = 'fa-exclamation-circle' %}
+        {% else %}
+        {% set bg_class = 'bg-blue-50' %}
+        {% set border_class = 'border-blue-400' %}
+        {% set text_class = 'text-blue-700' %}
+        {% set icon_class = 'text-blue-400' %}
+        {% set icon_name = 'fa-info-circle' %}
+        {% endif %}
 
-                        <div class="mb-4 {{ bg_class }} border-l-4 {{ border_class }} p-4 animate-fade-in-down">
-                            <div class="flex">
-                                <div class="flex-shrink-0">
-                                    <i class="fas {{ icon_name }} {{ icon_class }}"></i>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm {{ text_class }}">
-                                        {{ message }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
+        <div class="mb-4 {{ bg_class }} border-l-4 {{ border_class }} p-4 animate-fade-in-down w-full max-w-2xl rounded-md shadow-lg">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas {{ icon_name }} {{ icon_class }}"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm {{ text_class }}">
+                        {{ message }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
         <div class="w-full max-w-2xl bg-white bg-opacity-10 backdrop-blur-lg rounded-xl shadow-2xl p-8 text-white">
 
             <h2 class="text-3xl font-bold text-center mb-6">Create Account</h2>
@@ -130,10 +131,11 @@
 
                 {% macro form_input(name, placeholder, type='text', required=True, pattern=None, title=None) %}
                 <div>
-                    <label for="{{ name }}" class="block text-sm font-medium text-gray-200 mb-1">{{ placeholder|safe }}</label>
-                    <input type="{{ type }}" name="{{ name }}" id="{{ name }}" placeholder="{{ placeholder|striptags }}" {% if
-                        required %}required{% endif %} {% if pattern %}pattern="{{ pattern }}" {% endif %} {% if title
-                        %}title="{{ title }}" {% endif %}
+                    <label for="{{ name }}" class="block text-sm font-medium text-gray-200 mb-1">{{ placeholder|safe
+                        }}</label>
+                    <input type="{{ type }}" name="{{ name }}" id="{{ name }}" placeholder="{{ placeholder|striptags }}"
+                        {% if required %}required{% endif %} {% if pattern %}pattern="{{ pattern }}" {% endif %} {% if
+                        title %}title="{{ title }}" {% endif %}
                         class="w-full px-4 py-3 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition invalid:border-red-500 invalid:ring-red-500">
                 </div>
                 {% endmacro %}
@@ -144,8 +146,8 @@
                     <select name="{{ name }}" id="{{ name }}" {% if required %}required{% endif %} {% if onchange
                         %}onchange="{{ onchange }}" {% endif %}
                         class="w-full px-4 py-3 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition invalid:border-red-500 invalid:ring-red-500">
-                        <option value="" class="bg-gray-800">{{ label }}</Soption>
-                            {% for option in options %}
+                        <option value="" class="bg-gray-800">{{ label }}</option>
+                        {% for option in options %}
                         <option value="{{ option.value }}" class="bg-gray-800">{{ option.text }}</option>
                         {% endfor %}
                     </select>
@@ -157,9 +159,9 @@
                 <fieldset id="form-step-1" class="space-y-4">
                     {{ form_input('email', 'Email Address (student@lspu.edu.ph)', type='email',
                     pattern='.+@lspu\\.edu\\.ph', title='Please use a valid @lspu.edu.ph email address') }}
-                    
+
                     {{ form_input('student_id', 'Student ID') }}
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label for="password" class="block text-sm font-medium text-gray-200 mb-1">Password</label>
@@ -170,17 +172,17 @@
                                     class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-200"
                                     onclick="togglePasswordVisibility('password', this)">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="w-5 h-5" >
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.243 4.243L12 12" />
-                                </svg>
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="w-5 h-5" style="display: none;">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                                </svg>
+                                        stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.243 4.243L12 12" />
+                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="w-5 h-5" style="display: none;">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                    </svg>
                                 </button>
                             </div>
                         </div>
@@ -222,12 +224,14 @@
                 <fieldset id="form-step-2" class="space-y-4" style="display: none;">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {{ form_input('first_name', 'First Name') }}
-                        {{ form_input('middle_name', 'Middle Name <span class="text-[8px] text-gray-500">(Leave Blank if None)</span>', required=False) }}
+                        {{ form_input('middle_name', 'Middle Name <span class="text-[8px] text-gray-500">(Leave Blank if
+                        None)</span>', required=False) }}
                         {{ form_input('last_name', 'Last Name') }}
-                        {{ form_input('suffix_name', 'Suffix Name <span class="text-[8px] text-gray-500">(Leave Blank if None)</span>', required=False) }}
+                        {{ form_input('suffix_name', 'Suffix Name <span class="text-[8px] text-gray-500">(Leave Blank if
+                        None)</span>', required=False) }}
 
                     </div>
-                    
+
                     <div class="flex justify-between pt-4">
                         <button type="button" data-nav="prev"
                             class="px-6 py-3 bg-gray-600 text-white rounded-lg font-semibold text-center shadow-lg hover:bg-gray-700 transition duration-300">
@@ -331,6 +335,16 @@
                         Login
                     </a>
                 </p>
+
+                <!-- *** NEW: Resend Verification Link *** -->
+                <p class="text-center mt-2 text-sm text-gray-400">
+                    <button type="button" onclick="toggleResendModal()"
+                        class="hover:text-blue-300 underline focus:outline-none transition-colors">
+                        Did not receive the verification email?
+                    </button>
+                </p>
+                <!-- *** END: Resend Verification Link *** -->
+
             </form>
 
         </div>
@@ -340,7 +354,58 @@
         </footer>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- *** NEW: Resend Verification Modal *** -->
+    <div id="resendModal" class="fixed inset-0 z-50 hidden flex items-center justify-center" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true">
+        <!-- Background Overlay -->
+        <div class="fixed inset-0 bg-black bg-opacity-75 transition-opacity" aria-hidden="true"
+            onclick="toggleResendModal()"></div>
+
+        <!-- Modal Panel -->
+        <div
+            class="relative bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all max-w-lg w-full mx-4 border border-gray-700">
+                <div class="bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div
+                            class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-900 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-envelope text-blue-300"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-white" id="modal-title">Resend Verification Email
+                            </h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-300">
+                                    Enter the email address you used to register. We will send you another verification
+                                    link.
+                                </p>
+                                <!-- NOTE: Make sure the route 'auth.resend_verification' exists in your backend -->
+                                <form action="{{ url_for('auth.resend_verification') }}" method="POST" class="mt-4">
+                                    <div>
+                                        <label for="resend-email" class="sr-only">Email address</label>
+                                        <input type="email" name="email" id="resend-email" required
+                                            placeholder="student@lspu.edu.ph"
+                                            class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div class="mt-4 flex flex-col-reverse sm:flex-row-reverse gap-3">
+                                        <button type="submit"
+                                            class="w-full sm:w-auto inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm">
+                                            Send Email
+                                        </button>
+                                        <button type="button"
+                                            class="w-full sm:w-auto inline-flex justify-center rounded-md border border-gray-600 shadow-sm px-4 py-2 bg-gray-700 text-base font-medium text-gray-300 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:text-sm"
+                                            onclick="toggleResendModal()">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- *** END: Resend Verification Modal *** -->  
+       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         // --- Major options data ---
@@ -496,6 +561,16 @@
             }
         }
 
+        // --- Modal Function (*** NEW ***) ---
+        function toggleResendModal() {
+            const modal = document.getElementById('resendModal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
         // --- File Event Listeners ---
         document.getElementById('picture-upload').addEventListener('change', function (event) {
             const file = event.target.files[0];
@@ -588,6 +663,12 @@
 
             // --- Form Submit Listener (*** MODIFIED ***) ---
             form.addEventListener('submit', function (e) {
+                // Check if the submit was triggered by the modal form
+                if (e.target.closest('#resendModal')) {
+                    // Let the resend form submit normally
+                    return;
+                }
+
                 // Final check to make sure all steps are valid
                 if (!validateStep(4)) {
                     e.preventDefault();
