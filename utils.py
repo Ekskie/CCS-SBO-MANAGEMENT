@@ -96,14 +96,15 @@ def send_status_email(to_email, subject, body):
 
         # --- DESIGN LOGIC ---
         # Determine color scheme and icon based on subject keywords
-        header_color = "#4F46E5" # Default Indigo/Blue
+        # Default is Blue (#2563EB) matching the sample design
+        header_color = "#2563EB" 
         status_icon = "🔔"
         
         if "Disapproved" in subject:
-            header_color = "#DC2626" # Red
+            header_color = "#DC2626" # Red for disapproval
             status_icon = "⚠️"
         elif "Approved" in subject:
-            header_color = "#16A34A" # Green
+            header_color = "#16A34A" # Green for approval
             status_icon = "✅"
 
         # Try to generate a link back to the portal login page
@@ -115,63 +116,102 @@ def send_status_email(to_email, subject, body):
         # Format body content: Convert newlines to breaks for HTML
         formatted_body = body.replace("\n", "<br>")
 
-        # URL for the logo in the email header.
-        # REPLACE THIS with the actual public URL of your logo (e.g. from Supabase Storage).
-        # Since local files won't work in emails, you must use a public HTTP link.
-        # Example: logo_url = "https://your-supabase-url.com/storage/v1/object/public/assets/logo.png"
-        logo_url = "https://lnbjifvircxceupkcpnl.supabase.co/storage/v1/object/public/pictures/lspu.png" 
+        # URL for the logo (Using the specific LSPU URL from your sample)
+        logo_url = "https://lnbjifvircxceupkcpnl.supabase.co/storage/v1/object/public/pictures/lspu.png"
 
-        # Professional HTML Template
+        # Professional HTML Template (Matching the provided Verify Email design)
         html_template = f"""
         <!DOCTYPE html>
-        <html>
+        <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
         <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <title>{subject}</title>
             <style>
-                body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f3f4f6; }}
-                .email-wrapper {{ padding: 40px 10px; }}
-                .container {{ max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }}
+                /* Reset styles */
+                body {{ margin: 0; padding: 0; width: 100%; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }}
+                table, td {{ border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }}
+                img {{ border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }}
                 
-                /* HEADER STYLES */
-                .header {{ background-color: {header_color}; color: #ffffff; padding: 30px 20px; text-align: center; }}
-                .header img {{ max-height: 80px; margin-bottom: 15px; border-radius: 8px; background-color: white; padding: 5px; }}
-                .header h1 {{ margin: 0; font-size: 24px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }}
-                
-                .content {{ padding: 35px 30px; color: #374151; line-height: 1.6; font-size: 16px; }}
-                .status-badge {{ background-color: {header_color}15; color: {header_color}; padding: 8px 16px; border-radius: 50px; font-size: 14px; font-weight: bold; display: inline-block; margin-bottom: 20px; border: 1px solid {header_color}30; }}
-                .footer {{ background-color: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e7eb; }}
-                .button {{ display: inline-block; padding: 12px 24px; background-color: {header_color}; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 600; margin-top: 25px; transition: opacity 0.2s; }}
-                .button:hover {{ opacity: 0.9; }}
-                a {{ color: {header_color}; text-decoration: none; }}
+                /* Dark Mode Support */
+                @media (prefers-color-scheme: dark) {{
+                    .body-bg {{ background-color: #1a1a1a !important; }}
+                    .container-bg {{ background-color: #2d2d2d !important; }}
+                    .text-content {{ color: #e0e0e0 !important; }}
+                    .text-secondary {{ color: #b0b0b0 !important; }}
+                    .border-color {{ border-color: #444444 !important; }}
+                }}
             </style>
         </head>
-        <body>
-            <div class="email-wrapper">
-                <div class="container">
-                    <div class="header">
-                        <!-- Logo Image: Requires a public URL -->
-                        <img src="{logo_url}" alt="CCS SBO Logo">
-                        <h1>CCS SBO Management</h1>
-                    </div>
-                    <div class="content">
-                        <div style="text-align: center;">
-                            <span class="status-badge">{status_icon} {subject}</span>
-                        </div>
-                        
-                        <p>{formatted_body}</p>
-                        
-                        <div style="text-align: center;">
-                            <a href="{portal_link}" class="button">Login to Portal</a>
-                        </div>
-                    </div>
-                    <div class="footer">
-                        <p>This is an automated notification from the CCS Student Body Organization System.</p>
-                        <p>&copy; {datetime.now().year} CCS SBO. All rights reserved.</p>
-                    </div>
-                </div>
+        <body class="body-bg" style="margin:0; padding:0; background-color:#f4f6f8; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+
+            <div style="display:none; font-size:1px; color:#f4f6f8; line-height:1px; max-height:0px; max-width:0px; opacity:0; overflow:hidden;">
+                {subject} - Notification from CCS-SBO.
             </div>
+
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
+                <tr>
+                    <td align="center" style="padding: 40px 15px;">
+                        
+                        <table width="100%" class="container-bg" style="max-width:600px; background-color:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 8px 30px rgba(0,0,0,0.08);" cellspacing="0" cellpadding="0" role="presentation">
+
+                            <tr>
+                                <!-- Dynamic Accent Color Bar -->
+                                <td style="background-color:{header_color}; height: 8px;"></td>
+                            </tr>
+
+                            <tr>
+                                <td align="center" style="padding: 40px 40px 20px 40px;">
+                                    <img src="{logo_url}" alt="LSPU CCS-SBO Logo" width="100" style="display:block; width:100px; height:auto;" />
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td align="center" style="padding: 0 40px;">
+                                    <h1 class="text-content" style="margin: 0 0 20px 0; font-size:24px; color:#1f2937; font-weight:700; font-family:'Segoe UI', sans-serif;">
+                                        {status_icon} {subject}
+                                    </h1>
+                                    <div class="text-secondary" style="margin: 0 0 24px 0; font-size:16px; color:#4b5563; line-height:1.6; text-align: left;">
+                                        {formatted_body}
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td align="center" style="padding-bottom: 30px;">
+                                    <table border="0" cellspacing="0" cellpadding="0" role="presentation">
+                                        <tr>
+                                            <td align="center" style="border-radius: 6px;" bgcolor="{header_color}">
+                                                <a href="{portal_link}" target="_blank" style="display: inline-block; padding: 16px 36px; font-family:'Segoe UI', sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; letter-spacing: 0.5px;">
+                                                    Login to Portal
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="padding: 0 40px;">
+                                    <div class="border-color" style="height: 1px; background-color: #e5e7eb; line-height: 1px;">&nbsp;</div>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td align="center" class="container-bg" style="background-color:#f9fafb; padding: 20px 40px; border-top: 1px solid #e5e7eb;">
+                                    <p class="text-secondary" style="margin: 0; font-size:12px; color:#9ca3af; line-height:1.5;">
+                                        This is an automated notification from the CCS Student Body Organization System.<br>Please do not reply to this email.
+                                    </p>
+                                    <p class="text-secondary" style="margin: 10px 0 0 0; font-size:12px; color:#9ca3af; font-weight: 600;">
+                                        © {datetime.now().year} CCS-SBO Management System
+                                    </p>
+                                </td>
+                            </tr>
+
+                        </table>
+                    </td>
+                </tr>
+            </table>
         </body>
         </html>
         """
