@@ -23,6 +23,10 @@ your_project_directory/
 │
 ├── templates/
 │   ├── index.html
+│   ├── about.html
+│   ├── privacy.html
+│   ├── terms.html
+│   ├── team.html
 │   ├── print_template.html   # The shared template for printing
 │   │
 │   ├── client/

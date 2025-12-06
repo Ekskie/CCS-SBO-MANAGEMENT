@@ -95,8 +95,8 @@
         </div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <span class="inline-block py-1 px-3 rounded-full bg-brand-50 text-brand-600 text-xs font-bold tracking-wide uppercase mb-6 border border-brand-100">
-                New Academic Year 2024-2025
+            <span id="academicYearBadge" class="inline-block py-1 px-3 rounded-full bg-brand-50 text-brand-600 text-xs font-bold tracking-wide uppercase mb-6 border border-brand-100">
+                New Academic Year 2025-2026
             </span>
             <h1 class="text-4xl md:text-6xl font-extrabold text-gray-900 tracking-tight mb-6 leading-tight">
                 Manage Your Student Organization <br>
@@ -218,6 +218,29 @@
     </footer>
 
         <script>
+            // Academic year badge auto-update
+            (function () {
+                function getAcademicYearForDate(d) {
+                    // JS months 0-11: August is 7. Academic year starts Aug 1 and ends July 31.
+                    const month = d.getMonth();
+                    const year = d.getFullYear();
+                    let startYear;
+                    if (month >= 7) { // Aug..Dec -> start is current year
+                        startYear = year;
+                    } else { // Jan..Jul -> start is previous year
+                        startYear = year - 1;
+                    }
+                    return `${startYear}-${startYear + 1}`;
+                }
+
+                const badge = document.getElementById('academicYearBadge');
+                if (badge) {
+                    const now = new Date();
+                    const ay = getAcademicYearForDate(now);
+                    badge.textContent = `New Academic Year ${ay}`;
+                }
+            })();
+
             // Mobile menu toggle
             (function () {
                 const btn = document.getElementById('mobile-menu-button');

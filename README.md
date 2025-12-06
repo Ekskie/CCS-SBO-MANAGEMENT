@@ -4,10 +4,20 @@ A comprehensive web application for managing College of Computer Studies (CCS) S
 
 ## Features
 
+### Public Pages
+- **Home Page**: Landing page with hero section, features overview, and call-to-action buttons
+- **About Page**: Information about SOMS and its mission
+- **Team Page**: Showcase of the development team
+- **Privacy Policy**: Complete privacy policy documentation
+- **Terms of Service**: Terms and conditions for platform usage
+- **Responsive Mobile Menu**: Fully functional hamburger menu with smooth interactions on all pages
+- **Automatic Academic Year**: Badge automatically updates academic year based on current date (August 1 - July 31)
+
 ### Student Management
 - **Registration**: Students can register with personal details, academic information, and upload required documents (1x1 picture and signature)
 - **Profile Management**: Students can view and update their profiles
 - **Document Approval**: Admin review system for uploaded pictures and signatures
+- **Email Verification**: Resend verification email modal for unverified accounts
 
 ### Administrative Functions
 - **Dashboard**: Overview of student statistics and pending approvals
@@ -15,6 +25,7 @@ A comprehensive web application for managing College of Computer Studies (CCS) S
 - **Document Review**: Approve or disapprove student-uploaded pictures and signatures
 - **Printing System**: Generate printable student lists organized by program, year, section, and major
 - **Archiving**: Archive student groups for historical records
+- **Activity Logs**: Track administrative actions and changes
 
 ### President Access
 - Review student profiles and approval statuses
@@ -26,6 +37,7 @@ A comprehensive web application for managing College of Computer Studies (CCS) S
 - Email verification for new accounts
 - Password reset functionality
 - Session management
+- **Auto-Cleanup**: Supabase cron job automatically deletes unverified accounts after 7 days of inactivity
 
 ## Tech Stack
 
@@ -164,27 +176,90 @@ your_project_directory/
 │   └── routes.py           # President routes (review functions)
 │
 ├── templates/
-│   ├── client/            # Student-facing templates
-│   ├── admin/             # Admin templates
-│   ├── president/         # President templates
-│   └── print_template.html # Printing template
+│   ├── index.html          # Home page with academic year auto-update
+│   ├── about.html          # About page with mobile menu
+│   ├── privacy.html        # Privacy policy with mobile menu
+│   ├── terms.html          # Terms of service with mobile menu
+│   ├── team.html           # Team page with mobile menu
+│   ├── print_template.html # Printing template
+│   │
+│   ├── client/             # Student-facing templates
+│   │   ├── base.html
+│   │   ├── check_email.html
+│   │   ├── forgot_password.html
+│   │   ├── login.html
+│   │   ├── profile.html
+│   │   ├── register.html   # With resend verification modal
+│   │   └── settings.html
+│   │
+│   ├── admin/              # Admin templates
+│   │   ├── base.html
+│   │   ├── dashboard.html
+│   │   ├── students.html
+│   │   ├── edit_student.html
+│   │   ├── review_student.html
+│   │   ├── printing.html
+│   │   ├── archive.html
+│   │   └── activity_logs.html
+│   │
+│   └── president/          # President templates
+│       ├── base.html
+│       ├── dashboard.html
+│       └── review_student.html
 │
 ├── static/
-│   ├── css/               # Stylesheets
-│   ├── font/              # Custom fonts
-│   └── image/             # Static images
+│   ├── css/                # Stylesheets
+│   │   ├── printing.css
+│   │   └── ...
+│   │
+│   ├── font/               # Custom fonts
+│   │   └── ...
+│   │
+│   └── image/              # Static images
+│       ├── background.jpg
+│       ├── lspu.png
+│       └── Team/           # Team member photos
 │
-├── .env                   # Environment variables
-├── main.py                # Application entry point
-├── config.py              # Configuration settings
-├── extensions.py          # Supabase initialization
-├── utils.py               # Helper functions and decorators
-├── requirements.txt       # Python dependencies
-├── vercel.json            # Vercel deployment config
-└── README.md              # This file
+├── .env                    # Environment variables
+├── main.py                 # Application entry point
+├── config.py               # Configuration settings
+├── extensions.py           # Supabase initialization
+├── utils.py                # Helper functions and decorators
+├── requirements.txt        # Python dependencies
+├── vercel.json             # Vercel deployment config
+├── Project_tree_Directory.txt # Project structure
+└── README.md               # This file
 ```
 
+## Key Features Explained
+
+### Academic Year Auto-Update
+The system automatically calculates and displays the current academic year based on the date:
+- Academic year runs from **August 1 to July 31**
+- Example: December 6, 2025 displays "Academic Year 2025-2026"
+- On August 1, 2026, it will automatically update to "Academic Year 2026-2027"
+- No manual intervention required
+
+### Mobile Responsiveness
+- All pages feature a responsive mobile hamburger menu
+- Menu automatically closes when clicking outside or selecting a link
+- Smooth transitions and accessible ARIA labels
+- Full functionality on devices with screen width below medium breakpoint (md)
+
+### Automated Account Cleanup
+- Supabase cron job runs automatically to maintain database hygiene
+- Unverified accounts are deleted after 7 days of inactivity
+- Users receive reminder to verify their email within the verification period
+- Prevents accumulation of unused/spam accounts
+
 ## API Endpoints
+
+### Public Routes
+- `GET /` - Home page
+- `GET /about` - About page
+- `GET /team` - Team page
+- `GET /privacy` - Privacy policy
+- `GET /terms` - Terms of service
 
 ### Authentication
 - `GET/POST /login` - User login
@@ -192,6 +267,7 @@ your_project_directory/
 - `GET /logout` - User logout
 - `GET /forgot_password` - Password reset request
 - `GET /check_email` - Password reset confirmation
+- `POST /auth/resend_verification` - Resend verification email
 
 ### Core
 - `GET /` - Home page (redirects to profile if logged in)
