@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Team | SOMS</title>
+    <title>The Team | SOMS</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="shortcut icon" href="{{ url_for('static', filename='image/lspu.png') }}" type="image/x-icon">
@@ -37,7 +37,7 @@
     </script>
 </head>
 
-<body class="font-sans text-gray-800 antialiased bg-white flex flex-col min-h-screen">
+<body class="font-sans text-gray-800 antialiased bg-gray-50 flex flex-col min-h-screen">
 
     <!-- 1. NAVIGATION BAR -->
     <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
@@ -73,134 +73,168 @@
     </nav>
 
     <!-- 2. HERO SECTION -->
-    <div class="bg-gray-50 pt-32 pb-20">
+    <div class="bg-white pt-32 pb-16 border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Meet The Team</h1>
+            <span class="inline-block py-1 px-3 rounded-full bg-brand-50 text-brand-600 text-xs font-bold tracking-wide uppercase mb-4">
+                BSIT 4C AMG B
+            </span>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Meet the Developers</h1>
             <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-                The talented individuals behind the BSIT 4C AMG B this Project.
+                The talented team behind the Student Organization Management System.
             </p>
         </div>
     </div>
 
-    <!-- 3. TEAM GRID -->
-    <section class="py-20 bg-white">
+    <!-- 3. TEAM CARDS GRID -->
+    <section class="py-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
-            <!-- Lead Developer (Highlighted) -->
-            <div class="flex justify-center mb-16">
-                <div class="text-center group">
-                    <div class="relative w-48 h-48 mx-auto mb-6">
-                        <div class="absolute inset-0 bg-brand-200 rounded-full blur-xl opacity-0 group-hover:opacity-50 transition duration-500"></div>
-                        <img class="relative w-48 h-48 rounded-full object-cover border-4 border-white shadow-xl transform transition duration-300 group-hover:scale-105" 
-                             src="{{ url_for('static', filename='image/Team/Lead_Developer.jpg') }}" alt="Lead Developer">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+
+                <!-- 1. Lead Developer -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group">
+                    <div class="relative overflow-hidden">
+                        <img src="{{ url_for('static', filename='image/Team/Lead_Developer.jpg') }}" alt="Dennrick Agustin" 
+                             class="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500">
                     </div>
-                    <h3 class="text-2xl font-bold text-gray-900">Dennrick Agustin</h3>
-                    <p class="text-brand-600 font-medium">Project Lead</p>
-                </div>
-            </div>
-
-            <!-- Team Members Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-12">
-
-                <!-- Helper Macro for Cards (Manual expansion below) -->
-
-                <!-- Member 1 -->
-                <div class="text-center group">
-                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
-                        <img src="{{ url_for('static', filename='image/Team/Abulencia.jpg') }}" alt="Abulencia" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                    <div class="p-6 text-center">
+                        <h3 class="text-lg font-bold text-gray-900">Dennrick Agustin</h3>
+                        <p class="text-brand-600 text-sm font-medium mt-1">Lead Developer</p>
+                        <p class="text-gray-400 text-xs mt-1">Full-Stack Developer</p>
                     </div>
-                    <h4 class="text-lg font-bold text-gray-900">Abulencia</h4>
-                    <p class="text-sm text-gray-500">Member</p>
                 </div>
 
-                <!-- Member 2 -->
-                <div class="text-center group">
-                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
-                        <img src="{{ url_for('static', filename='image/Team/adao.jpg') }}" alt="Adao" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                <!-- 2. Jake Martin Roca -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group">
+                    <div class="relative overflow-hidden">
+                        <img src="{{ url_for('static', filename='image/Team/Jake.jpg') }}" alt="Jake Martin Roca" 
+                             class="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500">
                     </div>
-                    <h4 class="text-lg font-bold text-gray-900">Adao</h4>
-                    <p class="text-sm text-gray-500">Member</p>
+                    <div class="p-6 text-center">
+                        <h3 class="text-lg font-bold text-gray-900">Jake Martin Roca</h3>
+                        <p class="text-brand-600 text-sm font-medium mt-1">UI Designer</p>
+                        <p class="text-gray-400 text-xs mt-1">Document Manager</p>
+                    </div>
                 </div>
 
-                <!-- Member 3 -->
-                <div class="text-center group">
-                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
-                        <img src="{{ url_for('static', filename='image/Team/Annie.jpg') }}" alt="Annie" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                <!-- 3. Annie Claire Obispo -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group">
+                    <div class="relative overflow-hidden">
+                        <img src="{{ url_for('static', filename='image/Team/Annie.jpg') }}" alt="Annie Claire Obispo" 
+                             class="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500">
                     </div>
-                    <h4 class="text-lg font-bold text-gray-900">Annie</h4>
-                    <p class="text-sm text-gray-500">Member</p>
+                    <div class="p-6 text-center">
+                        <h3 class="text-lg font-bold text-gray-900">Annie Claire Obispo</h3>
+                        <p class="text-brand-600 text-sm font-medium mt-1">Documentation Specialist</p>
+                    </div>
                 </div>
 
-                <!-- Member 4 -->
-                <div class="text-center group">
-                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
-                        <img src="{{ url_for('static', filename='image/Team/En.jpg') }}" alt="En" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                <!-- 4. Le Frey Urriza -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group">
+                    <div class="relative overflow-hidden">
+                        <img src="{{ url_for('static', filename='image/Team/Lefrey.jfif') }}" alt="Le Frey Urriza" 
+                             class="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500">
                     </div>
-                    <h4 class="text-lg font-bold text-gray-900">En</h4>
-                    <p class="text-sm text-gray-500">Member</p>
+                    <div class="p-6 text-center">
+                        <h3 class="text-lg font-bold text-gray-900">Le Frey Urriza</h3>
+                        <p class="text-brand-600 text-sm font-medium mt-1">UI Designer</p>
+                    </div>
                 </div>
 
-                <!-- Member 5 -->
-                <div class="text-center group">
-                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
-                        <img src="{{ url_for('static', filename='image/Team/Eric.jpg') }}" alt="Eric" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                <!-- 5. Ralph Vener Esmillo -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group">
+                    <div class="relative overflow-hidden">
+                        <img src="{{ url_for('static', filename='image/Team/Ralph.jpg') }}" alt="Ralph Vener Esmillo" 
+                             class="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500">
                     </div>
-                    <h4 class="text-lg font-bold text-gray-900">Eric</h4>
-                    <p class="text-sm text-gray-500">Member</p>
+                    <div class="p-6 text-center">
+                        <h3 class="text-lg font-bold text-gray-900">Ralph Vener Esmillo</h3>
+                        <p class="text-gray-500 text-sm font-medium mt-1">Freeloader</p>
+                    </div>
                 </div>
 
-                <!-- Member 6 -->
-                <div class="text-center group">
-                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
-                        <img src="{{ url_for('static', filename='image/Team/jad.jpg') }}" alt="Jad" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                <!-- 6. John Vincent Abulencia -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group">
+                    <div class="relative overflow-hidden">
+                        <img src="{{ url_for('static', filename='image/Team/Abulencia.jpg') }}" alt="John Vincent Abulencia" 
+                             class="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500">
                     </div>
-                    <h4 class="text-lg font-bold text-gray-900">Jad</h4>
-                    <p class="text-sm text-gray-500">Member</p>
+                    <div class="p-6 text-center">
+                        <h3 class="text-lg font-bold text-gray-900">John Vincent Abulencia</h3>
+                        <p class="text-gray-500 text-sm font-medium mt-1">Passive Member</p>
+                    </div>
                 </div>
 
-                <!-- Member 7 -->
-                <div class="text-center group">
-                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
-                        <img src="{{ url_for('static', filename='image/Team/Jake.jpg') }}" alt="Jake" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                <!-- 7. Jose Mari Adao -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group">
+                    <div class="relative overflow-hidden">
+                        <img src="{{ url_for('static', filename='image/Team/adao.jpg') }}" alt="Jose Mari Adao" 
+                             class="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500">
                     </div>
-                    <h4 class="text-lg font-bold text-gray-900">Jake</h4>
-                    <p class="text-sm text-gray-500">Member</p>
+                    <div class="p-6 text-center">
+                        <h3 class="text-lg font-bold text-gray-900">Jose Mari Adao</h3>
+                        <p class="text-gray-500 text-sm font-medium mt-1">Passive Member</p>
+                    </div>
                 </div>
 
-                <!-- Member 8 -->
-                <div class="text-center group">
-                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
-                        <img src="{{ url_for('static', filename='image/Team/Kurt.jpg') }}" alt="Kurt" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                <!-- 8. Enrique Edquitao -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group">
+                    <div class="relative overflow-hidden">
+                        <img src="{{ url_for('static', filename='image/Team/En.jpg') }}" alt="Enrique Edquitao" 
+                             class="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500">
                     </div>
-                    <h4 class="text-lg font-bold text-gray-900">Kurt</h4>
-                    <p class="text-sm text-gray-500">Member</p>
+                    <div class="p-6 text-center">
+                        <h3 class="text-lg font-bold text-gray-900">Enrique Edquitao</h3>
+                        <p class="text-gray-500 text-sm font-medium mt-1">Passive Member</p>
+                    </div>
                 </div>
 
-                <!-- Member 9 -->
-                <div class="text-center group">
-                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
-                        <img src="{{ url_for('static', filename='image/Team/Lefrey.jfif') }}" alt="Lefrey" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                <!-- 9. Eric Montealegre -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group">
+                    <div class="relative overflow-hidden">
+                        <img src="{{ url_for('static', filename='image/Team/Eric.jpg') }}" alt="Eric Montealegre" 
+                             class="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500">
                     </div>
-                    <h4 class="text-lg font-bold text-gray-900">Lefrey</h4>
-                    <p class="text-sm text-gray-500">Member</p>
+                    <div class="p-6 text-center">
+                        <h3 class="text-lg font-bold text-gray-900">Eric Montealegre</h3>
+                        <p class="text-gray-500 text-sm font-medium mt-1">Passive Member</p>
+                    </div>
                 </div>
 
-                <!-- Member 10 -->
-                <div class="text-center group">
-                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
-                        <img src="{{ url_for('static', filename='image/Team/Lloyd.jfif') }}" alt="Lloyd" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                <!-- 10. Jad Garcia -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group">
+                    <div class="relative overflow-hidden">
+                        <img src="{{ url_for('static', filename='image/Team/jad.jpg') }}" alt="Jad Garcia" 
+                             class="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500">
                     </div>
-                    <h4 class="text-lg font-bold text-gray-900">Lloyd</h4>
-                    <p class="text-sm text-gray-500">Member</p>
+                    <div class="p-6 text-center">
+                        <h3 class="text-lg font-bold text-gray-900">Jad Garcia</h3>
+                        <p class="text-gray-500 text-sm font-medium mt-1">Passive Member</p>
+                    </div>
                 </div>
 
-                 <!-- Member 11 -->
-                 <div class="text-center group">
-                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
-                        <img src="{{ url_for('static', filename='image/Team/Ralph.jpg') }}" alt="Ralph" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                <!-- 11. Kurt Borebor -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group">
+                    <div class="relative overflow-hidden">
+                        <img src="{{ url_for('static', filename='image/Team/Kurt.jpg') }}" alt="Kurt Borebor" 
+                             class="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500">
                     </div>
-                    <h4 class="text-lg font-bold text-gray-900">Ralph</h4>
-                    <p class="text-sm text-gray-500">Member</p>
+                    <div class="p-6 text-center">
+                        <h3 class="text-lg font-bold text-gray-900">Kurt Borebor</h3>
+                        <p class="text-gray-500 text-sm font-medium mt-1">Passive Member</p>
+                    </div>
+                </div>
+
+                <!-- 12. John Lloyd Caballes -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group">
+                    <div class="relative overflow-hidden">
+                        <img src="{{ url_for('static', filename='image/Team/Lloyd.jfif') }}" alt="John Lloyd Caballes" 
+                             class="w-full h-64 object-cover transform group-hover:scale-105 transition duration-500">
+                    </div>
+                    <div class="p-6 text-center">
+                        <h3 class="text-lg font-bold text-gray-900">John Lloyd Caballes</h3>
+                        <p class="text-gray-500 text-sm font-medium mt-1">Passive Member</p>
+                    </div>
                 </div>
 
             </div>
@@ -216,12 +250,11 @@
                         <img src="{{ url_for('static', filename='image/lspu.png') }}" class="h-8 w-auto" alt="">
                         <span class="font-bold text-lg">SOMS</span>
                     </div>
-                    <p class="text-sm text-gray-500">
-© 2025 Laguna State Polytechnic University – BSIT 4C AMG B</p>
+                    <p class="text-sm text-gray-500">© 2025 Laguna State Polytechnic University – BSIT 4C AMG B</p>
                 </div>
                 <div class="flex gap-6 text-sm text-gray-500">
                     <a href="/about" class="hover:text-brand-600">About</a>
-                    <a href="#" class="hover:text-brand-600">Github</a>
+                    <a href="https://github.com/Ekskie" target="_blank" class="hover:text-brand-600">Github</a>
                 </div>
             </div>
         </div>

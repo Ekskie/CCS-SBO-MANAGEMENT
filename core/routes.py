@@ -19,6 +19,15 @@ def about():
 def team(): 
     return render_template('team.html')
 
+@core_bp.route('/privacy')
+def privacy(): 
+    return render_template('privacy.html')
+
+@core_bp.route('/terms')
+def terms(): 
+    return render_template('terms.html')
+
+
 @core_bp.route('/profile')
 @login_required
 def profile():

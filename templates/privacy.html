@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us | SOMS</title>
+    <title>Privacy Policy | SOMS</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="shortcut icon" href="{{ url_for('static', filename='image/lspu.png') }}" type="image/x-icon">
@@ -37,9 +37,9 @@
     </script>
 </head>
 
-<body class="font-sans text-gray-800 antialiased bg-white flex flex-col min-h-screen">
+<body class="font-sans text-gray-800 antialiased bg-gray-50 flex flex-col min-h-screen">
 
-    <!-- 1. NAVIGATION BAR (Consistent with Index) -->
+    <!-- 1. NAVIGATION BAR -->
     <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
@@ -52,7 +52,7 @@
                 <!-- Desktop Menu -->
                 <div class="hidden md:flex items-center space-x-8">
                     <a href="/" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition">Home</a>
-                    <a href="/about" class="text-sm font-medium text-brand-600 transition">About</a>
+                    <a href="/about" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition">About</a>
                     <a href="/team" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition">Our Team</a>
                     <div class="flex items-center gap-3 ml-4">
                         <a href="/login" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition">Log in</a>
@@ -72,69 +72,61 @@
         </div>
     </nav>
 
-    <!-- 2. HERO SECTION -->
-    <div class="bg-gray-50 pt-32 pb-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">About Our Mission</h1>
-            <p class="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                We are digitizing the way Student Organizations operate at LSPU. By bridging the gap between students and administration, we create transparent, efficient, and accessible governance.
-            </p>
+    <!-- 2. HEADER SECTION -->
+    <div class="bg-white pt-32 pb-12 border-b border-gray-100">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Privacy Policy</h1>
+            <p class="text-gray-500">Last updated: May 2025</p>
         </div>
     </div>
 
     <!-- 3. CONTENT SECTION -->
-    <section class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid md:grid-cols-2 gap-16 items-center">
+    <section class="py-16">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12 prose prose-blue max-w-none text-gray-600">
                 
-                <!-- Text Content -->
-                <div>
-                    <h2 class="text-3xl font-bold text-gray-900 mb-6">Why SOMS?</h2>
-                    <div class="space-y-6 text-gray-600 text-lg">
-                        <p>
-                            The College of Computer Studies (CCS) Student Body Organization (SBO) Management System was developed to address the logistical challenges of managing thousands of student records manually.
-                        </p>
-                        <p>
-                            Our platform eliminates paper trails, speeds up the validation process for student requirements (like IDs and signatures), and provides real-time data to organization leaders.
-                        </p>
-                        <div class="flex items-start gap-4 mt-8">
-                            <div class="flex-shrink-0 w-12 h-12 bg-brand-100 rounded-lg flex items-center justify-center text-brand-600">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-gray-900">Efficiency First</h4>
-                                <p class="text-sm text-gray-500 mt-1">Automating repetitive tasks so officers can focus on leadership.</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start gap-4">
-                            <div class="flex-shrink-0 w-12 h-12 bg-brand-100 rounded-lg flex items-center justify-center text-brand-600">
-                                <i class="fas fa-shield-alt"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-gray-900">Secure Data</h4>
-                                <p class="text-sm text-gray-500 mt-1">Your data is protected with modern encryption and strict access controls.</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-10">
-                        <a href="/team" class="inline-flex items-center text-brand-600 font-semibold hover:text-brand-700 transition">
-                            Meet the Developers <i class="fas fa-arrow-right ml-2"></i>
-                        </a>
-                    </div>
-                </div>
+                <p class="lead text-lg text-gray-700 mb-8">
+                    At the Student Organization Management System (SOMS), we take your privacy seriously. This policy explains how we collect, use, and protect your personal information within the Laguna State Polytechnic University (LSPU) CCS environment.
+                </p>
 
-                <!-- Visual / Image -->
-                <div class="relative">
-                    <div class="absolute -inset-4 bg-brand-600/10 rounded-2xl blur-lg transform rotate-2"></div>
-                    <img src="{{ url_for('static', filename='image/background.jpg') }}" alt="SOMS in action" class="relative rounded-2xl shadow-2xl w-full object-cover h-[500px]">
-                </div>
+                <h3 class="text-xl font-bold text-gray-900 mt-8 mb-4">1. Information We Collect</h3>
+                <p class="mb-4">We collect information that you voluntarily provide when you register for an account or update your profile. This includes:</p>
+                <ul class="list-disc pl-5 space-y-2 mb-6">
+                    <li>Personal identification (Name, Student ID Number).</li>
+                    <li>Academic details (Program, Year Level, Section, Major).</li>
+                    <li>Digital assets (Profile pictures, Digital signatures).</li>
+                    <li>Contact information (Email address).</li>
+                </ul>
+
+                <h3 class="text-xl font-bold text-gray-900 mt-8 mb-4">2. How We Use Your Information</h3>
+                <p class="mb-4">Your data is used solely for the purpose of managing student organization records and activities. Specifically, we use it to:</p>
+                <ul class="list-disc pl-5 space-y-2 mb-6">
+                    <li>Verify your identity as a bona fide student of CCS.</li>
+                    <li>Process organizational requirements and clearances.</li>
+                    <li>Generate automated reports for the SBO officers.</li>
+                    <li>Facilitate communication regarding organization announcements.</li>
+                </ul>
+
+                <h3 class="text-xl font-bold text-gray-900 mt-8 mb-4">3. Data Security</h3>
+                <p class="mb-6">
+                    We implement appropriate security measures to protect your personal information. Your digital signatures and personal data are stored in a secure database restricted to authorized SBO officers and administrators only. We do not sell or share your data with third parties outside of the university context.
+                </p>
+
+                <h3 class="text-xl font-bold text-gray-900 mt-8 mb-4">4. Your Rights</h3>
+                <p class="mb-6">
+                    You have the right to access, update, or request the deletion of your personal data stored in our system. If you believe any information we hold about you is incorrect, you may update it directly through your profile settings or contact an administrator.
+                </p>
+
+                <h3 class="text-xl font-bold text-gray-900 mt-8 mb-4">5. Contact Us</h3>
+                <p>
+                    If you have any questions about this Privacy Policy, please contact the CCS Student Body Organization or the system developers.
+                </p>
 
             </div>
         </div>
     </section>
 
-    <!-- 4. FOOTER (Consistent with Index) -->
+    <!-- 4. FOOTER -->
     <footer class="bg-white border-t border-gray-100 pt-16 pb-8 mt-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row justify-between items-center">
@@ -143,11 +135,10 @@
                         <img src="{{ url_for('static', filename='image/lspu.png') }}" class="h-8 w-auto" alt="">
                         <span class="font-bold text-lg">SOMS</span>
                     </div>
-                    <p class="text-sm text-gray-500">
-© 2025 Laguna State Polytechnic University – BSIT 4C AMG B</p>
+                    <p class="text-sm text-gray-500">© 2025 CCS SBO Management System.</p>
                 </div>
                 <div class="flex gap-6 text-sm text-gray-500">
-                    <a href="/privacy" class="hover:text-brand-600">Privacy</a>
+                    <a href="/privacy" class="hover:text-brand-600 font-medium text-brand-600">Privacy</a>
                     <a href="/terms" class="hover:text-brand-600">Terms</a>
                     <a href="/team" class="hover:text-brand-600">Team</a>
                 </div>
