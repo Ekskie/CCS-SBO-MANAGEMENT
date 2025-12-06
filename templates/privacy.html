@@ -64,12 +64,26 @@
 
                 <!-- Mobile Menu Button -->
                 <div class="md:hidden flex items-center">
-                    <button class="text-gray-600 hover:text-gray-900 focus:outline-none">
+                    <button id="mobile-menu-button" aria-expanded="false" aria-controls="mobileMenu" class="text-gray-600 hover:text-gray-900 focus:outline-none">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                 </div>
             </div>
         </div>
+
+        <!-- Mobile Menu (hidden on md and up) -->
+        <div id="mobileMenu" class="md:hidden hidden bg-white/95 backdrop-blur-md border-t border-gray-100">
+            <div class="px-4 pt-4 pb-6 space-y-3">
+                <a href="/" class="block text-base font-medium text-gray-600 hover:text-brand-600">Home</a>
+                <a href="/about" class="block text-base font-medium text-gray-600 hover:text-brand-600">About</a>
+                <a href="/team" class="block text-base font-medium text-gray-600 hover:text-brand-600">Our Team</a>
+                <div class="pt-2 border-t border-gray-100 mt-2 flex flex-col gap-2">
+                    <a href="/login" class="block text-base font-medium text-gray-600 hover:text-brand-600">Log in</a>
+                    <a href="/login" class="block px-4 py-2 text-base font-medium text-white bg-brand-600 rounded-full hover:bg-brand-700 transition shadow-lg text-center">Get Started</a>
+                </div>
+            </div>
+        </div>
+
     </nav>
 
     <!-- 2. HEADER SECTION -->
@@ -146,5 +160,30 @@
         </div>
     </footer>
 
-</body>
-</html>
+        <script>
+            // Mobile menu toggle
+            (function () {
+                const btn = document.getElementById('mobile-menu-button');
+                const menu = document.getElementById('mobileMenu');
+                if (!btn || !menu) return;
+
+                btn.addEventListener('click', function () {
+                    const expanded = btn.getAttribute('aria-expanded') === 'true';
+                    btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+                    menu.classList.toggle('hidden');
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!menu.classList.contains('hidden')) {
+                        const target = e.target;
+                        if (!menu.contains(target) && !btn.contains(target)) {
+                            menu.classList.add('hidden');
+                            btn.setAttribute('aria-expanded', 'false');
+                        }
+                    }
+                });
+            })();
+        </script>
+
+    </body>
+    </html>
