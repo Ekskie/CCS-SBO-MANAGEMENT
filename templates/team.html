@@ -1,16 +1,19 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Team | Student Organization Management System</title>
-
+    <title>Our Team | SOMS</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="shortcut icon" href="/static/image/lspu.png" type="image/x-icon">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-
+    <link rel="shortcut icon" href="{{ url_for('static', filename='image/lspu.png') }}" type="image/x-icon">
+        
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <script>
         tailwind.config = {
             theme: {
@@ -18,138 +21,211 @@
                     fontFamily: {
                         sans: ['Poppins', 'sans-serif'],
                     },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    }
                 },
             },
         }
     </script>
 </head>
 
-<body class="h-full font-sans text-white bg-cover bg-center attachment-fixed"
-    style="background-image: url('/static/image/background.jpg');">
+<body class="font-sans text-gray-800 antialiased bg-white flex flex-col min-h-screen">
 
-    <div
-        class="flex flex-col items-center min-h-full w-full bg-black bg-opacity-70 backdrop-blur-sm p-6 overflow-y-auto">
+    <!-- 1. NAVIGATION BAR -->
+    <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-3">
+                    <img src="{{ url_for('static', filename='image/lspu.png') }}" alt="SOMS Logo" class="h-10 w-auto">
+                    <span class="font-bold text-xl tracking-tight text-gray-900">SOMS</span>
+                </a>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="/" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition">Home</a>
+                    <a href="/about" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition">About</a>
+                    <a href="/team" class="text-sm font-medium text-brand-600 transition">Our Team</a>
+                    <div class="flex items-center gap-3 ml-4">
+                        <a href="/login" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition">Log in</a>
+                        <a href="/login" class="px-5 py-2.5 text-sm font-medium text-white bg-brand-600 rounded-full hover:bg-brand-700 transition shadow-lg shadow-brand-500/30">
+                            Get Started
+                        </a>
+                    </div>
+                </div>
 
-        <div class="w-full max-w-6xl flex justify-between items-center mb-10 pt-4">
-            <a href="/about"
-                class="px-5 py-2 border border-gray-400 text-gray-300 rounded-full hover:bg-white hover:text-black transition duration-300 text-sm font-medium">
-                &larr; Back to About
-            </a>
-            <div class="flex flex-col items-center">
-                <img src="{{ url_for('static', filename='/image/lspu.png') }}" alt="LSPU Logo"
-                    class="w-16 drop-shadow-lg mb-2">
-                <h1 class="text-3xl md:text-4xl font-bold text-blue-400">Meet the Developers</h1>
-                <p class="text-gray-400 text-sm mt-1">BSIT 4C AMG B</p>
-            </div>
-            <div class="w-24"></div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-6xl w-full pb-20">
-
-            <div
-                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
-                <img src="/static/image/Team/Lead_Developer.jpg" alt="Member Name" class="w-full h-64 object-cover">
-                <div class="p-4 text-center">
-                    <h3 class="text-xl font-bold text-white">Dennrick Agustin</h3>
-                    <p class="text-blue-400 text-sm font-medium">Lead Developer/Full-Stack Developer</p>
-                </div>
-            </div>
-            <div
-                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
-                <img src="/static/image/Team/Jake.jpg" alt="Member Name" class="w-full h-64 object-cover">
-                <div class="p-4 text-center">
-                    <h3 class="text-xl font-bold text-white">Jake Martin Roca</h3>
-                    <p class="text-blue-400 text-sm font-medium">UI Designer/Document Manager</p>
-                </div>
-            </div>
-            <div
-                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
-                <img src="/static/image/Team/Annie.jpg" alt="Member Name" class="w-full h-64 object-cover">
-                <div class="p-4 text-center">
-                    <h3 class="text-xl font-bold text-white">Annie Claire Obispo</h3>
-                    <p class="text-blue-400 text-sm font-medium">Documentation Specialist</p>
-                </div>
-            </div>
-            <div
-                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
-                <img src="/static/image/Team/Lefrey.jfif" alt="Member Name" class="w-full h-64 object-cover">
-                <div class="p-4 text-center">
-                    <h3 class="text-xl font-bold text-white">Le Frey Urriza</h3>
-                    <p class="text-blue-400 text-sm font-medium">UI Designer</p>
-                </div>
-            </div>
-            <div
-                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
-                <img src="/static/image/Team/Ralph.jpg" alt="Member Name" class="w-full h-64 object-cover">
-                <div class="p-4 text-center">
-                    <h3 class="text-xl font-bold text-white">Ralph Vener Esmillo</h3>
-                    <p class="text-blue-400 text-sm font-medium">Freeloader</p>
-                </div>
-            </div> 
-            
-            <div
-                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
-                <img src="/static/image/Team/Abulencia.jpg" alt="Member Name" class="w-full h-64 object-cover">
-                <div class="p-4 text-center">
-                    <h3 class="text-xl font-bold text-white">John Vincent Abulencia</h3>
-                    <p class="text-blue-400 text-sm font-medium">Passive Member</p>
-                </div>
-            </div>
-            <div
-                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
-                <img src="/static/image/Team/adao.jpg" alt="Member Name" class="w-full h-64 object-cover">
-                <div class="p-4 text-center">
-                    <h3 class="text-xl font-bold text-white">Jose Mari Adao</h3>
-                    <p class="text-blue-400 text-sm font-medium">Passive Member</p>
-                </div>
-            </div>
-            <div
-                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
-                <img src="/static/image/Team/En.jpg" alt="Member Name" class="w-full h-64 object-cover">
-                <div class="p-4 text-center">
-                    <h3 class="text-xl font-bold text-white">Enrique Edquitao</h3>
-                    <p class="text-blue-400 text-sm font-medium">Passive Member</p>
-                </div>
-            </div>
-            <div
-                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
-                <img src="/static/image/Team/Eric.jpg" alt="Member Name" class="w-full h-64 object-cover">
-                <div class="p-4 text-center">
-                    <h3 class="text-xl font-bold text-white">Eric Montealegre</h3>
-                    <p class="text-blue-400 text-sm font-medium">Passive Member</p>
-                </div>
-            </div>
-            <div
-                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
-                <img src="/static/image/Team/jad.jpg" alt="Member Name" class="w-full h-64 object-cover">
-                <div class="p-4 text-center">
-                    <h3 class="text-xl font-bold text-white">Jad Garcia</h3>
-                    <p class="text-blue-400 text-sm font-medium">Passive Member</p>
-                </div>
-            </div>
-            <div
-                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
-                <img src="/static/image/Team/Kurt.jpg" alt="Member Name" class="w-full h-64 object-cover">
-                <div class="p-4 text-center">
-                    <h3 class="text-xl font-bold text-white">Kurt Borebor</h3>
-                    <p class="text-blue-400 text-sm font-medium">Passive Member</p>
-                </div>
-            </div>
-            <div
-                class="bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg hover:transform hover:-translate-y-2 transition duration-300 border border-gray-700">
-                <img src="/static/image/Team/Lloyd.jfif" alt="Member Name" class="w-full h-64 object-cover">
-                <div class="p-4 text-center">
-                    <h3 class="text-xl font-bold text-white">John Lloyd Caballes</h3>
-                    <p class="text-blue-400 text-sm font-medium">Passive Member</p>
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button class="text-gray-600 hover:text-gray-900 focus:outline-none">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
                 </div>
             </div>
         </div>
+    </nav>
 
-        <footer class="mt-auto py-6 text-sm text-gray-500">
-            © 2025 Laguna State Polytechnic University
-        </footer>
+    <!-- 2. HERO SECTION -->
+    <div class="bg-gray-50 pt-32 pb-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Meet The Team</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                The talented individuals behind the BSIT 4C AMG B this Project.
+            </p>
+        </div>
     </div>
 
-</body>
+    <!-- 3. TEAM GRID -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <!-- Lead Developer (Highlighted) -->
+            <div class="flex justify-center mb-16">
+                <div class="text-center group">
+                    <div class="relative w-48 h-48 mx-auto mb-6">
+                        <div class="absolute inset-0 bg-brand-200 rounded-full blur-xl opacity-0 group-hover:opacity-50 transition duration-500"></div>
+                        <img class="relative w-48 h-48 rounded-full object-cover border-4 border-white shadow-xl transform transition duration-300 group-hover:scale-105" 
+                             src="{{ url_for('static', filename='image/Team/Lead_Developer.jpg') }}" alt="Lead Developer">
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900">Dennrick Agustin</h3>
+                    <p class="text-brand-600 font-medium">Project Lead</p>
+                </div>
+            </div>
 
+            <!-- Team Members Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-12">
+
+                <!-- Helper Macro for Cards (Manual expansion below) -->
+
+                <!-- Member 1 -->
+                <div class="text-center group">
+                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
+                        <img src="{{ url_for('static', filename='image/Team/Abulencia.jpg') }}" alt="Abulencia" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900">Abulencia</h4>
+                    <p class="text-sm text-gray-500">Member</p>
+                </div>
+
+                <!-- Member 2 -->
+                <div class="text-center group">
+                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
+                        <img src="{{ url_for('static', filename='image/Team/adao.jpg') }}" alt="Adao" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900">Adao</h4>
+                    <p class="text-sm text-gray-500">Member</p>
+                </div>
+
+                <!-- Member 3 -->
+                <div class="text-center group">
+                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
+                        <img src="{{ url_for('static', filename='image/Team/Annie.jpg') }}" alt="Annie" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900">Annie</h4>
+                    <p class="text-sm text-gray-500">Member</p>
+                </div>
+
+                <!-- Member 4 -->
+                <div class="text-center group">
+                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
+                        <img src="{{ url_for('static', filename='image/Team/En.jpg') }}" alt="En" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900">En</h4>
+                    <p class="text-sm text-gray-500">Member</p>
+                </div>
+
+                <!-- Member 5 -->
+                <div class="text-center group">
+                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
+                        <img src="{{ url_for('static', filename='image/Team/Eric.jpg') }}" alt="Eric" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900">Eric</h4>
+                    <p class="text-sm text-gray-500">Member</p>
+                </div>
+
+                <!-- Member 6 -->
+                <div class="text-center group">
+                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
+                        <img src="{{ url_for('static', filename='image/Team/jad.jpg') }}" alt="Jad" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900">Jad</h4>
+                    <p class="text-sm text-gray-500">Member</p>
+                </div>
+
+                <!-- Member 7 -->
+                <div class="text-center group">
+                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
+                        <img src="{{ url_for('static', filename='image/Team/Jake.jpg') }}" alt="Jake" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900">Jake</h4>
+                    <p class="text-sm text-gray-500">Member</p>
+                </div>
+
+                <!-- Member 8 -->
+                <div class="text-center group">
+                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
+                        <img src="{{ url_for('static', filename='image/Team/Kurt.jpg') }}" alt="Kurt" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900">Kurt</h4>
+                    <p class="text-sm text-gray-500">Member</p>
+                </div>
+
+                <!-- Member 9 -->
+                <div class="text-center group">
+                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
+                        <img src="{{ url_for('static', filename='image/Team/Lefrey.jfif') }}" alt="Lefrey" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900">Lefrey</h4>
+                    <p class="text-sm text-gray-500">Member</p>
+                </div>
+
+                <!-- Member 10 -->
+                <div class="text-center group">
+                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
+                        <img src="{{ url_for('static', filename='image/Team/Lloyd.jfif') }}" alt="Lloyd" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900">Lloyd</h4>
+                    <p class="text-sm text-gray-500">Member</p>
+                </div>
+
+                 <!-- Member 11 -->
+                 <div class="text-center group">
+                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full shadow-lg border-2 border-gray-100">
+                        <img src="{{ url_for('static', filename='image/Team/Ralph.jpg') }}" alt="Ralph" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900">Ralph</h4>
+                    <p class="text-sm text-gray-500">Member</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. FOOTER -->
+    <footer class="bg-white border-t border-gray-100 pt-16 pb-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center gap-2 mb-2">
+                        <img src="{{ url_for('static', filename='image/lspu.png') }}" class="h-8 w-auto" alt="">
+                        <span class="font-bold text-lg">SOMS</span>
+                    </div>
+                    <p class="text-sm text-gray-500">
+© 2025 Laguna State Polytechnic University – BSIT 4C AMG B</p>
+                </div>
+                <div class="flex gap-6 text-sm text-gray-500">
+                    <a href="/about" class="hover:text-brand-600">About</a>
+                    <a href="#" class="hover:text-brand-600">Github</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
 </html>

@@ -1,80 +1,159 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us | Student Organization Management System</title>
+    <title>About Us | SOMS</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="shortcut icon" href="/static/image/lspu.png" type="image/x-icon">
-    <!-- Use existing CSS for consistency -->
+    <link rel="shortcut icon" href="{{ url_for('static', filename='image/lspu.png') }}" type="image/x-icon">
+        
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <script>
-        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Poppins', 'sans-serif'], }, }, }, }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    }
+                },
+            },
+        }
     </script>
 </head>
 
-<body class="min-h-screen font-sans text-white bg-cover bg-center bg-no-repeat bg-fixed"  
-      style="background-image: url('/static/image/background.jpg');">
-    
-    <!-- Changed h-full to min-h-screen and allowed padding-bottom for the footer -->
-    <div class="flex flex-col items-center justify-center min-h-screen w-full bg-black bg-opacity-60 p-6 py-12">
+<body class="font-sans text-gray-800 antialiased bg-white flex flex-col min-h-screen">
 
-        <!-- Main Card -->
-        <div class="flex flex-col max-w-4xl w-full bg-gray-900 bg-opacity-80 rounded-2xl shadow-2xl overflow-hidden md:flex-row">
-            
-            <!-- Left Side: Logo & Navigation -->
-            <div class="flex flex-col items-center justify-center p-8 bg-blue-900 bg-opacity-40 md:w-1/3 border-b md:border-b-0 md:border-r border-gray-700">
-                <img src="{{ url_for('static', filename='/image/lspu.png') }}" alt="LSPU Logo" class="w-32 mb-6 drop-shadow-lg">
-                <h2 class="text-2xl font-bold text-center mb-2">SOMS</h2>
-                <p class="text-sm text-gray-300 text-center font-light">
-                    Streamlining Student Organization Management at LSPU.
-                </p>
-                
-                <a href="/" class="mt-8 px-6 py-2 border border-white text-white rounded-full hover:bg-white hover:text-blue-900 transition duration-300 text-sm font-medium">
-                    &larr; Back to Home
+    <!-- 1. NAVIGATION BAR (Consistent with Index) -->
+    <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-3">
+                    <img src="{{ url_for('static', filename='image/lspu.png') }}" alt="SOMS Logo" class="h-10 w-auto">
+                    <span class="font-bold text-xl tracking-tight text-gray-900">SOMS</span>
                 </a>
-            </div>
-
-            <!-- Right Side: Content -->
-            <!-- Removed overflow-y-auto and max-h-[60vh] so it expands naturally -->
-            <div class="p-8 md:w-2/3 flex flex-col justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold mb-6 text-blue-400">About Us</h1>
-                    
-                    <div class="space-y-4 text-gray-200 font-light leading-relaxed">
-                        <p>
-                            Welcome to the <strong>Student Organization Management System (SOMS)</strong>. This platform is designed to digitize and centralize the administrative tasks of student organizations within Laguna State Polytechnic University.
-                        </p>
-                        
-                        <h3 class="text-xl font-semibold text-white mt-4">Our Mission</h3>
-                        <p>
-                            To provide an efficient, transparent, and user-friendly environment for student leaders and members. We aim to replace manual paperwork with automated processes for membership management, event tracking, and reporting.
-                        </p>
-
-                        <h3 class="text-xl font-semibold text-white mt-4">The Developers</h3>
-                        <p>
-                            This system was developed by the students of <strong>BSIT 4C AMG B</strong> as part of our commitment to technological innovation in education.
-                        </p>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="/" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition">Home</a>
+                    <a href="/about" class="text-sm font-medium text-brand-600 transition">About</a>
+                    <a href="/team" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition">Our Team</a>
+                    <div class="flex items-center gap-3 ml-4">
+                        <a href="/login" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition">Log in</a>
+                        <a href="/login" class="px-5 py-2.5 text-sm font-medium text-white bg-brand-600 rounded-full hover:bg-brand-700 transition shadow-lg shadow-brand-500/30">
+                            Get Started
+                        </a>
                     </div>
                 </div>
 
-                <!-- Navigation Button -->
-                <div class="mt-8 flex justify-end">
-                    <a href="/team" class="group flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold shadow-lg transition duration-300">
-                        MEET THE TEAM 
-                        <span class="group-hover:translate-x-1 transition-transform duration-300">&rarr;</span>
-                    </a>
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button class="text-gray-600 hover:text-gray-900 focus:outline-none">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 2. HERO SECTION -->
+    <div class="bg-gray-50 pt-32 pb-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">About Our Mission</h1>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                We are digitizing the way Student Organizations operate at LSPU. By bridging the gap between students and administration, we create transparent, efficient, and accessible governance.
+            </p>
+        </div>
+    </div>
+
+    <!-- 3. CONTENT SECTION -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-2 gap-16 items-center">
+                
+                <!-- Text Content -->
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-6">Why SOMS?</h2>
+                    <div class="space-y-6 text-gray-600 text-lg">
+                        <p>
+                            The College of Computer Studies (CCS) Student Body Organization (SBO) Management System was developed to address the logistical challenges of managing thousands of student records manually.
+                        </p>
+                        <p>
+                            Our platform eliminates paper trails, speeds up the validation process for student requirements (like IDs and signatures), and provides real-time data to organization leaders.
+                        </p>
+                        <div class="flex items-start gap-4 mt-8">
+                            <div class="flex-shrink-0 w-12 h-12 bg-brand-100 rounded-lg flex items-center justify-center text-brand-600">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-900">Efficiency First</h4>
+                                <p class="text-sm text-gray-500 mt-1">Automating repetitive tasks so officers can focus on leadership.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-brand-100 rounded-lg flex items-center justify-center text-brand-600">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-900">Secure Data</h4>
+                                <p class="text-sm text-gray-500 mt-1">Your data is protected with modern encryption and strict access controls.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-10">
+                        <a href="/team" class="inline-flex items-center text-brand-600 font-semibold hover:text-brand-700 transition">
+                            Meet the Developers <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Visual / Image -->
+                <div class="relative">
+                    <div class="absolute -inset-4 bg-brand-600/10 rounded-2xl blur-lg transform rotate-2"></div>
+                    <img src="{{ url_for('static', filename='image/background.jpg') }}" alt="SOMS in action" class="relative rounded-2xl shadow-2xl w-full object-cover h-[500px]">
                 </div>
 
             </div>
         </div>
+    </section>
 
-        <!-- Footer: Changed from absolute to relative (mt-8) so it sits below the expanded content -->
-        <footer class="mt-8 text-sm text-gray-400">
-            © 2025 Laguna State Polytechnic University – BSIT 4C AMG B
-        </footer>
-    </div>
+    <!-- 4. FOOTER (Consistent with Index) -->
+    <footer class="bg-white border-t border-gray-100 pt-16 pb-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center gap-2 mb-2">
+                        <img src="{{ url_for('static', filename='image/lspu.png') }}" class="h-8 w-auto" alt="">
+                        <span class="font-bold text-lg">SOMS</span>
+                    </div>
+                    <p class="text-sm text-gray-500">
+© 2025 Laguna State Polytechnic University – BSIT 4C AMG B</p>
+                </div>
+                <div class="flex gap-6 text-sm text-gray-500">
+                    <a href="#" class="hover:text-brand-600">Privacy</a>
+                    <a href="#" class="hover:text-brand-600">Terms</a>
+                    <a href="/team" class="hover:text-brand-600">Team</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
 </body>
 </html>
