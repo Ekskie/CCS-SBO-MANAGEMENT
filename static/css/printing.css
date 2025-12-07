@@ -147,7 +147,9 @@ header .header-text p span {
     grid-template-columns: repeat(2, 1fr);
     padding: 0 40px 0px 40px;
 }
-
+.subsequent-page{
+    padding: 40px;
+}
 /* Individual Member Card Styling */
 .member-card {
     display: flex;
@@ -366,6 +368,10 @@ footer {
 
     .member-grid {
         padding: 0 5px;
+    }
+
+    .subsequent-page{
+        padding: 40px 5px;
     }
 
     .no-print{

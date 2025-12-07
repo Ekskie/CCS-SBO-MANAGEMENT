@@ -50,8 +50,8 @@
                 </div>
             </div>
             
-            <div class="flex justify-between items-center">
-                 <!-- Major Filter (Optional visibility depending on program/year logic, but kept simple here) -->
+            <div class="flex justify-between items-center mt-4">
+                 <!-- Major Filter -->
                  <div class="w-full md:w-1/3">
                     <select name="filter_major" class="w-full text-black px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
                         <option value="">All Majors</option>
@@ -71,7 +71,7 @@
                  </div>
             </div>
             
-            <!-- Hidden sort params to persist sorting when filtering -->
+            <!-- Hidden sort params -->
             <input type="hidden" name="sort_by" value="{{ current_sort_by }}">
             <input type="hidden" name="sort_order" value="{{ current_sort_order }}">
         </form>
@@ -117,11 +117,21 @@
                         <tr class="hover:bg-gray-50 transition">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10">
-                                        <img class="h-10 w-10 rounded-full object-cover border border-gray-200" 
-                                             src="{{ student.picture_url or 'https://ui-avatars.com/api/?name=' + student.first_name + '+' + student.last_name + '&background=random' }}" 
-                                             alt="">
+                                    <!-- Blur-up progressive image -->
+                                    <div class="flex-shrink-0 h-10 w-10 relative rounded-full overflow-hidden border border-gray-200">
+                                        <!-- Low-res blurred placeholder -->
+                                        <img 
+                                            src="{{ student.picture_url_lowres or 'https://ui-avatars.com/api/?name=' + student.first_name + '+' + student.last_name + '&size=32&background=random' }}" 
+                                            class="absolute inset-0 w-full h-full object-cover filter blur-md scale-110"
+                                            alt="">
+                                        <!-- High-res image -->
+                                        <img 
+                                            src="{{ student.picture_url or 'https://ui-avatars.com/api/?name=' + student.first_name + '+' + student.last_name + '&background=random' }}" 
+                                            class="relative w-full h-full object-cover transition-opacity duration-500 opacity-0"
+                                            loading="lazy"
+                                            onload="this.style.opacity=1;">
                                     </div>
+
                                     <div class="ml-4">
                                         <div class="text-sm font-medium text-gray-900">{{ student.last_name }}, {{ student.first_name }}  {{ student.middle_name }}</div>
                                         <div class="text-sm text-gray-500">{{ student.email }}</div>
@@ -134,10 +144,7 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-gray-900 font-medium">{{ student.program }}</div>
                                 <div class="text-xs text-gray-500">
-                                    {{ student.year_level }} -{% if student.major %}
-                                        <span class="text-xs bg-gray-100 px-1 rounded ml-1">{{student.major}}</span>
-                                    {% endif %} {{ student.section }}
-                                    
+                                    {{ student.year_level }} -{% if student.major %}<span class="text-xs bg-gray-100 px-1 rounded ml-1">{{student.major}}</span>{% endif %} {{ student.section }}
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -185,7 +192,7 @@
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="6" class="px-6 py-10 text-center text-gray-500">
+                            <td colspan="7" class="px-6 py-10 text-center text-gray-500">
                                 <div class="flex flex-col items-center justify-center">
                                     <i class="fas fa-user-slash fa-3x mb-3 text-gray-300"></i>
                                     <p class="text-lg font-medium">No students found.</p>
@@ -210,7 +217,6 @@
                 </div>
                 <div>
                     <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                        <!-- Previous Page -->
                         {% if page > 1 %}
                         <a href="{{ url_for('admin.admin_students', page=page-1, search_name=search_name, filter_program=filter_program, filter_section=filter_section, filter_year_level=filter_year_level, filter_major=filter_major, sort_by=current_sort_by, sort_order=current_sort_order) }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                             <span class="sr-only">Previous</span>
@@ -223,7 +229,6 @@
                         </span>
                         {% endif %}
 
-                        <!-- Page Numbers (Simplified logic for now) -->
                         {% for p in range(1, total_pages + 1) %}
                             {% if p == page %}
                                 <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
@@ -240,7 +245,6 @@
                             {% endif %}
                         {% endfor %}
 
-                        <!-- Next Page -->
                         {% if page < total_pages %}
                         <a href="{{ url_for('admin.admin_students', page=page+1, search_name=search_name, filter_program=filter_program, filter_section=filter_section, filter_year_level=filter_year_level, filter_major=filter_major, sort_by=current_sort_by, sort_order=current_sort_order) }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                             <span class="sr-only">Next</span>

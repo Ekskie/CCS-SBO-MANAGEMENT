@@ -8,6 +8,7 @@ from utils import admin_required, check_transparency, send_status_email
 from datetime import datetime
 from config import Config
 import pytz
+from image_optimizer import compress_image_bytes
 
 admin_bp = Blueprint('admin', __name__,
                      template_folder='../templates/admin')
@@ -716,12 +717,31 @@ def admin_archive_group():
                     src_filename = p['picture_url'].split('/')[-1].split('?')[0]
                     file_data = supabase_admin.storage.from_("pictures").download(src_filename)
                     if file_data:
-                        ext = os.path.splitext(src_filename)[1]
+                        # Optimize the image data before uploading
+                        compressed_data = compress_image_bytes(file_data)
+                        
+                        if compressed_data:
+                            # Use compressed data and force JPEG extension
+                            file_data = compressed_data
+                            ext = ".jpg"
+                            content_type = "image/jpeg"
+                        else:
+                            # Fallback to original if compression fails
+                            ext = os.path.splitext(src_filename)[1]
+                            # Use dest_path logic later for mimetype guessing, or just default:
+                            content_type = mimetypes.guess_type(src_filename)[0] or 'application/octet-stream'
+
                         safe_ay = academic_year_form.replace('/', '-').replace('\\', '-')
                         safe_sem = semester.replace(' ', '_')
                         dest_path = f"{safe_ay}/{safe_sem}/{p['student_id']}_picture{ext}"
-                        content_type = mimetypes.guess_type(dest_path)[0] or 'application/octet-stream'
-                        upload_res = supabase_admin.storage.from_("archive").upload(dest_path, file_data, {"upsert": "true", "content-type": content_type})
+                        
+                        # Use explicitly determined content_type
+                        upload_res = supabase_admin.storage.from_("archive").upload(
+                            dest_path, 
+                            file_data, 
+                            {"upsert": "true", "content-type": content_type}
+                        )
+
                         if hasattr(upload_res, 'status_code') and not str(upload_res.status_code).startswith('2'):
                              print(f"Failed to upload picture")
                         else:
