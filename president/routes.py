@@ -216,7 +216,7 @@ def president_review_student(student_id):
                 # Log activity
                 student_name = f"{student.get('first_name')} {student.get('last_name')}"
                 log_activity(
-                    "President Review Student",
+                    f"{action.replace('_', ' ').title()}",
                     target_user_id=student_id,
                     target_user_name=student_name,
                     details=f"Updated student status: {action}."
