@@ -91,13 +91,13 @@
                     <p class="signature-name">{{ adviser1.name }}</p>
                     <p class="signature-title">{{ adviser1.title }}</p>
                     <!-- AUTOMATED DATE -->
-                    <p class="signature-date">Date: <span class="fill-in-date">{{ adviser1.date }}</span></p>
+                    <p class="signature-date">Date: <span class="fill-in-date auto-date"></span></p>
                 </div>
                 <div class="adviser-col">
                     <p class="signature-name">{{ adviser2.name }}</p>
                     <p class="signature-title">{{ adviser2.title }}</p>
                     <!-- AUTOMATED DATE -->
-                    <p class="signature-date">Date: <span class="fill-in-date">{{ adviser2.date }}</span></p>
+                    <p class="signature-date">Date: <span class="fill-in-date auto-date"></span></p>
                 </div>
             </div>
 
@@ -189,12 +189,12 @@
                     <div class="adviser-col">
                         <p class="signature-name">{{ adviser1.name }}</p>
                         <p class="signature-title">{{ adviser1.title }}</p>
-                        <p class="signature-date">Date: <span class="fill-in-date">{{ adviser1.date }}</span></p>
+                        <p class="signature-date">Date: <span class="fill-in-date auto-date"></span></p>
                     </div>
                     <div class="adviser-col">
                         <p class="signature-name">{{ adviser2.name }}</p>
                         <p class="signature-title">{{ adviser2.title }}</p>
-                        <p class="signature-date">Date: <span class="fill-in-date">{{ adviser2.date }}</span></p>
+                        <p class="signature-date">Date: <span class="fill-in-date auto-date"></span></p>
                     </div>
                 </div>
 
@@ -245,6 +245,22 @@
         `;
         document.head.appendChild(style);
 
+        // --- Populate Automated Dates (Philippines Timezone) ---
+        function populateAutoDates() {
+            // Get current date in Philippines timezone
+            const options = { timeZone: 'Asia/Manila', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateFormatter = new Intl.DateTimeFormat('en-US', options);
+            const phDate = dateFormatter.format(new Date());
+            
+            // Populate all auto-date spans with the current date
+            const autoDates = document.querySelectorAll('.auto-date');
+            autoDates.forEach(span => {
+                span.textContent = phDate;
+            });
+        }
+
+        // Run on page load
+        window.addEventListener('load', populateAutoDates);
 
         // --- Text Fit Logic ---
         // This function auto-shrinks font size to fit the name

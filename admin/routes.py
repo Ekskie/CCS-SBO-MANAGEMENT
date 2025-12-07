@@ -7,6 +7,7 @@ from extensions import supabase, supabase_admin
 from utils import admin_required, check_transparency, send_status_email
 from datetime import datetime
 from config import Config
+import pytz
 
 admin_bp = Blueprint('admin', __name__,
                      template_folder='../templates/admin')
@@ -44,13 +45,18 @@ def log_activity(action, target_user_id=None, target_user_name=None, details=Non
             if not admin_name:
                 admin_name = admin_res.data.get('email', 'Unknown Admin')
 
+        # Get current time in Philippines timezone
+        ph_tz = pytz.timezone('Asia/Manila')
+        timestamp_ph = datetime.now(ph_tz).isoformat()
+
         log_data = {
             "admin_id": admin_id,
             "admin_name": admin_name,
             "action": action,
             "target_user_id": target_user_id,
             "target_user_name": target_user_name,
-            "details": details
+            "details": details,
+            "created_at": timestamp_ph
         }
         supabase.table("activity_logs").insert(log_data).execute()
     except Exception as e:
@@ -391,10 +397,15 @@ def admin_archive():
         archives_res = query.order("created_at", desc=True).execute()
         archives = archives_res.data
         
+        # Set Philippines timezone
+        ph_tz = pytz.timezone('Asia/Manila')
+        
         for archive in archives:
             try:
                 utc_time = datetime.fromisoformat(archive['created_at'].replace('Z', '+00:00'))
-                archive['created_at_display'] = utc_time.strftime('%Y-%m-%d %I:%M %p') 
+                # Convert to Philippines timezone
+                ph_time = utc_time.astimezone(ph_tz)
+                archive['created_at_display'] = ph_time.strftime('%Y-%m-%d %I:%M %p') 
             except Exception as parse_e:
                 print(f"Error parsing date {archive.get('created_at')}: {parse_e}")
                 archive['created_at_display'] = str(archive.get('created_at', ''))
@@ -511,10 +522,8 @@ def admin_save_print_settings():
         settings_data = {
             "adviser1_name": request.form.get('adviser1_name'),
             "adviser1_title": request.form.get('adviser1_title'),
-            "adviser1_date": request.form.get('adviser1_date'),
             "adviser2_name": request.form.get('adviser2_name'),
             "adviser2_title": request.form.get('adviser2_title'),
-            "adviser2_date": request.form.get('adviser2_date'),
             "dean_name": request.form.get('dean_name'),
             "dean_title": request.form.get('dean_title'),
             "head_name": request.form.get('head_name'),
@@ -542,10 +551,8 @@ def admin_print_preview():
     
     adviser1_name = request.args.get('adviser1_name')
     adviser1_title = request.args.get('adviser1_title')
-    adviser1_date = request.args.get('adviser1_date')
     adviser2_name = request.args.get('adviser2_name')
     adviser2_title = request.args.get('adviser2_title')
-    adviser2_date = request.args.get('adviser2_date')
     dean_name = request.args.get('dean_name')
     dean_title = request.args.get('dean_title')
     head_name = request.args.get('head_name')
@@ -560,10 +567,8 @@ def admin_print_preview():
             if s:
                 adviser1_name = s.get('adviser1_name')
                 adviser1_title = s.get('adviser1_title')
-                adviser1_date = s.get('adviser1_date')
                 adviser2_name = s.get('adviser2_name')
                 adviser2_title = s.get('adviser2_title')
-                adviser2_date = s.get('adviser2_date')
                 dean_name = s.get('dean_name')
                 dean_title = s.get('dean_title')
                 head_name = s.get('head_name')
@@ -626,8 +631,8 @@ def admin_print_preview():
             './print_template.html',
             members=sorted_members, 
             # ... (other args) ...
-            adviser1={'name': adviser1_name, 'title': adviser1_title, 'date': adviser1_date},
-            adviser2={'name': adviser2_name, 'title': adviser2_title, 'date': adviser2_date},
+            adviser1={'name': adviser1_name, 'title': adviser1_title},
+            adviser2={'name': adviser2_name, 'title': adviser2_title},
             dean={'name': dean_name, 'title': dean_title},
             head={'name': head_name, 'title': head_title},
             director={'name': director_name, 'title': director_title},
@@ -662,8 +667,8 @@ def admin_archive_group():
             return redirect(url_for('admin.admin_printing'))
 
         signatories = {
-            "adviser1": { "name": request.form.get('adviser1_name'), "title": request.form.get('adviser1_title'), "date": request.form.get('adviser1_date') },
-            "adviser2": { "name": request.form.get('adviser2_name'), "title": request.form.get('adviser2_title'), "date": request.form.get('adviser2_date') },
+            "adviser1": { "name": request.form.get('adviser1_name'), "title": request.form.get('adviser1_title')},
+            "adviser2": { "name": request.form.get('adviser2_name'), "title": request.form.get('adviser2_title')},
             "dean": { "name": request.form.get('dean_name'), "title": request.form.get('dean_title') },
             "head": { "name": request.form.get('head_name'), "title": request.form.get('head_title') },
             "director": { "name": request.form.get('director_name'), "title": request.form.get('director_title') }
@@ -953,11 +958,18 @@ def activity_logs():
     try:
         response = supabase.table("activity_logs").select("*").order("created_at", desc=True).limit(50).execute()
         logs = response.data
+        
+        # Set Philippines timezone
+        ph_tz = pytz.timezone('Asia/Manila')
+        
         for log in logs:
             try:
                 if log.get('created_at'):
+                    # Parse the timestamp
                     dt = datetime.fromisoformat(log['created_at'].replace('Z', '+00:00'))
-                    log['created_at_display'] = dt.strftime('%b %d, %Y %I:%M %p')
+                    # Convert to Philippines timezone
+                    dt_ph = dt.astimezone(ph_tz)
+                    log['created_at_display'] = dt_ph.strftime('%b %d, %Y %I:%M %p')
                 else:
                     log['created_at_display'] = 'N/A'
             except Exception as e:

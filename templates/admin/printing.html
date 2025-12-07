@@ -117,13 +117,11 @@
                     <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Adviser 1</h4>
                     <input type="text" name="adviser1_name" value="{{ print_settings.adviser1_name or '' }}" placeholder="Name" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
                     <input type="text" name="adviser1_title" value="{{ print_settings.adviser1_title or '' }}" placeholder="Title" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
-                    <input type="text" name="adviser1_date" value="{{ print_settings.adviser1_date or '' }}" placeholder="Date" class="w-full p-2 border border-gray-300 rounded text-gray-900">
                 </div>
                 <div>
                     <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Adviser 2</h4>
                     <input type="text" name="adviser2_name" value="{{ print_settings.adviser2_name or '' }}" placeholder="Name" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
                     <input type="text" name="adviser2_title" value="{{ print_settings.adviser2_title or '' }}" placeholder="Title" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
-                    <input type="text" name="adviser2_date" value="{{ print_settings.adviser2_date or '' }}" placeholder="Date" class="w-full p-2 border border-gray-300 rounded text-gray-900">
                 </div>
                 <div>
                     <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Dean</h4>
@@ -187,13 +185,13 @@
                     <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Adviser 1</h4>
                     <input type="text" name="adviser1_name" value="{{ print_settings.adviser1_name or '' }}" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
                     <input type="text" name="adviser1_title" value="{{ print_settings.adviser1_title or '' }}" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
-                    <input type="text" name="adviser1_date" value="{{ print_settings.adviser1_date or '' }}" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                    <input type="text" name="adviser1_date" class="w-full p-2 border border-gray-300 rounded text-gray-900 auto-date-input" readonly>
                 </div>
                 <div>
                     <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Adviser 2</h4>
                     <input type="text" name="adviser2_name" value="{{ print_settings.adviser2_name or '' }}" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
                     <input type="text" name="adviser2_title" value="{{ print_settings.adviser2_title or '' }}" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
-                    <input type="text" name="adviser2_date" value="{{ print_settings.adviser2_date or '' }}" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                    <input type="text" name="adviser2_date" class="w-full p-2 border border-gray-300 rounded text-gray-900 auto-date-input" readonly>
                 </div>
                 <div>
                     <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Dean</h4>
@@ -229,12 +227,31 @@
 </div>
 
 <script>
+    // Function to get current date in Philippines timezone
+    function getPhilippinesDate() {
+        const options = { timeZone: 'Asia/Manila', year: 'numeric', month: 'long', day: 'numeric' };
+        const dateFormatter = new Intl.DateTimeFormat('en-US', options);
+        return dateFormatter.format(new Date());
+    }
+
+    // Populate auto-date fields when modal opens
+    function populateAutoDateFields() {
+        const phDate = getPhilippinesDate();
+        const dateInputs = document.querySelectorAll('.auto-date-input');
+        dateInputs.forEach(input => {
+            input.value = phDate;
+        });
+    }
+
     function openArchiveModal(program, year, section, major, semester) {
         document.getElementById('modal_program').value = program;
         document.getElementById('modal_year').value = year;
         document.getElementById('modal_section').value = section;
         document.getElementById('modal_major').value = major;
         document.getElementById('modal_semester').value = semester;
+        
+        // Populate dates when modal opens
+        populateAutoDateFields();
         
         document.getElementById('archiveModal').classList.remove('hidden');
         document.getElementById('archiveModal').classList.add('flex');
@@ -254,5 +271,8 @@
         document.getElementById('settingsModal').classList.add('hidden');
         document.getElementById('settingsModal').classList.remove('flex');
     }
+
+    // Populate dates when page loads
+    window.addEventListener('load', populateAutoDateFields);
 </script>
 {% endblock %}

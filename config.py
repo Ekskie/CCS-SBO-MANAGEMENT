@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 load_dotenv() # Load .env file for local development
 
 class Config:
+    # Timezone Configuration
+    TIMEZONE = 'Asia/Manila'  # Philippines timezone
+    
     SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
     
     if not SECRET_KEY:

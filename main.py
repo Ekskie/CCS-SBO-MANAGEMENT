@@ -3,6 +3,7 @@ from config import Config
 from extensions import supabase, supabase_admin
 from utils import inject_user_roles
 import os # <-- Need this for the app.run port
+import pytz
 
 # Import Blueprints
 from auth.routes import auth_bp
@@ -18,6 +19,9 @@ def create_app(config_class=Config):
     
     # Load all configurations from the Config class
     app.config.from_object(config_class)
+    
+    # Set the timezone to Philippines
+    os.environ['TZ'] = Config.TIMEZONE
     
     # Register context processors
     app.context_processor(inject_user_roles)
