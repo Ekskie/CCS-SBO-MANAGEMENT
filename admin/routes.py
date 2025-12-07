@@ -667,8 +667,8 @@ def admin_archive_group():
             return redirect(url_for('admin.admin_printing'))
 
         signatories = {
-            "adviser1": { "name": request.form.get('adviser1_name'), "title": request.form.get('adviser1_title')},
-            "adviser2": { "name": request.form.get('adviser2_name'), "title": request.form.get('adviser2_title')},
+            "adviser1": { "name": request.form.get('adviser1_name'), "title": request.form.get('adviser1_title'), "date": request.form.get('adviser1_date') },
+            "adviser2": { "name": request.form.get('adviser2_name'), "title": request.form.get('adviser2_title'), "date": request.form.get('adviser2_date') },
             "dean": { "name": request.form.get('dean_name'), "title": request.form.get('dean_title') },
             "head": { "name": request.form.get('head_name'), "title": request.form.get('head_title') },
             "director": { "name": request.form.get('director_name'), "title": request.form.get('director_title') }

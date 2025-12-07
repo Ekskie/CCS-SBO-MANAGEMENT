@@ -96,7 +96,7 @@
 
 <!-- Global Settings Modal (Triggered by button at top) -->
 <div id="settingsModal" class="fixed z-50 inset-0 overflow-y-auto hidden items-center justify-center p-4 bg-black bg-opacity-50">
-    <div class="relative bg-white rounded-lg shadow-xl w-full max-w-4xl">
+    <div class="relative bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto my-4">
         <form action="{{ url_for('admin.admin_save_print_settings') }}" method="POST">
             <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-lg">
                 <h3 class="text-xl font-bold text-gray-800">Global Print Settings</h3>
@@ -151,7 +151,7 @@
 
 <!-- Archive Modal (Uses values, submits to Archive) -->
 <div id="archiveModal" class="fixed z-50 inset-0 overflow-y-auto hidden items-center justify-center p-4 bg-black bg-opacity-50">
-    <div class="relative bg-white rounded-lg shadow-xl w-full max-w-4xl">
+    <div class="relative bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto my-4">
         <form action="{{ url_for('admin.admin_archive_group') }}" method="POST">
             <!-- Hidden Fields for Group ID -->
             <input type="hidden" name="program" id="modal_program">
@@ -275,4 +275,6 @@
     // Populate dates when page loads
     window.addEventListener('load', populateAutoDateFields);
 </script>
+<script src="{{ url_for('static', filename='js/form_loader.js') }}"></script>
+
 {% endblock %}

@@ -91,13 +91,13 @@
                     <p class="signature-name">{{ adviser1.name }}</p>
                     <p class="signature-title">{{ adviser1.title }}</p>
                     <!-- AUTOMATED DATE -->
-                    <p class="signature-date">Date: <span class="fill-in-date auto-date"></span></p>
+                    <p class="signature-date">Date: <span class="fill-in-date {% if not adviser1.date or adviser1.date == '' %}auto-date{% endif %}">{{ adviser1.date or '' }}</span></p>
                 </div>
                 <div class="adviser-col">
                     <p class="signature-name">{{ adviser2.name }}</p>
                     <p class="signature-title">{{ adviser2.title }}</p>
                     <!-- AUTOMATED DATE -->
-                    <p class="signature-date">Date: <span class="fill-in-date auto-date"></span></p>
+                    <p class="signature-date">Date: <span class="fill-in-date {% if not adviser2.date or adviser2.date == '' %}auto-date{% endif %}">{{ adviser2.date or '' }}</span></p>
                 </div>
             </div>
 
@@ -189,12 +189,12 @@
                     <div class="adviser-col">
                         <p class="signature-name">{{ adviser1.name }}</p>
                         <p class="signature-title">{{ adviser1.title }}</p>
-                        <p class="signature-date">Date: <span class="fill-in-date auto-date"></span></p>
+                        <p class="signature-date">Date: <span class="fill-in-date {% if not adviser1.date or adviser1.date == '' %}auto-date{% endif %}">{{ adviser1.date or '' }}</span></p>
                     </div>
                     <div class="adviser-col">
                         <p class="signature-name">{{ adviser2.name }}</p>
                         <p class="signature-title">{{ adviser2.title }}</p>
-                        <p class="signature-date">Date: <span class="fill-in-date auto-date"></span></p>
+                        <p class="signature-date">Date: <span class="fill-in-date {% if not adviser2.date or adviser2.date == '' %}auto-date{% endif %}">{{ adviser2.date or '' }}</span></p>
                     </div>
                 </div>
 
