@@ -20,13 +20,18 @@ def log_activity(action, target_user_id=None, target_user_name=None, details=Non
             if not admin_name:
                 admin_name = admin_res.data.get('email', 'Unknown Admin')
 
+        # Get current time in Philippines timezone
+        ph_tz = pytz.timezone('Asia/Manila')
+        timestamp_ph = datetime.now(ph_tz).isoformat()
+
         log_data = {
             "admin_id": admin_id,
             "admin_name": admin_name,
             "action": action,
             "target_user_id": target_user_id,
             "target_user_name": target_user_name,
-            "details": details
+            "details": details,
+            "created_at": timestamp_ph
         }
         supabase.table("activity_logs").insert(log_data).execute()
     except Exception as e:
