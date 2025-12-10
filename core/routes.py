@@ -1,7 +1,7 @@
 import os
 import io
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from extensions import supabase
+from extensions import supabase, supabase_admin  # Added supabase_admin
 from config import Config
 from utils import login_required, check_transparency
 
@@ -120,9 +120,16 @@ def update_profile():
         section = request.form.get('section')
         major = request.form.get('major')
         semester = request.form.get('semester')
+        graduating_year = request.form.get('graduating_year')
 
         # Logic for major requirement based on program/year
-        if year_level in ("3rd Year", "4th Year"):
+        if year_level == "Graduate":
+            major = None # Graduates don't use the major field in the same way
+            if not graduating_year:
+                flash("Graduating Academic Year is required for Graduates.", "error")
+                return redirect(url_for('core.profile'))
+        elif year_level in ("3rd Year", "4th Year"):
+            graduating_year = None # Undergrads don't have this yet
             if program in ("BSIT", "BSCS"):
                 if not major:
                     flash(f"Major is required for 3rd/4th year {program}.", "error")
@@ -130,7 +137,8 @@ def update_profile():
             else:
                 major = None 
         else:
-            major = None 
+            major = None
+            graduating_year = None
 
         update_data = {
             "first_name": first_name,
@@ -141,6 +149,7 @@ def update_profile():
             "year_level": year_level,
             "section": section,
             "major": major,
+            "graduating_year": graduating_year,
             "semester": semester
         }
 
@@ -202,3 +211,72 @@ def update_profile():
         err_msg = str(e)
         flash(f"Error updating profile: {err_msg}", "error")
         return redirect(url_for('core.profile'))
+
+# --- NEW: Delete Account Route ---
+@core_bp.route('/delete_account', methods=['POST'])
+@login_required
+def delete_account():
+    password = request.form.get('password_confirm')
+    user_id = session.get('user_id')
+    user_email = session.get('email')
+
+    if not password:
+        flash("Password is required to delete your account.", "error")
+        return redirect(url_for('core.settings'))
+
+    try:
+        # 1. Verify Password
+        auth = supabase.auth.sign_in_with_password({
+            "email": user_email,
+            "password": password
+        })
+        if not auth.user:
+            flash("Incorrect password. Account deletion aborted.", "error")
+            return redirect(url_for('core.settings'))
+
+        # 2. Fetch Profile to get file paths
+        profile_res = supabase.table("profiles").select("picture_url, signature_url, student_id").eq("id", user_id).single().execute()
+        profile = profile_res.data
+
+        if profile:
+            # 3. Delete Files from Storage
+            try:
+                files_to_remove_pic = []
+                files_to_remove_sig = []
+                
+                # Extract filename from URL or reconstruct it
+                # Assuming standard naming: {student_id}_picture.ext
+                # But safer to parse URL if available, or just use the naming convention logic if consistent
+                # Here we try to parse the URL if it exists
+                if profile.get('picture_url'):
+                    pic_name = profile['picture_url'].split('/')[-1].split('?')[0]
+                    files_to_remove_pic.append(pic_name)
+                
+                if profile.get('signature_url'):
+                    sig_name = profile['signature_url'].split('/')[-1].split('?')[0]
+                    files_to_remove_sig.append(sig_name)
+
+                if files_to_remove_pic:
+                    supabase.storage.from_("pictures").remove(files_to_remove_pic)
+                if files_to_remove_sig:
+                    supabase.storage.from_("signatures").remove(files_to_remove_sig)
+            except Exception as storage_e:
+                print(f"Storage cleanup error (non-fatal): {storage_e}")
+
+            # 4. Delete Profile Row
+            supabase.table("profiles").delete().eq("id", user_id).execute()
+
+        # 5. Delete Auth User (Requires Admin Privilege)
+        supabase_admin.auth.admin.delete_user(user_id)
+
+        # 6. Cleanup Session
+        session.clear()
+        flash("Your account has been permanently deleted.", "success")
+        return redirect(url_for('auth.login'))
+
+    except Exception as e:
+        if "Invalid login credentials" in str(e):
+            flash("Incorrect password.", "error")
+        else:
+            flash(f"An error occurred during deletion: {str(e)}", "error")
+        return redirect(url_for('core.settings'))

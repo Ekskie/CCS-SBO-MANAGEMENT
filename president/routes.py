@@ -5,6 +5,7 @@ from extensions import supabase
 from utils import president_required, send_status_email
 from config import Config
 import pytz
+from datetime import datetime
 president_bp = Blueprint('president', __name__, template_folder='../templates')
 
 def log_activity(action, target_user_id=None, target_user_name=None, details=None):

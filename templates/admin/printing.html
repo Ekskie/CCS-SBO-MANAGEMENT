@@ -8,40 +8,49 @@
     <!-- Controls -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-8">
         <form method="GET" action="{{ url_for('admin.admin_printing') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4">
-            
+
             <!-- Program Filter -->
-            <select name="program" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900" onchange="this.form.submit()">
+            <select name="program"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                onchange="this.form.submit()">
                 <option value="">Select Program</option>
                 {% for prog in all_programs %}
-                    <option value="{{ prog }}" {% if current_program == prog %}selected{% endif %}>{{ prog }}</option>
+                <option value="{{ prog }}" {% if current_program==prog %}selected{% endif %}>{{ prog }}</option>
                 {% endfor %}
             </select>
 
             <!-- Year Level Filter -->
-            <select name="year_level" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900" onchange="this.form.submit()">
+            <select name="year_level"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                onchange="this.form.submit()">
                 <option value="">Select Year</option>
                 {% for year in all_years %}
-                    <option value="{{ year }}" {% if current_year == year %}selected{% endif %}>{{ year }}</option>
+                <option value="{{ year }}" {% if current_year==year %}selected{% endif %}>{{ year }}</option>
                 {% endfor %}
             </select>
 
             <!-- Section Filter -->
-            <select name="section" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900" onchange="this.form.submit()">
+            <select name="section"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                onchange="this.form.submit()">
                 <option value="">Select Section</option>
                 {% for sec in all_sections %}
-                    <option value="{{ sec }}" {% if current_section == sec %}selected{% endif %}>Section {{ sec }}</option>
+                <option value="{{ sec }}" {% if current_section==sec %}selected{% endif %}>Section {{ sec }}</option>
                 {% endfor %}
             </select>
 
             <!-- Semester Filter -->
-            <select name="semester" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900" onchange="this.form.submit()">
+            <select name="semester"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                onchange="this.form.submit()">
                 <option value="">Select Semester</option>
                 {% for sem in all_semesters %}
-                    <option value="{{ sem }}" {% if current_semester == sem %}selected{% endif %}>{{ sem }} Semester</option>
+                <option value="{{ sem }}" {% if current_semester==sem %}selected{% endif %}>{{ sem }} Semester</option>
                 {% endfor %}
             </select>
 
-            <a href="{{ url_for('admin.admin_printing') }}" class="flex items-center justify-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium">
+            <a href="{{ url_for('admin.admin_printing') }}"
+                class="flex items-center justify-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium">
                 Reset
             </a>
         </form>
@@ -49,99 +58,119 @@
 
     <!-- Groups Grid -->
     {% if groups %}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for group in groups %}
-                {% set program, year, section, major, semester = group %}
-                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-200">
-                    <div class="p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-xl font-bold text-gray-800">{{ program }}</h3>
-                            <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">{{ semester }} Sem</span>
-                        </div>
-                        
-                        <p class="text-gray-600 mb-1"><span class="font-medium">Year & Section:</span> {{ year }} - {{ section }}</p>
-                        {% if major != 'None' %}
-                            <p class="text-gray-600 mb-4"><span class="font-medium">Major:</span> {{ major }}</p>
-                        {% else %}
-                            <p class="text-gray-600 mb-4"><span class="font-medium">Major:</span> N/A</p>
-                        {% endif %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for group in groups %}
+        {% set program, year, section, major_or_gradyear, semester = group %}
 
-                        <div class="flex gap-2 mt-4">
-                            <!-- Preview Button -->
-                            <a href="{{ url_for('admin.admin_print_preview', program=program, year_level=year, section=section, major=major, semester=semester) }}" 
-                               target="_blank"
-                               class="flex-1 text-center px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
-                                Preview
-                            </a>
-                            
-                            <!-- Generate Archive Button (Triggers Modal) -->
-                            <button onclick="openArchiveModal('{{ program }}', '{{ year }}', '{{ section }}', '{{ major }}', '{{ semester }}')"
-                                    class="flex-1 text-center px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition">
-                                Archive
-                            </button>
-                        </div>
-                    </div>
+        <div
+            class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-200">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">{{ program }}</h3>
+                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">{{ semester }}
+                        Sem</span>
                 </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="bg-white rounded-lg shadow-md p-10 text-center">
-            <i class="fas fa-folder-open fa-3x text-gray-300 mb-4"></i>
-            <p class="text-xl font-medium text-gray-600">No groups found.</p>
-            <p class="text-gray-500">Try adjusting your filters to see student groups.</p>
-        </div>
-    {% endif %}
 
+                <p class="text-gray-600 mb-1"><span class="font-medium">Year & Section:</span> {{ year }} - {{ section
+                    }}</p>
+
+                {% if year == 'Graduate' %}
+                <p class="text-purple-600 mb-4 font-bold"><span class="font-medium text-gray-600">Batch:</span> {{
+                    major_or_gradyear }}</p>
+                {% elif major_or_gradyear != 'None' %}
+                <p class="text-gray-600 mb-4"><span class="font-medium">Major:</span> {{ major_or_gradyear }}</p>
+                {% else %}
+                <p class="text-gray-600 mb-4"><span class="font-medium">Major:</span> N/A</p>
+                {% endif %}
+
+                <div class="flex gap-2 mt-4">
+                    <a href="{{ url_for('admin.admin_print_preview', program=program, year_level=year, section=section, major=major_or_gradyear, semester=semester) }}"
+                        target="_blank"
+                        class="flex-1 text-center px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
+                        Preview
+                    </a>
+
+                    <button
+                        onclick="openArchiveModal('{{ program }}', '{{ year }}', '{{ section }}', '{{ major_or_gradyear }}', '{{ semester }}')"
+                        class="flex-1 text-center px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition">
+                        Archive
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-lg shadow-md p-10 text-center">
+        <i class="fas fa-folder-open fa-3x text-gray-300 mb-4"></i>
+        <p class="text-xl font-medium text-gray-600">No groups found.</p>
+        <p class="text-gray-500">Try adjusting your filters to see student groups.</p>
+    </div>
+    {% endif %}
 </div>
 
 <!-- Global Settings Modal (Triggered by button at top) -->
-<div id="settingsModal" class="fixed z-50 inset-0 overflow-y-auto hidden items-center justify-center p-4 bg-black bg-opacity-50">
+<div id="settingsModal"
+    class="fixed z-50 inset-0 overflow-y-auto hidden items-center justify-center p-4 bg-black bg-opacity-50">
     <div class="relative bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto my-4">
         <form action="{{ url_for('admin.admin_save_print_settings') }}" method="POST">
             <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-lg">
                 <h3 class="text-xl font-bold text-gray-800">Global Print Settings</h3>
-                <button type="button" onclick="closeSettingsModal()" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                <button type="button" onclick="closeSettingsModal()"
+                    class="text-gray-500 hover:text-gray-700 focus:outline-none">
                     <i class="fas fa-times fa-lg"></i>
                 </button>
             </div>
-            
+
             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Academic Year -->
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Academic Year Label</label>
-                    <input type="text" name="academic_year" value="{{ print_settings.academic_year or 'AY 2025-2026' }}" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                    <input type="text" name="academic_year" value="{{ print_settings.academic_year or 'AY 2025-2026' }}"
+                        class="w-full p-2 border border-gray-300 rounded text-gray-900">
                 </div>
 
                 <!-- Signatories -->
                 <div>
                     <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Adviser 1</h4>
-                    <input type="text" name="adviser1_name" value="{{ print_settings.adviser1_name or '' }}" placeholder="Name" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
-                    <input type="text" name="adviser1_title" value="{{ print_settings.adviser1_title or '' }}" placeholder="Title" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="adviser1_name" value="{{ print_settings.adviser1_name or '' }}"
+                        placeholder="Name" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="adviser1_title" value="{{ print_settings.adviser1_title or '' }}"
+                        placeholder="Title" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
                 </div>
                 <div>
                     <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Adviser 2</h4>
-                    <input type="text" name="adviser2_name" value="{{ print_settings.adviser2_name or '' }}" placeholder="Name" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
-                    <input type="text" name="adviser2_title" value="{{ print_settings.adviser2_title or '' }}" placeholder="Title" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="adviser2_name" value="{{ print_settings.adviser2_name or '' }}"
+                        placeholder="Name" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="adviser2_title" value="{{ print_settings.adviser2_title or '' }}"
+                        placeholder="Title" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
                 </div>
                 <div>
                     <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Dean</h4>
-                    <input type="text" name="dean_name" value="{{ print_settings.dean_name or '' }}" placeholder="Name" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
-                    <input type="text" name="dean_title" value="{{ print_settings.dean_title or '' }}" placeholder="Title" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                    <input type="text" name="dean_name" value="{{ print_settings.dean_name or '' }}" placeholder="Name"
+                        class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="dean_title" value="{{ print_settings.dean_title or '' }}"
+                        placeholder="Title" class="w-full p-2 border border-gray-300 rounded text-gray-900">
                 </div>
                 <div>
                     <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Head (Student Org)</h4>
-                    <input type="text" name="head_name" value="{{ print_settings.head_name or '' }}" placeholder="Name" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
-                    <input type="text" name="head_title" value="{{ print_settings.head_title or '' }}" placeholder="Title" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                    <input type="text" name="head_name" value="{{ print_settings.head_name or '' }}" placeholder="Name"
+                        class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="head_title" value="{{ print_settings.head_title or '' }}"
+                        placeholder="Title" class="w-full p-2 border border-gray-300 rounded text-gray-900">
                 </div>
                 <div class="md:col-span-2">
                     <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Director (OSAS)</h4>
-                    <input type="text" name="director_name" value="{{ print_settings.director_name or '' }}" placeholder="Name" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
-                    <input type="text" name="director_title" value="{{ print_settings.director_title or '' }}" placeholder="Title" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                    <input type="text" name="director_name" value="{{ print_settings.director_name or '' }}"
+                        placeholder="Name" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="director_title" value="{{ print_settings.director_title or '' }}"
+                        placeholder="Title" class="w-full p-2 border border-gray-300 rounded text-gray-900">
                 </div>
             </div>
 
             <div class="p-6 border-t border-gray-200 bg-gray-50 rounded-b-lg text-right">
-                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
+                <button type="submit"
+                    class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
                     Save Global Defaults
                 </button>
             </div>
@@ -150,7 +179,8 @@
 </div>
 
 <!-- Archive Modal (Uses values, submits to Archive) -->
-<div id="archiveModal" class="fixed z-50 inset-0 overflow-y-auto hidden items-center justify-center p-4 bg-black bg-opacity-50">
+<div id="archiveModal"
+    class="fixed z-50 inset-0 overflow-y-auto hidden items-center justify-center p-4 bg-black bg-opacity-50">
     <div class="relative bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto my-4">
         <form action="{{ url_for('admin.admin_archive_group') }}" method="POST">
             <!-- Hidden Fields for Group ID -->
@@ -162,56 +192,72 @@
 
             <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-lg">
                 <h3 class="text-xl font-bold text-gray-800">Confirm Archive Details</h3>
-                <button type="button" onclick="closeArchiveModal()" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                <button type="button" onclick="closeArchiveModal()"
+                    class="text-gray-500 hover:text-gray-700 focus:outline-none">
                     <i class="fas fa-times fa-lg"></i>
                 </button>
             </div>
-            
+
             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="md:col-span-2 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 text-sm">
                     <p class="font-bold">Note:</p>
-                    <p>These values are pre-filled from your Global Settings. Changing them here only affects this specific archive.</p>
+                    <p>These values are pre-filled from your Global Settings. Changing them here only affects this
+                        specific archive.</p>
                 </div>
 
                 <!-- Copied fields from settings modal (Pre-filled via Jinja) -->
                 <!-- Academic Year -->
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
-                    <input type="text" name="academic_year" value="{{ print_settings.academic_year or 'AY 2025-2026' }}" class="w-full p-2 border border-gray-300 rounded text-gray-900" required>
+                    <input type="text" name="academic_year" value="{{ print_settings.academic_year or 'AY 2025-2026' }}"
+                        class="w-full p-2 border border-gray-300 rounded text-gray-900" required>
                 </div>
 
                 <!-- Signatories -->
                 <div>
                     <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Adviser 1</h4>
-                    <input type="text" name="adviser1_name" value="{{ print_settings.adviser1_name or '' }}" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
-                    <input type="text" name="adviser1_title" value="{{ print_settings.adviser1_title or '' }}" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
-                    <input type="text" name="adviser1_date" class="w-full p-2 border border-gray-300 rounded text-gray-900 auto-date-input" readonly>
+                    <input type="text" name="adviser1_name" value="{{ print_settings.adviser1_name or '' }}"
+                        class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="adviser1_title" value="{{ print_settings.adviser1_title or '' }}"
+                        class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="adviser1_date"
+                        class="w-full p-2 border border-gray-300 rounded text-gray-900 auto-date-input" readonly>
                 </div>
                 <div>
                     <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Adviser 2</h4>
-                    <input type="text" name="adviser2_name" value="{{ print_settings.adviser2_name or '' }}" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
-                    <input type="text" name="adviser2_title" value="{{ print_settings.adviser2_title or '' }}" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
-                    <input type="text" name="adviser2_date" class="w-full p-2 border border-gray-300 rounded text-gray-900 auto-date-input" readonly>
+                    <input type="text" name="adviser2_name" value="{{ print_settings.adviser2_name or '' }}"
+                        class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="adviser2_title" value="{{ print_settings.adviser2_title or '' }}"
+                        class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="adviser2_date"
+                        class="w-full p-2 border border-gray-300 rounded text-gray-900 auto-date-input" readonly>
                 </div>
                 <div>
                     <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Dean</h4>
-                    <input type="text" name="dean_name" value="{{ print_settings.dean_name or '' }}" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
-                    <input type="text" name="dean_title" value="{{ print_settings.dean_title or '' }}" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                    <input type="text" name="dean_name" value="{{ print_settings.dean_name or '' }}"
+                        class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="dean_title" value="{{ print_settings.dean_title or '' }}"
+                        class="w-full p-2 border border-gray-300 rounded text-gray-900">
                 </div>
                 <div>
                     <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Head (Student Org)</h4>
-                    <input type="text" name="head_name" value="{{ print_settings.head_name or '' }}" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
-                    <input type="text" name="head_title" value="{{ print_settings.head_title or '' }}" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                    <input type="text" name="head_name" value="{{ print_settings.head_name or '' }}"
+                        class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="head_title" value="{{ print_settings.head_title or '' }}"
+                        class="w-full p-2 border border-gray-300 rounded text-gray-900">
                 </div>
                 <div class="md:col-span-2">
                     <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">Director (OSAS)</h4>
-                    <input type="text" name="director_name" value="{{ print_settings.director_name or '' }}" class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
-                    <input type="text" name="director_title" value="{{ print_settings.director_title or '' }}" class="w-full p-2 border border-gray-300 rounded text-gray-900">
+                    <input type="text" name="director_name" value="{{ print_settings.director_name or '' }}"
+                        class="w-full p-2 border border-gray-300 rounded mb-2 text-gray-900">
+                    <input type="text" name="director_title" value="{{ print_settings.director_title or '' }}"
+                        class="w-full p-2 border border-gray-300 rounded text-gray-900">
                 </div>
             </div>
 
             <div class="p-6 border-t border-gray-200 bg-gray-50 rounded-b-lg text-right">
-                <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition">
+                <button type="submit"
+                    class="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition">
                     Generate Archive
                 </button>
             </div>
@@ -221,7 +267,9 @@
 
 <!-- Extra button to open settings -->
 <div class="fixed bottom-6 right-6">
-    <button onclick="openSettingsModal()" class="flex items-center justify-center w-14 h-14 bg-gray-800 text-white rounded-full shadow-lg hover:bg-gray-700 transition focus:outline-none" title="Edit Print Defaults">
+    <button onclick="openSettingsModal()"
+        class="flex items-center justify-center w-14 h-14 bg-gray-800 text-white rounded-full shadow-lg hover:bg-gray-700 transition focus:outline-none"
+        title="Edit Print Defaults">
         <i class="fas fa-cog fa-lg"></i>
     </button>
 </div>
@@ -249,10 +297,10 @@
         document.getElementById('modal_section').value = section;
         document.getElementById('modal_major').value = major;
         document.getElementById('modal_semester').value = semester;
-        
+
         // Populate dates when modal opens
         populateAutoDateFields();
-        
+
         document.getElementById('archiveModal').classList.remove('hidden');
         document.getElementById('archiveModal').classList.add('flex');
     }

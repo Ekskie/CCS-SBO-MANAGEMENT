@@ -380,8 +380,14 @@ def admin_archive():
         filter_semester = request.args.get('filter_semester', '')
         filter_program = request.args.get('filter_program', '')
         filter_major = request.args.get('filter_major', '')
+        
+        # --- Pagination Parameters ---
+        page = request.args.get('page', 1, type=int)
+        per_page = 10  # Number of items per page
+        start = (page - 1) * per_page
+        end = start + per_page - 1
 
-        query = supabase.table("archived_groups").select("*")
+        query = supabase.table("archived_groups").select("*", count='exact') # Add count='exact'
 
         if filter_ay:
             query = query.eq('academic_year', filter_ay)
@@ -395,22 +401,27 @@ def admin_archive():
             else:
                  query = query.ilike('group_name', f'%{filter_major}%') 
         
-        archives_res = query.order("created_at", desc=True).execute()
-        archives = archives_res.data
+        # --- Apply Pagination Range ---
+        # We fetch the count and the data for the specific page
+        query = query.order("created_at", desc=True).range(start, end)
+        archives_res = query.execute()
         
-        # Set Philippines timezone
+        archives = archives_res.data
+        total_items = archives_res.count if archives_res.count else 0
+        total_pages = (total_items + per_page - 1) // per_page
+        
+        # Set Philippines timezone (Keep existing logic)
         ph_tz = pytz.timezone('Asia/Manila')
         
         for archive in archives:
             try:
                 utc_time = datetime.fromisoformat(archive['created_at'].replace('Z', '+00:00'))
-                # Convert to Philippines timezone
                 ph_time = utc_time.astimezone(ph_tz)
                 archive['created_at_display'] = ph_time.strftime('%Y-%m-%d %I:%M %p') 
             except Exception as parse_e:
-                print(f"Error parsing date {archive.get('created_at')}: {parse_e}")
                 archive['created_at_display'] = str(archive.get('created_at', ''))
 
+        # Fetch options for filters (Keep existing logic)
         all_options_res = supabase.table("archived_groups").select("academic_year, semester, group_name").execute()
         all_data = all_options_res.data
         
@@ -422,30 +433,29 @@ def admin_archive():
         for d in all_data:
             if d.get('group_name'):
                 parts = d['group_name'].split(' - ')
-                if len(parts) > 0:
-                    all_programs.add(parts[0])
-                if len(parts) > 2: 
-                    all_majors.add(parts[2])
+                if len(parts) > 0: all_programs.add(parts[0])
+                if len(parts) > 2: all_majors.add(parts[2])
                     
-        all_programs = sorted(list(all_programs))
-        all_majors = sorted(list(all_majors))
-
         return render_template(
             'archive.html', 
             archives=archives,
             all_academic_years=all_academic_years,
             all_semesters=all_semesters,
-            all_programs=all_programs,
-            all_majors=all_majors,
+            all_programs=sorted(list(all_programs)),
+            all_majors=sorted(list(all_majors)),
             current_ay=filter_ay,
             current_semester=filter_semester,
             current_program=filter_program,
-            current_major=filter_major
+            current_major=filter_major,
+            # Pass pagination data to template
+            page=page,
+            total_pages=total_pages,
+            total_items=total_items
         )
     except Exception as e:
         flash(f"Error loading archive: {str(e)}", "error")
-        return render_template('archive.html', archives=[], all_academic_years=[], all_semesters=[], all_programs=[], all_majors=[], current_ay='', current_semester='', current_program='', current_major='')
-
+        return render_template('archive.html', archives=[], page=1, total_pages=1, total_items=0)
+    
 @admin_bp.route('/printing')
 @admin_required
 def admin_printing():
@@ -459,7 +469,8 @@ def admin_printing():
         settings_res = supabase.table("print_settings").select("*").eq("id", 1).single().execute()
         print_settings = settings_res.data if settings_res.data else {}
 
-        query = supabase.table("profiles").select("program, year_level, section, major, semester")
+        # Added 'graduating_year' to the select list
+        query = supabase.table("profiles").select("program, year_level, section, major, semester, graduating_year")
         
         # --- UPDATE: Filter out unverified students ---
         query = query.eq('email_verified', True)
@@ -491,21 +502,33 @@ def admin_printing():
 
         unique_groups = set()
         for profile in profiles:
+            # Ensure mandatory fields exist
             if not all([profile.get('program'), profile.get('year_level'), profile.get('section'), profile.get('semester')]):
-                continue 
+                continue
             
             major_val = profile.get('major') or 'None'
+            grad_year = profile.get('graduating_year') or 'None'
             semester_val = profile.get('semester')
-            
-            key = (
-                profile.get('program'), 
-                profile.get('year_level'), 
-                profile.get('section'),
-                major_val,
-                semester_val
-            )
+            if profile.get('year_level') == 'Graduate':
+                # Structure: (Program, "Graduate", Section, "AY 2024-2025", Semester)
+                key = (
+                    profile.get('program'), 
+                    profile.get('year_level'), 
+                    profile.get('section'),
+                    f"AY {grad_year}", # Use Grad Year as the distinguishing factor
+                    semester_val
+                )
+            else:
+                # Structure: (Program, Year, Section, Major, Semester)
+                key = (
+                    profile.get('program'), 
+                    profile.get('year_level'), 
+                    profile.get('section'),
+                    major_val,
+                    semester_val
+                )
             unique_groups.add(key)
-        
+
         sorted_groups = sorted(list(unique_groups))
         
         return render_template(
@@ -520,6 +543,7 @@ def admin_printing():
             current_section=current_section,
             current_semester=current_semester,
             print_settings=print_settings 
+
         )
     except Exception as e:
         flash(f"Error fetching groups: {str(e)}", "error")
@@ -557,7 +581,7 @@ def admin_print_preview():
     program = request.args.get('program')
     year_level = request.args.get('year_level')
     section = request.args.get('section')
-    major = request.args.get('major')
+    major = request.args.get('major') # NOTE: This variable holds "AY 20XX-20XX" for graduates
     semester = request.args.get('semester') 
     
     adviser1_name = request.args.get('adviser1_name')
@@ -600,8 +624,15 @@ def admin_print_preview():
         query = query.eq("section", section)
         query = query.eq("semester", semester) 
         query = query.eq("email_verified", True)
-        if major == 'None' or major is None: query = query.is_("major", None)
-        else: query = query.eq("major", major)
+        if year_level == 'Graduate':
+            # For graduates, 'major' param contains "AY 20XX-20XX"
+            # We need to strip "AY " to match the DB column 'graduating_year'
+            grad_year_val = major.replace("AY ", "").strip() if major else ""
+            query = query.eq("graduating_year", grad_year_val)
+        else:
+            # Normal logic for Undergrads
+            if major == 'None' or major is None: query = query.is_("major", None)
+            else: query = query.eq("major", major)
 
         response = query.execute()
         group_profiles = response.data
@@ -619,9 +650,14 @@ def admin_print_preview():
             full_name = " ".join(full_name.split())
             if full_name == ',': full_name = "Name Missing"
                 
-            course_parts = [p.get('program', 'N/A'), f"{p.get('year_level', 'N/A')} {p.get('section', 'N/A')}"]
-            if p.get('major'): course_parts.append(p.get('major'))
-            course = " - ".join(filter(None, course_parts)).strip()
+            if p.get('year_level') == 'Graduate':
+                course = f"{p.get('program')} - Graduate {p.get('section')}"
+                if p.get('graduating_year'):
+                    course += f" (AY {p.get('graduating_year')})"
+            else:
+                course_parts = [p.get('program', 'N/A'), f"{p.get('year_level', 'N/A')} {p.get('section', 'N/A')}"]
+                if p.get('major'): course_parts.append(p.get('major'))
+                course = " - ".join(filter(None, course_parts)).strip()
             
             member = {
                 'full_name': full_name,
@@ -663,14 +699,20 @@ def admin_archive_group():
         program = request.form.get('program')
         year_level = request.form.get('year_level')
         section = request.form.get('section')
-        major = request.form.get('major')
+        major = request.form.get('major') # Contains "AY 20XX-20XX" for graduates
         semester = request.form.get('semester')
         academic_year_form = request.form.get('academic_year') 
 
-        group_name_parts = [program, f"{year_level}{section}"]
-        if major != 'None' and major: group_name_parts.append(major)
-        group_name = " - ".join(group_name_parts)
+        # 1. Logic for Group Name
+        if year_level == 'Graduate':
+             grad_year_val = major.replace("AY ", "").strip() if major else ""
+             group_name = f"{program} - Graduate - Batch {grad_year_val} - {section}"
+        else:
+            group_name_parts = [program, f"{year_level}{section}"]
+            if major != 'None' and major: group_name_parts.append(major)
+            group_name = " - ".join(group_name_parts)
 
+        # 2. Check if exists
         check_query = supabase.table("archived_groups").select("id").eq("group_name", group_name).eq("academic_year", academic_year_form).eq("semester", semester)
         check_res = check_query.execute()
         if check_res.data and len(check_res.data) > 0:
@@ -689,23 +731,36 @@ def admin_archive_group():
              flash("Missing required group information.", "error")
              return redirect(url_for('admin.admin_printing'))
 
+        # 3. FETCH PROFILES (*** THIS IS THE FIX ***)
         query = supabase.table("profiles").select("*")
         query = query.eq("program", program)
         query = query.eq("year_level", year_level)
         query = query.eq("section", section)
         query = query.eq("semester", semester)
         query = query.eq("email_verified", True)
-        if major == 'None' or major is None: query = query.is_("major", None)
-        else: query = query.eq("major", major)
+        
+        # --- FIX START: Handle Graduate vs Undergraduate Query ---
+        if year_level == 'Graduate':
+            # Extract "2023-2024" from "AY 2023-2024"
+            grad_year_val = major.replace("AY ", "").strip() if major else ""
+            # Query the 'graduating_year' column, NOT 'major'
+            query = query.eq("graduating_year", grad_year_val)
+        else:
+            # Normal logic for undergrads using 'major'
+            if major == 'None' or major is None: 
+                query = query.is_("major", None)
+            else: 
+                query = query.eq("major", major)
+        # --- FIX END ---
         
         group_profiles = query.execute().data
+        
         if not group_profiles:
             flash("Cannot archive an empty group. No verified students found matching the criteria.", "warning")
             return redirect(url_for('admin.admin_printing'))
 
         members = []
         for p in group_profiles:
-            # ... (Name construction same as print_preview) ...
             last_name = p.get('last_name', '')
             first_name = p.get('first_name', '')
             middle_name = p.get('middle_name', '')
@@ -717,41 +772,37 @@ def admin_archive_group():
             full_name = " ".join(full_name.split())
             if full_name == ',': full_name = "Name Missing"
 
-            course_parts = [p.get('program', 'N/A'), f"{p.get('year_level', 'N/A')}{p.get('section', 'N/A')}"]
-            if p.get('major'): course_parts.append(p.get('major'))
-            course = " - ".join(filter(None, course_parts)).strip()
+            # 4. Construct Course String (Ensure this logic matches Print Preview)
+            if p.get('year_level') == 'Graduate':
+                course = f"{p.get('program')} - Graduate {p.get('section')} (AY {p.get('graduating_year')})"
+            else:
+                course_parts = [p.get('program', 'N/A'), f"{p.get('year_level', 'N/A')}{p.get('section', 'N/A')}"]
+                if p.get('major'): course_parts.append(p.get('major'))
+                course = " - ".join(filter(None, course_parts)).strip()
             
+            # 5. Handle Images (Keep your existing logic here)
             archived_pic_url = p.get('picture_url') 
             if p.get('picture_url'):
                 try:
                     src_filename = p['picture_url'].split('/')[-1].split('?')[0]
                     file_data = supabase_admin.storage.from_("pictures").download(src_filename)
                     if file_data:
-                        # Optimize the image data before uploading
                         compressed_data = compress_image_bytes(file_data)
-                        
                         if compressed_data:
-                            # Use compressed data and force JPEG extension
                             file_data = compressed_data
                             ext = ".jpg"
                             content_type = "image/jpeg"
                         else:
-                            # Fallback to original if compression fails
                             ext = os.path.splitext(src_filename)[1]
-                            # Use dest_path logic later for mimetype guessing, or just default:
                             content_type = mimetypes.guess_type(src_filename)[0] or 'application/octet-stream'
 
                         safe_ay = academic_year_form.replace('/', '-').replace('\\', '-')
                         safe_sem = semester.replace(' ', '_')
                         dest_path = f"{safe_ay}/{safe_sem}/{p['student_id']}_picture{ext}"
                         
-                        # Use explicitly determined content_type
                         upload_res = supabase_admin.storage.from_("archive").upload(
-                            dest_path, 
-                            file_data, 
-                            {"upsert": "true", "content-type": content_type}
+                            dest_path, file_data, {"upsert": "true", "content-type": content_type}
                         )
-
                         if hasattr(upload_res, 'status_code') and not str(upload_res.status_code).startswith('2'):
                              print(f"Failed to upload picture")
                         else:
