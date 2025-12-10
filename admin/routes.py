@@ -460,6 +460,10 @@ def admin_printing():
         print_settings = settings_res.data if settings_res.data else {}
 
         query = supabase.table("profiles").select("program, year_level, section, major, semester")
+        
+        # --- UPDATE: Filter out unverified students ---
+        query = query.eq('email_verified', True)
+        # ----------------------------------------------
 
         if current_program:
             query = query.eq('program', current_program)
@@ -472,7 +476,12 @@ def admin_printing():
             
         profiles = query.execute().data
         
-        all_profiles_res = supabase.table("profiles").select("program, year_level, section, semester").execute()
+        # --- UPDATE: Filter dropdown options to only show valid data ---
+        all_profiles_query = supabase.table("profiles").select("program, year_level, section, semester")
+        all_profiles_query = all_profiles_query.eq('email_verified', True)
+        all_profiles_res = all_profiles_query.execute()
+        # ---------------------------------------------------------------
+        
         all_profiles_data = all_profiles_res.data
         
         all_programs = sorted(list(set(p['program'] for p in all_profiles_data if p.get('program'))))
@@ -516,6 +525,7 @@ def admin_printing():
         flash(f"Error fetching groups: {str(e)}", "error")
         return render_template('printing.html', groups=[], error=str(e), all_programs=[], all_years=[], all_sections=[], all_semesters=[])
 
+# ... [Keep the rest of the file (save_print_settings, print_preview, etc.) unchanged] ...
 @admin_bp.route('/save_print_settings', methods=['POST'])
 @admin_required
 def admin_save_print_settings():
