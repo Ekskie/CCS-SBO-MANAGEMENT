@@ -61,7 +61,7 @@
 
             <fieldset class="space-y-4">
                 <legend class="text-lg font-semibold text-gray-700 border-b pb-2 w-full mb-2">Personal Information</legend>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4"> {# Changed to 4 columns #}
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {{ form_input('first_name', 'First Name', student.first_name) }}
                     {{ form_input('middle_name', 'Middle Name', student.middle_name, required=False) }}
                     {{ form_input('last_name', 'Last Name', student.last_name) }}
@@ -90,11 +90,13 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     
+                    {# Added 'Graduate' to the options #}
                     {{ form_select('year_level', 'Year Level', student.year_level,
                                    options=[{'value': '1st Year', 'text': '1st Year'},
                                             {'value': '2nd Year', 'text': '2nd Year'},
                                             {'value': '3rd Year', 'text': '3rd Year'},
-                                            {'value': '4th Year', 'text': '4th Year'}],
+                                            {'value': '4th Year', 'text': '4th Year'},
+                                            {'value': 'Graduate', 'text': 'Graduate'}],
                                    id='year_level', onchange='adminToggleMajor()') }}
                     
                     {{ form_select('section', 'Section', student.section,
@@ -103,11 +105,29 @@
                                             {'value': 'C', 'text': 'C'},
                                             {'value': 'D', 'text': 'D'}]) }}
                     
-                    <div id="major-wrapper">
+                    {# Major Wrapper #}
+                    <div id="major-wrapper" style="display: none;">
                         <label for="major" class="block text-sm font-medium text-gray-700 mb-1">Major (if applicable)</label>
                         <select name="major" id="major"
                                 class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                             <option value="">None</option>
+                        </select>
+                    </div>
+
+                    {# Added Graduating Year Wrapper #}
+                    <div id="grad-year-wrapper" style="display: none;">
+                        <label for="graduating_year" class="block text-sm font-medium text-gray-700 mb-1">Graduating Academic Year</label>
+                        <select name="graduating_year" id="graduating_year"
+                                class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                            <option value="">Select Year</option>
+                            {% set current_year = 2023 %}
+                            {% for i in range(5) %}
+                            {% set start = current_year + i %}
+                            {% set end = start + 1 %}
+                            {% set ay = start ~ '-' ~ end %}
+                            <option value="{{ ay }}" {% if student.graduating_year == ay %}selected{% endif %}>AY {{ ay }}</option>
+                            {% endfor %}
+                            <option value="2022-2023" {% if student.graduating_year == '2022-2023' %}selected{% endif %}>AY 2022-2023</option>
                         </select>
                     </div>
                 </div>
@@ -185,38 +205,53 @@
         const yearEl = document.getElementById('year_level');
         const majorWrapper = document.getElementById('major-wrapper');
         const majorEl = document.getElementById('major');
+        
+        // New Elements for Graduate Logic
+        const gradWrapper = document.getElementById('grad-year-wrapper');
+        const gradEl = document.getElementById('graduating_year');
 
         const programValue = programEl.value;
         const yearValue = yearEl.value;
 
-        const majors = majorOptions[programValue] || [];
-        const isMajorYear = yearValue === '3rd Year' || yearValue === '4th Year';
-        const hasMajors = majors.length > 0;
+        // Reset visibility and required states
+        majorWrapper.style.display = 'none';
+        majorEl.required = false;
+        gradWrapper.style.display = 'none';
+        gradEl.required = false;
 
-        // Clear existing major options
-        majorEl.innerHTML = '<option value="">None</option>';
-
-        if (isMajorYear && hasMajors) {
-            // Add new options
-            majors.forEach(function(major) {
-                const option = new Option(major.text, major.value);
-                majorEl.add(option);
-            });
-
-            // Show and require
-            majorWrapper.style.display = 'block';
-            majorEl.required = true;
+        // --- Logic for Graduate ---
+        if (yearValue === 'Graduate') {
+            gradWrapper.style.display = 'block';
+            gradEl.required = true;
+            majorEl.value = ""; // Clear major
+        }
+        // --- Logic for 3rd/4th Year (Majors) ---
+        else {
+            gradEl.value = ""; // Clear grad year
             
-            // Re-select the student's current major if it's in the list
-            if (majors.some(m => m.value === currentMajor)) {
-                majorEl.value = currentMajor;
+            const majors = majorOptions[programValue] || [];
+            const isMajorYear = yearValue === '3rd Year' || yearValue === '4th Year';
+            const hasMajors = majors.length > 0;
+
+            // Clear existing major options
+            majorEl.innerHTML = '<option value="">None</option>';
+
+            if (isMajorYear && hasMajors) {
+                // Add new options
+                majors.forEach(function(major) {
+                    const option = new Option(major.text, major.value);
+                    majorEl.add(option);
+                });
+
+                // Show and require
+                majorWrapper.style.display = 'block';
+                majorEl.required = true;
+                
+                // Re-select the student's current major if it's in the list
+                if (majors.some(m => m.value === currentMajor)) {
+                    majorEl.value = currentMajor;
+                }
             }
-            
-        } else {
-            // Hide and unrequire
-            majorWrapper.style.display = 'none';
-            majorEl.value = ''; // Set value to 'None'
-            majorEl.required = false;
         }
     }
 

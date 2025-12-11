@@ -218,9 +218,15 @@ def admin_edit_student(student_id):
 
             year_level = request.form.get('year_level')
             major = request.form.get('major')
-            program = request.form.get('program') 
+            program = request.form.get('program')
+            graduating_year = request.form.get('graduating_year')
 
-            if year_level in ("3rd Year", "4th Year"):
+            # --- Logic for Major vs. Graduate Year ---
+            if year_level == 'Graduate':
+                major = None
+                # graduating_year is taken from form
+            elif year_level in ("3rd Year", "4th Year"):
+                graduating_year = None # Reset grad year
                 if program in ("BSIT", "BSCS"):
                     if not major:
                         flash(f"Major is required for 3rd and 4th year {program} students.")
@@ -229,7 +235,10 @@ def admin_edit_student(student_id):
                 else: 
                     major = None
             else: 
-                 major = None
+                # 1st/2nd Year
+                major = None
+                graduating_year = None
+            # -----------------------------------------
 
             first_name = request.form.get('first_name')
             last_name = request.form.get('last_name')
@@ -244,6 +253,7 @@ def admin_edit_student(student_id):
                 "year_level": year_level,
                 "section": request.form.get('section'),
                 "major": major,
+                "graduating_year": graduating_year, # Added this field
                 "account_type": request.form.get('account_type'),
                 "picture_disapproval_reason": current_picture_reason,
                 "signature_disapproval_reason": current_signature_reason,
@@ -254,6 +264,7 @@ def admin_edit_student(student_id):
             picture_file = request.files.get('picture')
             signature_file = request.files.get('signature')
 
+            # ... (rest of the file logic for image/signature processing remains exactly the same) ...
             if picture_file and picture_file.filename:
                 picture_bytes = picture_file.read()
                 if len(picture_bytes) > Config.MAX_FILE_SIZE: 
@@ -319,7 +330,7 @@ def admin_edit_student(student_id):
     except Exception as e:
         flash(f"Error fetching profile: {str(e)}", "error")
         return redirect(url_for('admin.admin_students'))
-
+    
 @admin_bp.route('/delete_student/<student_id>', methods=['POST'])
 @admin_required
 def admin_delete_student(student_id):
@@ -410,7 +421,6 @@ def admin_archive():
         total_items = archives_res.count if archives_res.count else 0
         total_pages = (total_items + per_page - 1) // per_page
         
-        # Set Philippines timezone (Keep existing logic)
         ph_tz = pytz.timezone('Asia/Manila')
         
         for archive in archives:
@@ -421,7 +431,6 @@ def admin_archive():
             except Exception as parse_e:
                 archive['created_at_display'] = str(archive.get('created_at', ''))
 
-        # Fetch options for filters (Keep existing logic)
         all_options_res = supabase.table("archived_groups").select("academic_year, semester, group_name").execute()
         all_data = all_options_res.data
         
@@ -549,7 +558,6 @@ def admin_printing():
         flash(f"Error fetching groups: {str(e)}", "error")
         return render_template('printing.html', groups=[], error=str(e), all_programs=[], all_years=[], all_sections=[], all_semesters=[])
 
-# ... [Keep the rest of the file (save_print_settings, print_preview, etc.) unchanged] ...
 @admin_bp.route('/save_print_settings', methods=['POST'])
 @admin_required
 def admin_save_print_settings():
@@ -780,7 +788,7 @@ def admin_archive_group():
                 if p.get('major'): course_parts.append(p.get('major'))
                 course = " - ".join(filter(None, course_parts)).strip()
             
-            # 5. Handle Images (Keep your existing logic here)
+            # 5. Handle Images 
             archived_pic_url = p.get('picture_url') 
             if p.get('picture_url'):
                 try:
@@ -863,7 +871,6 @@ def admin_archive_group():
 @admin_bp.route('/archive_preview/<archive_id>')
 @admin_required
 def admin_archive_preview(archive_id):
-    # ... (Keep existing logic, omitted for brevity as it's correct) ...
     try:
         archive_res = supabase.table("archived_groups").select("*").eq("id", archive_id).single().execute()
         if not archive_res.data:
@@ -892,7 +899,6 @@ def admin_archive_preview(archive_id):
 @admin_bp.route('/delete_archive/<archive_id>', methods=['POST'])
 @admin_required
 def admin_delete_archive(archive_id):
-    # ... (Keep existing logic, omitted for brevity) ...
     try:
         archive_res = supabase.table("archived_groups").select("group_name, academic_year").eq("id", archive_id).single().execute()
         archive_details = "Unknown Archive"
@@ -1041,7 +1047,6 @@ def admin_review_student(student_id):
 @admin_bp.route('/activity_logs')
 @admin_required
 def activity_logs():
-    # ... (Keep existing logic) ...
     try:
         response = supabase.table("activity_logs").select("*").order("created_at", desc=True).limit(50).execute()
         logs = response.data
