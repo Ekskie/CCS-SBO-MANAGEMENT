@@ -1006,9 +1006,10 @@ def admin_review_student(student_id):
             if update_data:
                 supabase.table("profiles").update(update_data).eq("id", student_id).execute()
 
-                # Send email notification
+                # Send email notification & Capture result
+                email_sent = False
                 if student.get('email'):
-                    send_status_email(student.get('email'), email_subject, email_body)
+                    email_sent = send_status_email(student.get('email'), email_subject, email_body)
 
                 # Log the activity
                 student_name = f"{student.get('first_name')} {student.get('last_name')}"
@@ -1019,7 +1020,12 @@ def admin_review_student(student_id):
                     details=f"Updated student status: {action}."
                 )
 
-                flash("Student status updated and email notification sent.", "success")
+                # Check if email actually worked
+                if email_sent:
+                    flash("Student status updated and email notification sent.", "success")
+                else:
+                    # Flash a warning if the database updated but email failed
+                    flash("Student status updated, BUT email notification failed. Check logs.", "warning")
             else:
                 flash("No changes detected.", "info")
 
